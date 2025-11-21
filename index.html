@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CashForge Investment Platform</title>
     
-    <!-- REACT & TAILWIND LIBRARIES -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     
-    <!-- FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
@@ -80,14 +78,78 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- SUPABASE CONFIGURATION ---
-        const PROJECT_URL = 'https://slebhgaxbtqzroyeeipee.supabase.co';
-        const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsZWJoZ2F4YnRxenJveWVpcGVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3MDE3MTgsImV4cCI6MjA3OTI3NzcxOH0.aGveQoWEkg9NqKK7j_4zk-7iyxemmLJa8Z9-qx58xIs';
+        // --- REMOVED SUPABASE INTEGRATION ---
+        // Replaced with a LocalStorage Mock so the app functions without a backend.
         
-        // Client with session persistence disabled to fix file:// errors
-        const supabase = window.supabase.createClient(PROJECT_URL, ANON_KEY, {
-            auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
-        });
+        const supabase = {
+            auth: {
+                getSession: async () => {
+                    const session = JSON.parse(localStorage.getItem('cf_session'));
+                    return { data: { session }, error: null };
+                },
+                signInWithPassword: async ({ email, password }) => {
+                    // Demo Logic: Accepts any login, creates a persistent local user
+                    const userId = 'local-user-id';
+                    const user = { id: userId, email: email };
+                    const session = { user };
+                    localStorage.setItem('cf_session', JSON.stringify(session));
+                    
+                    // Check if profile exists in local storage, if not create default
+                    const key = `cf_profiles_${userId}`;
+                    if (!localStorage.getItem(key)) {
+                        const defaultProfile = { id: userId, email, name: 'Demo Investor', balance: 10000, deposited: 10000, wagered: 0, tasks_completed_today: 0, login_password: password };
+                        localStorage.setItem(key, JSON.stringify(defaultProfile));
+                    }
+                    return { data: { session }, error: null };
+                },
+                signUp: async ({ email, password }) => {
+                    // Demo Logic: Just returns success
+                    const userId = 'local-user-id';
+                    return { data: { user: { id: userId, email } }, error: null };
+                },
+                signOut: async () => {
+                    localStorage.removeItem('cf_session');
+                    return { error: null };
+                }
+            },
+            from: (table) => {
+                return {
+                    select: () => ({
+                        eq: (field, value) => ({
+                            single: async () => {
+                                const data = JSON.parse(localStorage.getItem(`cf_${table}_${value}`)) || null;
+                                return { data, error: null };
+                            },
+                            order: async () => {
+                                const data = JSON.parse(localStorage.getItem(`cf_${table}_${value}`) || '[]');
+                                return { data, error: null };
+                            }
+                        })
+                    }),
+                    insert: async (data) => {
+                        const item = Array.isArray(data) ? data[0] : data;
+                        if (table === 'profiles') {
+                            // Initial profile creation
+                            localStorage.setItem(`cf_profiles_${item.id}`, JSON.stringify({ ...item, balance: 10000, deposited: 10000, wagered: 0 }));
+                        } else if (table === 'transactions') {
+                            const key = `cf_transactions_${item.user_id}`;
+                            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+                            const newTx = { ...item, id: Date.now(), date: new Date().toISOString() };
+                            localStorage.setItem(key, JSON.stringify([newTx, ...existing]));
+                        }
+                        return { data: null, error: null };
+                    },
+                    update: (updates) => ({
+                        eq: async (field, value) => {
+                            const key = `cf_${table}_${value}`;
+                            const existing = JSON.parse(localStorage.getItem(key) || '{}');
+                            localStorage.setItem(key, JSON.stringify({ ...existing, ...updates }));
+                            return { data: null, error: null };
+                        }
+                    })
+                };
+            }
+        };
 
         // Safe wrapper for background actions
         const runSafe = async (operation, fallback = null) => {
@@ -681,5 +743,4 @@
         root.render(<CashForgeApp />);
     </script>
 </body>
-
 </html>
