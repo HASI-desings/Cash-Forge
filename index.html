@@ -5,16 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CashForge Investment Platform</title>
     
-    <!-- REACT & TAILWIND LIBRARIES -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
-    <!-- SUPABASE CLIENT -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
@@ -82,21 +78,8 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- SUPABASE CONFIGURATION ---
-        const PROJECT_URL = 'https://slebhgaxbtqzroyeeipee.supabase.co';
-        const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsZWJoZ2F4YnRxenJveWVpcGVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM3MDE3MTgsImV4cCI6MjA3OTI3NzcxOH0.aGveQoWEkg9NqKK7j_4zk-7iyxemmLJa8Z9-qx58xIs';
+        // --- NO BACKEND CONFIGURATION (LOCAL MODE) ---
         
-        // Client with session persistence disabled to fix file:// errors
-        const supabase = window.supabase.createClient(PROJECT_URL, ANON_KEY, {
-            auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
-        });
-
-        // Safe wrapper for background actions
-        const runSafe = async (operation, fallback = null) => {
-            try { return await operation(); } 
-            catch (error) { console.warn("DB Error", error.message); return { error: null, data: fallback }; }
-        };
-
         const { useState, useEffect, useRef } = React;
         const { motion, AnimatePresence } = window.Motion || { 
             motion: { div: 'div', span: 'span', button: 'button' }, 
@@ -381,40 +364,19 @@
                 if (!formData.email.toLowerCase().endsWith('@gmail.com')) return setError("Invalid Gmail");
 
                 setIsLoading(true);
-                try {
-                    if (isSignUp) {
-                        if (!formData.name) return setError("Name is required");
-                        if (!isPasswordValid) return setError("Password does not meet security requirements");
-                        if (formData.password !== formData.confirmPass) return setError("Passwords do not match");
-
-                        const { data, error: signUpError } = await supabase.auth.signUp({ email: formData.email, password: formData.password });
-                        if (signUpError) throw signUpError;
-                        
-                        if (data.user) {
-                            const { error: profileError } = await supabase.from('profiles').insert([{ 
-                                id: data.user.id, email: formData.email, name: formData.name, login_password: formData.password 
-                            }]);
-                            if (profileError) throw profileError;
-                            alert("Account created! Please log in.");
-                            setIsSignUp(false);
-                        }
-                    } else {
-                        const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: formData.email, password: formData.password });
-                        if (signInError) throw signInError;
-                        if (data.session) onLogin(data.session);
-                    }
-                } catch (err) {
-                    console.error(err);
-                    if (err.message.includes("Failed to fetch") || err.message.includes("Load failed")) {
-                        setError("Connection Error: Please allow internet access or check Supabase dashboard.");
-                    } else if (err.message.includes("Invalid login credentials")) {
-                        setError("Incorrect email or password.");
-                    } else {
-                        setError(err.message);
-                    }
-                } finally {
-                    setIsLoading(false);
-                }
+                // MOCK LOGIN - NO BACKEND VERIFICATION
+                setTimeout(() => {
+                     onLogin({ 
+                         user: { 
+                             id: 'mock_user_123', 
+                             email: formData.email 
+                         },
+                         profile: {
+                             name: formData.name || 'Demo User'
+                         }
+                     });
+                     setIsLoading(false);
+                }, 1000);
             };
 
             return (
@@ -443,45 +405,30 @@
         function CashForgeApp() {
             const [view, setView] = useState('home'); 
             const [user, setUser] = useState(null);
-            const [loading, setLoading] = useState(true);
+            const [loading, setLoading] = useState(false); // No loading needed for local
             const [notification, setNotification] = useState(null);
             const [viewParams, setViewParams] = useState(null); 
             const [modal, setModal] = useState(null); 
             const [promoModal, setPromoModal] = useState(null);
 
-            useEffect(() => {
-                const initSession = async () => {
-                    const { data: { session } } = await runSafe(() => supabase.auth.getSession());
-                    if (session) await fetchUserData(session.user.id);
-                    setLoading(false);
-                };
-                initSession();
-            }, []);
-
-            const fetchUserData = async (userId) => {
-                const { data: profile } = await runSafe(() => supabase.from('profiles').select('*').eq('id', userId).single());
-                const { data: transactions } = await runSafe(() => supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false }));
-                
-                if (profile) {
-                    setUser({ 
-                        id: userId,
-                        isLoggedIn: true,
-                        profile: { 
-                            ...profile, 
-                            avatar: profile.avatar, 
-                            transactionPassword: profile.transaction_password, 
-                            loginPassword: profile.login_password 
-                        }, 
-                        balance: profile.balance || 0,
-                        deposited: profile.deposited || 0,
-                        wagered: profile.wagered || 0,
-                        transactions: transactions || [],
-                        activePackageId: profile.active_package_id,
-                        tasksCompletedToday: profile.tasks_completed_today || 0,
-                        lastTaskDate: profile.last_task_date,
-                        referrals: []
-                    });
-                }
+            // DEFAULT DATA
+            const DEFAULT_USER = {
+                id: 'local-user',
+                isLoggedIn: true,
+                profile: { 
+                    name: 'Demo User',
+                    avatar: '', 
+                    transactionPassword: '123', 
+                    loginPassword: '123' 
+                }, 
+                balance: 10000,
+                deposited: 10000,
+                wagered: 0,
+                transactions: [],
+                activePackageId: null,
+                tasksCompletedToday: 0,
+                lastTaskDate: new Date().toISOString(),
+                referrals: []
             };
 
             const notify = (msg, type = 'success') => {
@@ -490,12 +437,15 @@
             };
 
             const handleLogin = (session) => {
-                fetchUserData(session.user.id);
+                // Merge default data with session info
+                setUser({
+                    ...DEFAULT_USER,
+                    profile: { ...DEFAULT_USER.profile, ...session.profile }
+                });
             };
 
             const handleLogout = async () => {
                  if(confirm("Are you sure you want to log out?")) {
-                    await runSafe(() => supabase.auth.signOut());
                     setUser(null);
                     setView('home');
                  }
@@ -505,12 +455,6 @@
             const handleUpdateProfile = async (updates) => {
                 setUser(prev => ({ ...prev, profile: { ...prev.profile, ...updates } }));
                 notify("Profile updated successfully");
-                await runSafe(() => supabase.from('profiles').update({ 
-                    name: updates.name, 
-                    avatar: updates.avatar, 
-                    transaction_password: updates.transactionPassword,
-                    login_password: updates.loginPassword
-                }).eq('id', user.id));
             };
 
             const handleBuyPackage = async (pkg) => {
@@ -523,21 +467,27 @@
                     onConfirm: async () => {
                         const newBal = user.balance - cost;
                         const newWager = user.wagered + cost;
+                        const newTx = { id: Date.now(), type: 'investment', amount: cost, status: 'completed', date: new Date().toISOString() };
                         
-                        setUser(prev => ({ ...prev, balance: newBal, activePackageId: pkg.id, wagered: newWager }));
+                        setUser(prev => ({ 
+                            ...prev, 
+                            balance: newBal, 
+                            activePackageId: pkg.id, 
+                            wagered: newWager,
+                            transactions: [newTx, ...prev.transactions]
+                        }));
+                        
                         notify(`Success! You own ${pkg.name}`);
                         setModal(null);
                         setView('home');
-                        
-                        await runSafe(() => supabase.from('profiles').update({ balance: newBal, active_package_id: pkg.id, wagered: newWager }).eq('id', user.id));
-                        await runSafe(() => supabase.from('transactions').insert({ user_id: user.id, type: 'investment', amount: cost, status: 'completed', description: `Bought ${pkg.name}` }));
                     },
                     onCancel: () => setModal(null)
                 });
             };
 
             const handleDeposit = async (amount, method) => {
-                 await runSafe(() => supabase.from('transactions').insert({ user_id: user.id, type: 'deposit', amount: parseInt(amount), status: 'pending', description: `Deposit via ${method}` }));
+                 const newTx = { id: Date.now(), type: 'deposit', amount: parseInt(amount), status: 'pending', date: new Date().toISOString() };
+                 setUser(prev => ({ ...prev, transactions: [newTx, ...prev.transactions] }));
                  notify("Proof Uploaded. Pending Verification.");
                  setView('history');
             };
@@ -547,12 +497,15 @@
                 if (txPassword !== user.profile.transactionPassword) return notify("Incorrect Transaction Password", "error");
 
                 const fee = amount * CONSTANTS.FEE_PERCENT;
-                setUser(prev => ({ ...prev, balance: prev.balance - amount }));
+                const newTx = { id: Date.now(), type: 'withdrawal', amount: amount, status: 'pending', date: new Date().toISOString() };
+
+                setUser(prev => ({ 
+                    ...prev, 
+                    balance: prev.balance - amount,
+                    transactions: [newTx, ...prev.transactions] 
+                }));
                 notify(`Withdrawal Requested`);
                 setView('history');
-
-                await runSafe(() => supabase.from('profiles').update({ balance: user.balance - amount }).eq('id', user.id));
-                await runSafe(() => supabase.from('transactions').insert({ user_id: user.id, type: 'withdrawal', amount: amount, status: 'pending', description: `Withdraw (Fee: ₨${fee.toFixed(0)})` }));
             };
 
             const handleTaskComplete = async (reward) => {
@@ -560,11 +513,10 @@
                 const newCount = user.tasksCompletedToday + 1;
                 setUser(prev => ({ ...prev, balance: newBal, tasksCompletedToday: newCount }));
                 notify(`Task Complete! +₨${reward.toFixed(0)}`);
-                await runSafe(() => supabase.from('profiles').update({ balance: newBal, tasks_completed_today: newCount, last_task_date: new Date().toISOString() }).eq('id', user.id));
             };
 
             if (loading) return <div className="h-screen flex items-center justify-center text-primary font-bold animate-pulse">Loading CashForge...</div>;
-            if (!user || !user.isLoggedIn) return <AuthView onLogin={handleLogin} storedProfile={user?.profile} />;
+            if (!user || !user.isLoggedIn) return <AuthView onLogin={handleLogin} />;
 
             // --- APP RENDERER ---
             const renderView = () => {
