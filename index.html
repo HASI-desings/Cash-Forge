@@ -3,34 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CashForge | Master Home</title>
+    <title>CashForge | Ultimate Profile System</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        brand: { DEFAULT: '#00FFFF', dim: '#00e6e6', dark: '#008b8b' },
-                        slate: { 850: '#1e293b' }
+                        brand: { DEFAULT: '#00FFFF', dim: '#00e6e6', dark: '#008b8b', light: '#dcfcfc' },
+                        slate: { 850: '#1e293b', 900: '#0f172a' }
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         heading: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     },
                     animation: {
-                        'float': 'float 6s ease-in-out infinite',
+                        'spin-slow': 'spin 3s linear infinite',
+                        'bounce-slight': 'bounceSlight 2s infinite',
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                     },
                     keyframes: {
-                        float: {
+                        bounceSlight: {
                             '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
+                            '50%': { transform: 'translateY(-5px)' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' },
                         }
                     }
                 }
@@ -39,370 +46,761 @@
     </script>
 
     <style>
-        /* --- GLOBAL THEME --- */
+        /* =========================================
+           1. MASTER DESIGN SYSTEM
+           ========================================= */
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-bg: rgba(255, 255, 255, 0.75);
             --glass-border: rgba(255, 255, 255, 0.6);
-            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+            --app-bg: linear-gradient(180deg, #FFFFFF 0%, #dcfcfc 40%, #00FFFF 50%, #dcfcfc 60%, #FFFFFF 100%);
         }
 
         body {
             color: #1e293b;
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(180deg, #FFFFFF 0%, #dcfcfc 40%, #00FFFF 50%, #dcfcfc 60%, #FFFFFF 100%);
+            background: var(--app-bg);
+            background-attachment: fixed;
             min-height: 100vh;
-            padding-bottom: 100px; /* Increased for the popping nav */
-            padding-top: 80px;
+            padding-bottom: 110px; /* Space for Nav */
+            padding-top: 20px;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- BACKGROUND --- */
+        /* --- BACKGROUND FX --- */
         .bg-dots {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-image: radial-gradient(#008b8b 1px, transparent 1px);
-            background-size: 24px 24px; opacity: 0.15; z-index: -2; pointer-events: none;
+            background-size: 24px 24px; opacity: 0.12; z-index: -2; pointer-events: none;
         }
-        .blob {
-            position: fixed; border-radius: 50%; filter: blur(60px); z-index: -1; opacity: 0.4;
-            animation: float 10s infinite ease-in-out;
-        }
-        .blob-1 { top: 10%; left: -10%; width: 200px; height: 200px; background: #00FFFF; }
-        .blob-2 { bottom: 20%; right: -10%; width: 250px; height: 250px; background: #00FFFF; animation-delay: 2s; }
 
-        /* --- UI COMPONENTS --- */
+        /* --- COMPONENTS --- */
         .glass-panel {
-            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.7); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-            transition: transform 0.2s;
-        }
-        .glass-card:active { transform: scale(0.98); }
-        
+        .glass-panel:active { transform: scale(0.99); }
+
         .gradient-bar {
             background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(200,255,255,0.95), rgba(255,255,255,0.95));
-            backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.8);
+            backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.8);
         }
 
-        /* --- DYNAMIC NAV ANIMATION --- */
-        .nav-item {
-            position: relative;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* --- SPA ROUTING TRANSITIONS (iOS Style) --- */
+        .view-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            padding-top: 20px; padding-bottom: 110px; overflow-y: auto;
+            background: var(--app-bg);
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease;
+            opacity: 0; transform: translateX(30%); pointer-events: none; z-index: 10;
+            display: none; /* Optimized for performance */
+        }
+        .view-container.active {
+            display: block; opacity: 1; transform: translateX(0); pointer-events: auto; position: relative; z-index: 1;
         }
 
-        /* Default State (Inactive) */
-        .nav-icon-box {
-            width: auto; height: auto;
-            background: transparent;
-            padding: 0;
-            border-radius: 0;
-            transform: translateY(0);
-            border: 0;
-            box-shadow: none;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy transition */
+        /* --- CUSTOM INPUTS --- */
+        .input-group { position: relative; margin-bottom: 16px; }
+        .input-glass {
+            background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8);
+            width: 100%; padding: 16px; padding-left: 16px; border-radius: 16px;
+            font-size: 16px; font-weight: 600; color: #334155; outline: none;
+            transition: all 0.2s;
+        }
+        .input-glass:focus { background: white; border-color: #00FFFF; box-shadow: 0 0 0 4px rgba(0, 255, 255, 0.15); }
+        .input-label {
+            position: absolute; top: -8px; left: 12px; background: white;
+            padding: 0 6px; font-size: 10px; font-weight: 700; color: #94a3b8;
+            border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        /* --- CHATBOT UI --- */
+        .chat-container { display: flex; flex-direction: column; height: 65vh; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 10px; scroll-behavior: smooth; }
+        .chat-bubble {
+            max-width: 80%; padding: 14px; border-radius: 18px; font-size: 14px; line-height: 1.5;
+            position: relative; margin-bottom: 12px; animation: slide-up 0.3s;
+        }
+        .bubble-bot {
+            background: white; border-bottom-left-radius: 4px; border: 1px solid rgba(0,0,0,0.05); color: #334155;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        .bubble-user {
+            background: linear-gradient(135deg, #00FFFF, #06b6d4); border-bottom-right-radius: 4px;
+            color: white; margin-left: auto; font-weight: 500; text-align: right;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
+        }
+        .typing-indicator span {
+            display: inline-block; width: 6px; height: 6px; background: #94a3b8;
+            border-radius: 50%; animation: bounceSlight 1s infinite;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        /* --- PIN PAD (SECURITY) --- */
+        .pin-dot {
+            width: 16px; height: 16px; border-radius: 50%; border: 2px solid #cbd5e1;
+            transition: all 0.2s;
+        }
+        .pin-dot.filled { background: #008b8b; border-color: #008b8b; transform: scale(1.1); }
+        .keypad-btn {
+            width: 64px; height: 64px; border-radius: 50%; font-size: 24px; font-weight: 600;
             display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.5); color: #1e293b; transition: all 0.1s;
+            user-select: none; -webkit-user-select: none;
         }
-        .nav-icon { font-size: 24px; color: #94a3b8; transition: color 0.3s; }
-        .nav-text { font-size: 10px; font-weight: 500; color: #94a3b8; margin-top: 4px; transition: all 0.3s; }
+        .keypad-btn:active { background: #00FFFF; color: white; transform: scale(0.9); }
 
-        /* Active State */
+        /* --- TOAST & LOADERS --- */
+        .toast-container { position: fixed; top: 20px; left: 0; width: 100%; z-index: 9999; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .toast {
+            pointer-events: auto; padding: 12px 24px; border-radius: 99px;
+            display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); backdrop-filter: blur(10px);
+            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* --- NAV BAR --- */
+        .nav-icon-box {
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s;
+        }
         .nav-item.active .nav-icon-box {
-            width: 56px; height: 56px;
-            background: linear-gradient(to top right, #67e8f9, #06b6d4); /* Cyan Gradient */
-            border-radius: 999px;
-            transform: translateY(-24px); /* Moves Up */
-            border: 4px solid white;
+            width: 56px; height: 56px; background: linear-gradient(to top right, #67e8f9, #06b6d4);
+            border-radius: 50%; transform: translateY(-24px); border: 4px solid white;
             box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.5);
         }
-        .nav-item.active .nav-icon { color: white; font-size: 26px; }
-        .nav-item.active .nav-text { 
-            color: #0e7490; 
-            transform: translateY(-12px); /* Text moves up slightly to hug the bubble */
-            font-weight: 700;
-        }
-
-        /* --- MODAL & TOASTS --- */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
-            z-index: 1000; display: none; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s ease;
-        }
-        .modal-overlay.active { display: flex; opacity: 1; }
-        .receipt-slip {
-            background: #ffffff; width: 90%; max-width: 340px; border-radius: 24px; padding: 24px;
-            position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            transform: scale(0.9) translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .modal-overlay.active .receipt-slip { transform: scale(1) translateY(0); }
-        .dashed-line { border-bottom: 2px dashed #cbd5e1; margin: 16px 0; width: 100%; }
-
-        .toast-enter { animation: toast-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
-        @keyframes toast-in {
-            from { transform: translate(-50%, -20px); opacity: 0; }
-            to { transform: translate(-50%, 0); opacity: 1; }
-        }
-
-        .accordion-content { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; }
-        .accordion-content.open { max-height: 500px; opacity: 1; }
-        .progress-bar { height: 3px; background: #008b8b; width: 0%; }
-        .progress-active { animation: fillProgress 12s linear forwards; }
-        @keyframes fillProgress { from { width: 0%; } to { width: 100%; } }
+        .nav-item.active i { color: white; font-size: 24px; }
+        .nav-item.active span { color: #0891b2; font-weight: 700; transform: translateY(-12px); display: block; }
     </style>
 </head>
 <body>
 
     <div class="bg-dots"></div>
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
 
-    <header class="gradient-bar fixed top-0 w-full z-50 h-[70px] flex items-center justify-between px-5 shadow-sm">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300 to-cyan-500 shadow-lg shadow-cyan-200/50">
-                <i class="ph-bold ph-lightning text-white text-xl"></i>
-            </div>
+    <section id="view-profile" class="view-container active w-full max-w-lg mx-auto px-4">
+        
+        <div class="flex items-center justify-between mb-8 pt-4">
             <div>
-                <span class="heading-font font-bold text-xl tracking-tight text-slate-800 leading-none block">CashForge</span>
+                <h2 class="heading-font text-2xl font-bold text-slate-800">My Profile</h2>
+                <p class="text-xs text-slate-500 font-medium">Manage account & funds</p>
             </div>
-        </div>
-        <div class="glass-panel px-4 py-1.5 rounded-full flex items-center gap-2 border border-cyan-100 shadow-sm">
-            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span class="heading-font font-bold text-slate-800" id="header-balance">₨ 10,000</span>
-        </div>
-    </header>
-
-    <main class="w-full max-w-lg mx-auto px-4 relative z-10" id="main-content">
-        <div class="mt-2 mb-8 relative cursor-pointer glass-panel rounded-2xl overflow-hidden shadow-lg transform transition-transform duration-300 hover:scale-[1.01]">
-            <div class="relative h-44 w-full" id="carousel-container">
-                <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-700 opacity-100 slide-item">
-                    <div class="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center mb-3 text-brand-dark">
-                        <i class="ph-duotone ph-gift text-2xl"></i>
-                    </div>
-                    <h2 class="heading-font text-2xl font-bold text-slate-800 mb-1">New User Bonus</h2>
-                    <p class="text-sm text-slate-500">Get 3 Free Keys instantly.</p>
-                </div>
-                <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-700 opacity-0 slide-item">
-                    <div class="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center mb-3 text-brand-dark">
-                        <i class="ph-duotone ph-crown text-2xl"></i>
-                    </div>
-                    <h2 class="heading-font text-2xl font-bold text-slate-800 mb-1">VIP Salaries</h2>
-                    <p class="text-sm text-slate-500">Earn monthly passive income.</p>
-                </div>
-            </div>
-            <div class="absolute bottom-0 left-0 w-full h-[3px] bg-slate-100">
-                <div id="slide-progress" class="progress-bar progress-active"></div>
-            </div>
+            <button onclick="App.auth.confirmLogout()" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                <i class="ph-bold ph-sign-out text-xl"></i>
+            </button>
         </div>
 
-        <div class="flex items-center justify-between mb-4 px-1">
-            <h3 class="heading-font text-xl font-bold text-slate-800 flex items-center gap-2">
-                <i class="ph-fill ph-trend-up text-brand-dark"></i> Packages
-            </h3>
-        </div>
-        <div id="packages-container" class="space-y-4 pb-6">
+        <div class="glass-panel rounded-[32px] p-6 mb-6 text-center relative overflow-hidden group">
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-cyan-200/30 rounded-full blur-3xl"></div>
+            
+            <div class="relative w-28 h-28 mx-auto mb-4">
+                <div class="absolute inset-0 rounded-full border-[3px] border-cyan-200 animate-spin-slow border-t-transparent"></div>
+                <img id="profile-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" class="w-full h-full rounded-full border-4 border-white shadow-xl bg-white object-cover relative z-10">
+                <button onclick="App.router.go('view-settings')" class="absolute bottom-1 right-1 bg-slate-800 text-white p-2 rounded-full z-20 shadow-md hover:scale-110 transition-transform">
+                    <i class="ph-bold ph-pencil-simple text-sm"></i>
+                </button>
             </div>
-    </main>
+
+            <h3 class="heading-font text-2xl font-bold text-slate-800 mb-1" id="profile-name">Loading...</h3>
+            <div class="inline-flex items-center gap-1 bg-cyan-50 px-3 py-1 rounded-full border border-cyan-100 mb-6">
+                <i class="ph-fill ph-crown text-brand-dark text-xs"></i>
+                <span class="text-xs font-bold text-brand-dark tracking-wide uppercase">VIP Level 2</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col items-center">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Available Balance</span>
+                    <span class="heading-font text-xl font-bold text-slate-800" id="profile-balance">...</span>
+                </div>
+                <div class="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col items-center">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Lifetime Profit</span>
+                    <span class="heading-font text-xl font-bold text-green-600" id="profile-profit">...</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="App.router.go('view-deposit')" class="flex-1 py-3.5 rounded-xl bg-slate-800 text-white font-bold text-sm shadow-lg shadow-slate-300/50 active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-arrow-down"></i> Deposit
+                </button>
+                <button onclick="App.router.go('view-withdraw')" class="flex-1 py-3.5 rounded-xl bg-white text-slate-700 font-bold text-sm border border-slate-200 shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-arrow-up"></i> Withdraw
+                </button>
+            </div>
+        </div>
+
+        <div class="space-y-3 pb-8">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider pl-4 mb-2">Account</h4>
+            
+            <div onclick="App.router.go('view-history')" class="glass-panel rounded-2xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98]">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center"><i class="ph-fill ph-clock-counter-clockwise text-xl"></i></div>
+                    <div><h4 class="font-bold text-slate-700 text-sm">Transaction History</h4><p class="text-[10px] text-slate-400">Deposits, Withdrawals, Rewards</p></div>
+                </div>
+                <i class="ph-bold ph-caret-right text-slate-300"></i>
+            </div>
+
+            <div onclick="App.router.go('view-settings')" class="glass-panel rounded-2xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98]">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center"><i class="ph-fill ph-gear text-xl"></i></div>
+                    <div><h4 class="font-bold text-slate-700 text-sm">Settings</h4><p class="text-[10px] text-slate-400">Security, Profile, App Info</p></div>
+                </div>
+                <i class="ph-bold ph-caret-right text-slate-300"></i>
+            </div>
+
+            <div onclick="App.router.go('view-support')" class="glass-panel rounded-2xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98]">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-cyan-50 text-brand-dark flex items-center justify-center"><i class="ph-fill ph-headset text-xl"></i></div>
+                    <div><h4 class="font-bold text-slate-700 text-sm">Customer Care</h4><p class="text-[10px] text-slate-400">24/7 AI Chat & Support</p></div>
+                </div>
+                <i class="ph-bold ph-caret-right text-slate-300"></i>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-history" class="view-container w-full max-w-lg mx-auto px-4 bg-white/95 backdrop-blur-3xl">
+        <div class="sticky top-0 bg-white/90 backdrop-blur-md pt-4 pb-2 z-20 border-b border-slate-100">
+            <div class="flex items-center gap-4 mb-4">
+                <button onclick="App.router.back()" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 active:scale-95"><i class="ph-bold ph-arrow-left text-lg"></i></button>
+                <h2 class="heading-font text-xl font-bold text-slate-800">History</h2>
+            </div>
+            <div class="flex gap-6 overflow-x-auto no-scrollbar px-2">
+                <button onclick="App.history.filter('all')" id="tab-hist-all" class="tab-btn active text-sm font-bold pb-2 whitespace-nowrap">All Transactions</button>
+                <button onclick="App.history.filter('deposit')" id="tab-hist-deposit" class="tab-btn text-sm font-bold pb-2 whitespace-nowrap">Deposits</button>
+                <button onclick="App.history.filter('withdraw')" id="tab-hist-withdraw" class="tab-btn text-sm font-bold pb-2 whitespace-nowrap">Withdrawals</button>
+            </div>
+        </div>
+
+        <div id="history-list" class="space-y-3 pt-4 pb-8">
+            </div>
+    </section>
+
+    <section id="view-deposit" class="view-container w-full max-w-lg mx-auto px-4 bg-white/95 backdrop-blur-3xl">
+        <div class="flex items-center gap-4 mb-6 pt-4">
+            <button onclick="App.router.back()" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 active:scale-95"><i class="ph-bold ph-arrow-left text-lg"></i></button>
+            <h2 class="heading-font text-xl font-bold text-slate-800">Add Funds</h2>
+        </div>
+
+        <div class="glass-panel rounded-3xl p-6">
+            <div class="input-group">
+                <input type="number" id="dep-amount" oninput="App.finance.calcDeposit()" class="input-glass" placeholder="5000">
+                <label class="input-label">Amount (PKR)</label>
+            </div>
+
+            <div class="bg-cyan-50 rounded-2xl p-5 border border-cyan-100 mb-6 flex flex-col items-center">
+                <span class="text-xs font-bold text-brand-dark uppercase tracking-widest mb-1">You will receive</span>
+                <span class="heading-font text-3xl font-bold text-slate-800" id="dep-receive">0.00 USDT</span>
+                <span class="text-[10px] text-slate-400 mt-1">Rate: 1 USDT = 285 PKR</span>
+            </div>
+
+            <div class="space-y-3 mb-8">
+                <h4 class="text-xs font-bold text-slate-400 uppercase ml-2">Select Network</h4>
+                <div class="flex gap-3">
+                    <button class="flex-1 py-3 rounded-xl border-2 border-cyan-400 bg-cyan-50/50 text-brand-dark font-bold text-xs">TRC20</button>
+                    <button class="flex-1 py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs opacity-50 cursor-not-allowed">BEP20 (Busy)</button>
+                </div>
+            </div>
+
+            <button onclick="App.finance.submitDeposit()" class="w-full py-4 rounded-xl bg-slate-800 text-white font-bold shadow-lg shadow-slate-400/50 active:scale-95 transition-all">
+                Generate Payment Address
+            </button>
+        </div>
+    </section>
+
+    <section id="view-withdraw" class="view-container w-full max-w-lg mx-auto px-4 bg-white/95 backdrop-blur-3xl">
+        <div class="flex items-center gap-4 mb-6 pt-4">
+            <button onclick="App.router.back()" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 active:scale-95"><i class="ph-bold ph-arrow-left text-lg"></i></button>
+            <h2 class="heading-font text-xl font-bold text-slate-800">Withdraw</h2>
+        </div>
+
+        <div class="glass-panel rounded-3xl p-6 mb-6">
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-xs font-bold text-slate-400">Available Balance</span>
+                <span class="font-mono text-sm font-bold text-slate-800" id="with-avail-bal">...</span>
+            </div>
+
+            <div class="input-group">
+                <input type="number" id="with-amount" oninput="App.finance.calcWithdraw()" class="input-glass" placeholder="Min 500">
+                <label class="input-label">Amount (PKR)</label>
+            </div>
+
+            <div class="space-y-3 text-sm border-t border-slate-100 pt-4">
+                <div class="flex justify-between text-slate-500">
+                    <span>Processing Fee (7%)</span>
+                    <span class="font-mono text-red-400" id="with-fee">- ₨ 0</span>
+                </div>
+                <div class="flex justify-between text-slate-800 font-bold text-lg">
+                    <span>You Receive</span>
+                    <span class="font-mono text-brand-dark" id="with-total">₨ 0</span>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="App.security.showPinPad()" class="w-full py-4 rounded-xl bg-slate-800 text-white font-bold shadow-lg shadow-slate-400/50 active:scale-95 transition-all">
+            Confirm Withdrawal
+        </button>
+    </section>
+
+    <section id="view-settings" class="view-container w-full max-w-lg mx-auto px-4 bg-white/95 backdrop-blur-3xl">
+        <div class="flex items-center gap-4 mb-6 pt-4">
+            <button onclick="App.router.back()" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 active:scale-95"><i class="ph-bold ph-arrow-left text-lg"></i></button>
+            <h2 class="heading-font text-xl font-bold text-slate-800">Settings</h2>
+        </div>
+
+        <div class="glass-panel rounded-3xl p-6 mb-6 flex flex-col items-center">
+            <div class="relative w-24 h-24 mb-4 group cursor-pointer" onclick="document.getElementById('avatar-upload').click()">
+                <img id="setting-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full rounded-full border-4 border-white shadow-lg object-cover">
+                <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="ph-bold ph-camera text-white text-2xl"></i>
+                </div>
+            </div>
+            <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="App.settings.updateAvatar(event)">
+            <p class="text-xs text-brand-dark font-bold">Tap to Change Picture</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="glass-panel rounded-2xl p-4">
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">Security</h4>
+                <div class="space-y-1">
+                    <button class="w-full flex justify-between items-center py-3 text-sm font-medium text-slate-700 border-b border-slate-100 last:border-0 active:bg-slate-50">
+                        <span>Change Password</span> <i class="ph-bold ph-caret-right text-slate-300"></i>
+                    </button>
+                    <button class="w-full flex justify-between items-center py-3 text-sm font-medium text-slate-700 border-b border-slate-100 last:border-0 active:bg-slate-50">
+                        <span>Transaction PIN</span> <i class="ph-bold ph-caret-right text-slate-300"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="glass-panel rounded-2xl p-4">
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">App Info</h4>
+                <div class="flex justify-between items-center py-2 text-sm text-slate-600">
+                    <span>Version</span> <span class="font-mono text-xs bg-slate-100 px-2 py-1 rounded">v2.0.4 (Beta)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-support" class="view-container w-full max-w-lg mx-auto px-4 bg-white/95 backdrop-blur-3xl">
+        <div class="flex items-center gap-4 mb-2 pt-4 border-b border-slate-100 pb-2">
+            <button onclick="App.router.back()" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 active:scale-95"><i class="ph-bold ph-arrow-left text-lg"></i></button>
+            <h2 class="heading-font text-xl font-bold text-slate-800">Support</h2>
+        </div>
+
+        <div class="flex gap-4 p-2 mb-2">
+            <button onclick="App.support.switch('chat')" id="tab-support-chat" class="flex-1 py-2 rounded-lg text-xs font-bold bg-slate-800 text-white shadow-md transition-all">AI Assistant</button>
+            <button onclick="App.support.switch('contact')" id="tab-support-contact" class="flex-1 py-2 rounded-lg text-xs font-bold bg-white text-slate-500 border border-slate-200 transition-all">Contact Us</button>
+        </div>
+
+        <div id="support-chat" class="chat-container">
+            <div id="chat-feed" class="chat-messages">
+                </div>
+            <div class="p-3 bg-white border-t border-slate-100 flex gap-2">
+                <input type="text" id="chat-input" placeholder="Ask about deposit, withdraw..." class="flex-1 bg-slate-50 border-none rounded-xl px-4 text-sm focus:ring-2 focus:ring-cyan-200 outline-none h-12" onkeypress="if(event.key === 'Enter') App.support.send()">
+                <button onclick="App.support.send()" class="w-12 h-12 bg-cyan-400 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-95"><i class="ph-bold ph-paper-plane-right"></i></button>
+            </div>
+        </div>
+
+        <div id="support-contact" class="hidden pt-10 px-4 text-center">
+            <div class="w-20 h-20 bg-cyan-50 rounded-full flex items-center justify-center text-brand-dark mx-auto mb-6 ring-4 ring-cyan-50">
+                <i class="ph-duotone ph-envelope-open text-4xl"></i>
+            </div>
+            <h3 class="heading-font text-xl font-bold text-slate-800 mb-2">Direct Contact</h3>
+            <p class="text-sm text-slate-500 mb-8 max-w-[250px] mx-auto">For serious account issues or partnership inquiries.</p>
+            
+            <div onclick="App.utils.copy('cashforgecustomercare@gmail.com')" class="glass-panel rounded-2xl p-5 mb-4 border-l-4 border-cyan-400 cursor-pointer active:scale-[0.98]">
+                <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Official Support Email</p>
+                <p class="text-sm font-bold text-slate-800 break-all">cashforgecustomercare@gmail.com</p>
+                <div class="mt-3 text-xs text-cyan-600 font-bold flex items-center justify-center gap-1"><i class="ph-bold ph-copy"></i> Tap to Copy</div>
+            </div>
+        </div>
+    </section>
+
+    <div id="pin-overlay" class="fixed inset-0 bg-slate-900/95 backdrop-blur-xl z-50 hidden flex-col items-center justify-center">
+        <h3 class="text-white font-bold text-xl mb-8">Enter Security PIN</h3>
+        <div class="flex gap-4 mb-12">
+            <div class="pin-dot" id="dot-1"></div><div class="pin-dot" id="dot-2"></div><div class="pin-dot" id="dot-3"></div>
+            <div class="pin-dot" id="dot-4"></div><div class="pin-dot" id="dot-5"></div><div class="pin-dot" id="dot-6"></div>
+        </div>
+        <div class="grid grid-cols-3 gap-6 mb-8">
+            <div class="keypad-btn" onclick="App.security.press(1)">1</div><div class="keypad-btn" onclick="App.security.press(2)">2</div><div class="keypad-btn" onclick="App.security.press(3)">3</div>
+            <div class="keypad-btn" onclick="App.security.press(4)">4</div><div class="keypad-btn" onclick="App.security.press(5)">5</div><div class="keypad-btn" onclick="App.security.press(6)">6</div>
+            <div class="keypad-btn" onclick="App.security.press(7)">7</div><div class="keypad-btn" onclick="App.security.press(8)">8</div><div class="keypad-btn" onclick="App.security.press(9)">9</div>
+            <div class="keypad-btn" onclick="App.security.closePin()"><i class="ph-bold ph-x text-red-400"></i></div>
+            <div class="keypad-btn" onclick="App.security.press(0)">0</div>
+            <div class="keypad-btn" onclick="App.security.backspace()"><i class="ph-bold ph-backspace text-slate-400"></i></div>
+        </div>
+    </div>
+
+    <div id="tx-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden items-end sm:items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-[32px] p-6 slide-up-anim relative">
+            <button onclick="document.getElementById('tx-modal').classList.add('hidden'); document.getElementById('tx-modal').classList.remove('flex')" class="absolute top-4 right-4 text-slate-400 p-2"><i class="ph-bold ph-x text-xl"></i></button>
+            <div class="text-center mb-6">
+                <div id="tx-icon-bg" class="w-16 h-16 rounded-full bg-green-50 text-green-600 mx-auto flex items-center justify-center mb-4"><i id="tx-icon" class="ph-fill ph-check-circle text-3xl"></i></div>
+                <h3 class="text-2xl font-bold text-slate-800" id="tx-amount">₨ 5,000</h3>
+                <p class="text-sm text-slate-500 font-medium" id="tx-status">Success</p>
+            </div>
+            <div class="space-y-4 bg-slate-50 rounded-2xl p-4 mb-4">
+                <div class="flex justify-between text-sm"><span class="text-slate-500">Type</span><span class="font-bold text-slate-700" id="tx-type">Deposit</span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-500">Date</span><span class="font-bold text-slate-700" id="tx-date">Oct 24, 10:00 AM</span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-500">ID</span><span class="font-mono text-xs font-bold text-slate-700" id="tx-id">#TRX-8829</span></div>
+            </div>
+            <button class="w-full py-3 rounded-xl bg-slate-200 text-slate-600 font-bold text-sm">Download Receipt</button>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
 
     <nav class="gradient-bar fixed bottom-0 w-full z-50 h-[80px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
         <div class="flex justify-around items-end h-full max-w-lg mx-auto pb-4">
-            
-            <a href="#" onclick="setActiveNav(this, 'home')" class="nav-item active flex flex-col items-center group w-16">
-                <div class="nav-icon-box">
-                    <i class="ph-bold ph-house nav-icon"></i>
-                </div>
-                <span class="nav-text">Home</span>
-            </a>
-
-            <a href="#" onclick="setActiveNav(this, 'tasks')" class="nav-item flex flex-col items-center group w-16">
-                <div class="nav-icon-box">
-                    <i class="ph-bold ph-list-checks nav-icon"></i>
-                </div>
-                <span class="nav-text">Tasks</span>
-            </a>
-
-            <a href="#" onclick="setActiveNav(this, 'trade')" class="nav-item flex flex-col items-center group w-16">
-                <div class="nav-icon-box">
-                    <i class="ph-bold ph-chart-line-up nav-icon"></i>
-                </div>
-                <span class="nav-text">Trade</span>
-            </a>
-
-            <a href="#" onclick="setActiveNav(this, 'team')" class="nav-item flex flex-col items-center group w-16">
-                <div class="nav-icon-box">
-                    <i class="ph-bold ph-users-three nav-icon"></i>
-                </div>
-                <span class="nav-text">Team</span>
-            </a>
-
-            <a href="#" onclick="setActiveNav(this, 'profile')" class="nav-item flex flex-col items-center group w-16">
-                <div class="nav-icon-box">
-                    <i class="ph-bold ph-user-circle nav-icon"></i>
-                </div>
-                <span class="nav-text">Profile</span>
-            </a>
-
+            <a href="#" class="nav-item flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-house nav-icon"></i></div><span class="nav-text">Home</span></a>
+            <a href="#" class="nav-item flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-list-checks nav-icon"></i></div><span class="nav-text">Tasks</span></a>
+            <a href="#" class="nav-item flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-chart-line-up nav-icon"></i></div><span class="nav-text">Trade</span></a>
+            <a href="#" class="nav-item flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-users-three nav-icon"></i></div><span class="nav-text">Team</span></a>
+            <a href="#" class="nav-item active flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-user-circle nav-icon"></i></div><span class="nav-text">Profile</span></a>
         </div>
     </nav>
 
-    <div id="modal-overlay" class="modal-overlay"></div>
-
     <script>
-        // --- NAV LOGIC ---
-        function setActiveNav(element, pageName) {
-            // Remove active class from all
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            // Add to clicked
-            element.classList.add('active');
+        const App = {
+            state: {
+                user: {
+                    name: "Haroon User",
+                    email: "haroon@gmail.com",
+                    balance: 10000.00,
+                    profit: 4500.00,
+                    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                },
+                history: [
+                    { id: 'TX9982', type: 'deposit', amount: 10000, date: 'Today, 10:00 AM', status: 'Success' },
+                    { id: 'TX9981', type: 'withdraw', amount: 2000, date: 'Yesterday', status: 'Pending' },
+                    { id: 'TX9980', type: 'profit', amount: 1500, date: 'Nov 20, 2025', status: 'Success' },
+                    { id: 'TX9979', type: 'referral', amount: 500, date: 'Nov 19, 2025', status: 'Success' }
+                ],
+                pin: "123456",
+                currentPinAttempt: ""
+            },
+
+            // --- 1. INITIALIZATION ---
+            init: () => {
+                App.utils.updateUI();
+                App.history.render('all');
+                App.support.addMsg("bot", "Hello! I am Rudy, your CashForge AI. Ask me about deposits, withdrawals, or packages.");
+            },
+
+            // --- 2. UTILITIES ---
+            utils: {
+                formatMoney: (amount) => '₨ ' + amount.toLocaleString('en-PK'),
+                updateUI: () => {
+                    document.getElementById('profile-name').innerText = App.state.user.name;
+                    document.getElementById('profile-balance').innerText = App.utils.formatMoney(App.state.user.balance);
+                    document.getElementById('profile-profit').innerText = App.utils.formatMoney(App.state.user.profit);
+                    document.getElementById('with-avail-bal').innerText = App.utils.formatMoney(App.state.user.balance);
+                },
+                toast: (msg, type = 'info') => {
+                    const container = document.getElementById('toast-container');
+                    const toast = document.createElement('div');
+                    const bg = type === 'success' ? 'bg-green-50 text-green-600 border border-green-200' : 
+                               type === 'error' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-white text-slate-800 border border-slate-200';
+                    const icon = type === 'success' ? 'ph-check-circle' : type === 'error' ? 'ph-warning-circle' : 'ph-info';
+                    
+                    toast.className = `toast ${bg}`;
+                    toast.innerHTML = `<i class="ph-fill ${icon} text-lg"></i><span>${msg}</span>`;
+                    
+                    container.appendChild(toast);
+                    setTimeout(() => {
+                        toast.style.opacity = '0';
+                        toast.style.transform = 'translateY(-20px)';
+                        setTimeout(() => toast.remove(), 400);
+                    }, 3000);
+                },
+                copy: (text) => {
+                    navigator.clipboard.writeText(text);
+                    App.utils.toast('Copied to clipboard', 'success');
+                }
+            },
+
+            // --- 3. ROUTER (SPA Engine) ---
+            router: {
+                historyStack: ['view-profile'],
+                
+                go: (viewId) => {
+                    const current = document.querySelector('.view-container.active');
+                    const next = document.getElementById(viewId);
+                    
+                    // Slide Out Current (Left)
+                    current.style.transform = 'translateX(-20%)';
+                    current.style.opacity = '0';
+                    
+                    // Slide In Next (Right)
+                    next.classList.add('active');
+                    // Force reflow
+                    void next.offsetWidth; 
+                    
+                    setTimeout(() => {
+                        next.style.transform = 'translateX(0)';
+                        next.style.opacity = '1';
+                        current.classList.remove('active');
+                    }, 10); // Small delay for CSS to catch up
+
+                    App.router.historyStack.push(viewId);
+                },
+
+                back: () => {
+                    if (App.router.historyStack.length <= 1) return;
+                    
+                    const currentId = App.router.historyStack.pop();
+                    const prevId = App.router.historyStack[App.router.historyStack.length - 1];
+                    
+                    const current = document.getElementById(currentId);
+                    const prev = document.getElementById(prevId);
+
+                    // Slide Out Current (Right - creating exit effect)
+                    current.style.transform = 'translateX(100%)';
+                    current.style.opacity = '0';
+                    
+                    // Bring Prev Back
+                    prev.classList.add('active');
+                    void prev.offsetWidth;
+                    
+                    setTimeout(() => {
+                        prev.style.transform = 'translateX(0)';
+                        prev.style.opacity = '1';
+                        setTimeout(() => current.classList.remove('active'), 400);
+                    }, 10);
+                }
+            },
+
+            // --- 4. HISTORY MODULE ---
+            history: {
+                render: (filter) => {
+                    const container = document.getElementById('history-list');
+                    container.innerHTML = '';
+                    
+                    const filtered = filter === 'all' ? App.state.history : App.state.history.filter(t => t.type === filter || (filter === 'deposit' && t.type === 'profit'));
+
+                    if (filtered.length === 0) {
+                        container.innerHTML = `<div class="text-center text-slate-400 py-10"><i class="ph-duotone ph-ghost text-4xl mb-2"></i><p class="text-sm">No records found</p></div>`;
+                        return;
+                    }
+
+                    filtered.forEach(tx => {
+                        let icon = 'ph-arrows-left-right', color = 'bg-slate-100 text-slate-500';
+                        if (tx.type === 'deposit') { icon = 'ph-arrow-down-left'; color = 'bg-green-50 text-green-600'; }
+                        if (tx.type === 'withdraw') { icon = 'ph-arrow-up-right'; color = 'bg-red-50 text-red-600'; }
+                        if (tx.type === 'profit') { icon = 'ph-trend-up'; color = 'bg-cyan-50 text-cyan-600'; }
+                        
+                        const html = `
+                            <div onclick="App.history.showDetail('${tx.id}')" class="glass-panel rounded-2xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98]">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-full ${color} flex items-center justify-center text-xl"><i class="ph-bold ${icon}"></i></div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800 text-sm capitalize">${tx.type}</h4>
+                                        <p class="text-[10px] text-slate-400 font-mono">${tx.date}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-slate-800">${App.utils.formatMoney(tx.amount)}</p>
+                                    <p class="text-[10px] ${tx.status === 'Success' ? 'text-green-500' : 'text-orange-400'} font-bold">${tx.status}</p>
+                                </div>
+                            </div>
+                        `;
+                        container.innerHTML += html;
+                    });
+                },
+                filter: (type) => {
+                    document.querySelectorAll('#view-history .tab-btn').forEach(b => b.classList.remove('active', 'border-b-2', 'border-cyan-400', 'text-cyan-600'));
+                    document.getElementById('tab-hist-'+type).classList.add('active', 'border-b-2', 'border-cyan-400', 'text-cyan-600');
+                    App.history.render(type);
+                },
+                showDetail: (id) => {
+                    const tx = App.state.history.find(t => t.id === id);
+                    if(!tx) return;
+                    
+                    document.getElementById('tx-amount').innerText = App.utils.formatMoney(tx.amount);
+                    document.getElementById('tx-type').innerText = tx.type.toUpperCase();
+                    document.getElementById('tx-date').innerText = tx.date;
+                    document.getElementById('tx-id').innerText = '#' + tx.id;
+                    document.getElementById('tx-status').innerText = tx.status;
+                    
+                    const modal = document.getElementById('tx-modal');
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+            },
+
+            // --- 5. FINANCE (DEPOSIT/WITHDRAW) ---
+            finance: {
+                calcDeposit: () => {
+                    const val = parseFloat(document.getElementById('dep-amount').value) || 0;
+                    const usdt = (val / 285).toFixed(2);
+                    document.getElementById('dep-receive').innerText = usdt + ' USDT';
+                },
+                submitDeposit: () => {
+                    const val = parseFloat(document.getElementById('dep-amount').value);
+                    if (!val || val < 1000) return App.utils.toast("Minimum deposit is ₨ 1,000", "error");
+                    
+                    // Simulate API Call
+                    const btn = event.currentTarget;
+                    const originalText = btn.innerText;
+                    btn.innerText = "Generating...";
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        App.utils.toast("Payment Address Generated!", "success");
+                        // Logic to show QR would go here
+                    }, 1500);
+                },
+                calcWithdraw: () => {
+                    const val = parseFloat(document.getElementById('with-amount').value) || 0;
+                    const fee = val * 0.07;
+                    const total = val - fee;
+                    document.getElementById('with-fee').innerText = '- ' + App.utils.formatMoney(fee);
+                    document.getElementById('with-total').innerText = App.utils.formatMoney(total);
+                }
+            },
+
+            // --- 6. SECURITY (PIN PAD) ---
+            security: {
+                showPinPad: () => {
+                    const val = parseFloat(document.getElementById('with-amount').value);
+                    if(!val || val < 500) return App.utils.toast("Minimum withdrawal is ₨ 500", "error");
+                    if(val > App.state.user.balance) return App.utils.toast("Insufficient Balance", "error");
+
+                    document.getElementById('pin-overlay').classList.remove('hidden');
+                    document.getElementById('pin-overlay').classList.add('flex');
+                    App.state.currentPinAttempt = "";
+                    App.security.updateDots();
+                },
+                closePin: () => {
+                    document.getElementById('pin-overlay').classList.add('hidden');
+                    document.getElementById('pin-overlay').classList.remove('flex');
+                },
+                press: (num) => {
+                    if (App.state.currentPinAttempt.length < 6) {
+                        App.state.currentPinAttempt += num;
+                        App.security.updateDots();
+                        if (App.state.currentPinAttempt.length === 6) App.security.verify();
+                    }
+                },
+                backspace: () => {
+                    App.state.currentPinAttempt = App.state.currentPinAttempt.slice(0, -1);
+                    App.security.updateDots();
+                },
+                updateDots: () => {
+                    for(let i=1; i<=6; i++) {
+                        const dot = document.getElementById(`dot-${i}`);
+                        if(i <= App.state.currentPinAttempt.length) dot.classList.add('filled');
+                        else dot.classList.remove('filled');
+                    }
+                },
+                verify: () => {
+                    // Mock Verification Delay
+                    setTimeout(() => {
+                        if (App.state.currentPinAttempt === App.state.pin) {
+                            App.security.closePin();
+                            App.utils.toast("Withdrawal Requested Successfully!", "success");
+                            App.state.user.balance -= parseFloat(document.getElementById('with-amount').value);
+                            App.utils.updateUI();
+                        } else {
+                            App.utils.toast("Incorrect PIN", "error");
+                            App.state.currentPinAttempt = "";
+                            App.security.updateDots();
+                        }
+                    }, 500);
+                }
+            },
+
+            // --- 7. SETTINGS (Avatar) ---
+            settings: {
+                updateAvatar: (event) => {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            document.getElementById('profile-avatar').src = e.target.result;
+                            document.getElementById('setting-avatar').src = e.target.result;
+                            App.utils.toast("Profile picture updated", "success");
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            },
+
+            // --- 8. SUPPORT (Chatbot) ---
+            support: {
+                switch: (mode) => {
+                    document.getElementById('tab-support-chat').className = mode === 'chat' ? 'flex-1 py-2 rounded-lg text-xs font-bold bg-slate-800 text-white shadow-md transition-all' : 'flex-1 py-2 rounded-lg text-xs font-bold bg-white text-slate-500 border border-slate-200 transition-all';
+                    document.getElementById('tab-support-contact').className = mode === 'contact' ? 'flex-1 py-2 rounded-lg text-xs font-bold bg-slate-800 text-white shadow-md transition-all' : 'flex-1 py-2 rounded-lg text-xs font-bold bg-white text-slate-500 border border-slate-200 transition-all';
+                    
+                    document.getElementById('support-chat').style.display = mode === 'chat' ? 'flex' : 'none';
+                    document.getElementById('support-contact').style.display = mode === 'contact' ? 'block' : 'none';
+                },
+                addMsg: (sender, text) => {
+                    const container = document.getElementById('chat-feed');
+                    const div = document.createElement('div');
+                    
+                    if (sender === 'bot') {
+                        div.innerHTML = `
+                            <div class="flex gap-3 items-end">
+                                <div class="w-6 h-6 rounded-full bg-cyan-100 flex items-center justify-center text-brand-dark mb-2"><i class="ph-fill ph-robot"></i></div>
+                                <div class="chat-bubble bubble-bot">${text}</div>
+                            </div>`;
+                    } else {
+                        div.innerHTML = `<div class="chat-bubble bubble-user">${text}</div>`;
+                    }
+                    container.appendChild(div);
+                    container.scrollTop = container.scrollHeight;
+                },
+                send: () => {
+                    const input = document.getElementById('chat-input');
+                    const text = input.value.trim();
+                    if(!text) return;
+                    
+                    App.support.addMsg('user', text);
+                    input.value = '';
+                    
+                    // Bot Logic
+                    const lower = text.toLowerCase();
+                    let reply = "I can help with Deposits, Withdrawals, or Tasks. Please clarify.";
+                    
+                    if (lower.includes('deposit')) reply = "To deposit, click 'Deposit' on your profile, enter amount (PKR), and copy the TRC20 address provided.";
+                    if (lower.includes('withdraw')) reply = "Withdrawals take up to 24 hours. The fee is 7%. Minimum amount is 500 PKR.";
+                    if (lower.includes('hello') || lower.includes('hi')) reply = "Hello! How can I assist you with your investment today?";
+                    
+                    // Simulate Typing
+                    const container = document.getElementById('chat-feed');
+                    const typing = document.createElement('div');
+                    typing.id = "typing-indic";
+                    typing.innerHTML = `
+                        <div class="flex gap-3 items-end">
+                             <div class="w-6 h-6 rounded-full bg-cyan-100 flex items-center justify-center text-brand-dark mb-2"><i class="ph-fill ph-robot"></i></div>
+                             <div class="chat-bubble bubble-bot typing-indicator"><span></span><span></span><span></span></div>
+                        </div>`;
+                    container.appendChild(typing);
+                    container.scrollTop = container.scrollHeight;
+
+                    setTimeout(() => {
+                        document.getElementById('typing-indic').remove();
+                        App.support.addMsg('bot', reply);
+                    }, 1500);
+                }
+            },
             
-            // Optional: Scroll to top or do page logic here
-            // showToast(`Switched to ${pageName}`); 
-        }
-
-        // --- DATA & STATE ---
-        const PACKAGES = [
-            { id: 1, name: 'Basic', investment: 900, daily: 35 },
-            { id: 2, name: 'Standard', investment: 3900, daily: 135 },
-            { id: 3, name: 'Advanced', investment: 8900, daily: 300 },
-            { id: 4, name: 'Pro', investment: 18500, daily: 620 },
-            { id: 5, name: 'Premium', investment: 32500, daily: 1100 },
-        ];
-        let state = { balance: 10000, activePackageId: 1 };
-        const formatCurrency = (val) => '₨ ' + val.toLocaleString();
-
-        // --- RENDERER ---
-        function renderPackages() {
-            const container = document.getElementById('packages-container');
-            container.innerHTML = '';
-            PACKAGES.forEach(pkg => {
-                const isActive = state.activePackageId === pkg.id;
-                const isOwned = state.activePackageId > pkg.id; 
-                const yearlyProfit = pkg.daily * 365;
-
-                const cardHTML = `
-                <div class="glass-card rounded-2xl p-0 overflow-hidden relative group ${isActive ? 'border-cyan-400 ring-1 ring-cyan-200' : ''}">
-                    <div class="p-5 flex justify-between items-center cursor-pointer relative z-10" onclick="togglePackage(${pkg.id})">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-50 to-white shadow-sm flex items-center justify-center border border-slate-100 text-brand-dark">
-                                <span class="heading-font font-bold text-lg">${pkg.id}</span>
-                            </div>
-                            <div>
-                                <h4 class="heading-font font-bold text-lg text-slate-800">${pkg.name}</h4>
-                                <p class="text-xs text-slate-500 font-medium mt-0.5">Daily: <span class="text-brand-dark font-bold">${formatCurrency(pkg.daily)}</span></p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                             <div class="heading-font font-bold text-lg text-slate-800">${formatCurrency(pkg.investment)}</div>
-                             <i class="ph-bold ph-caret-down text-slate-400 transition-transform duration-300" id="icon-${pkg.id}"></i>
-                        </div>
-                    </div>
-                    <div id="details-${pkg.id}" class="accordion-content bg-white/40 border-t border-white/60">
-                        <div class="p-5">
-                            <div class="grid grid-cols-2 gap-3 mb-4">
-                                <div class="bg-white/70 p-3 rounded-xl border border-white text-center shadow-sm">
-                                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Yearly Profit</div>
-                                    <div class="text-sm font-bold text-brand-dark">${formatCurrency(yearlyProfit)}</div>
-                                </div>
-                                <div class="bg-white/70 p-3 rounded-xl border border-white text-center shadow-sm">
-                                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Validity</div>
-                                    <div class="text-sm font-bold text-slate-700">Lifetime</div>
-                                </div>
-                            </div>
-                            <button onclick="openReceipt(${pkg.id})" 
-                                class="w-full relative overflow-hidden group/btn ${isActive || isOwned ? 'bg-cyan-500 cursor-default' : 'bg-gradient-to-r from-cyan-400 to-cyan-500'} text-white font-bold py-3.5 rounded-xl shadow-lg shadow-cyan-200/50 transition-all active:scale-[0.98]">
-                                ${isActive ? 'Current Plan' : (isOwned ? 'Owned' : 'Upgrade Now <i class="ph-bold ph-arrow-right"></i>')}
-                            </button>
-                        </div>
-                    </div>
-                </div>`;
-                container.innerHTML += cardHTML;
-            });
-        }
-
-        // --- RECEIPT & ACTIONS ---
-        function openReceipt(pkgId) {
-            if (state.activePackageId >= pkgId) return;
-            const pkg = PACKAGES.find(p => p.id === pkgId);
-            let credit = 0; let isUpgrade = false;
-            if (state.activePackageId && state.activePackageId < pkg.id) {
-                const currentPkg = PACKAGES.find(p => p.id === state.activePackageId);
-                if (currentPkg) { credit = currentPkg.investment; isUpgrade = true; }
+            auth: {
+                confirmLogout: () => {
+                    if(confirm("Are you sure you want to log out?")) {
+                        // Redirect logic
+                        window.location.reload();
+                    }
+                }
             }
-            const finalPrice = pkg.investment - credit;
-
-            const modal = document.getElementById('modal-overlay');
-            modal.innerHTML = `
-                <div class="receipt-slip">
-                    <div class="text-center mb-4">
-                        <div class="w-12 h-12 bg-cyan-50 rounded-full flex items-center justify-center mx-auto mb-2 text-brand-dark"><i class="ph-bold ph-receipt text-2xl"></i></div>
-                        <h3 class="heading-font font-bold text-xl text-slate-800">Confirm Purchase</h3>
-                        <p class="text-xs text-slate-500">Package: ${pkg.name}</p>
-                    </div>
-                    <div class="space-y-3 font-medium text-sm">
-                        <div class="flex justify-between text-slate-500"><span>Original Price</span><span>${formatCurrency(pkg.investment)}</span></div>
-                        ${isUpgrade ? `<div class="flex justify-between text-green-600"><span>Credit Applied</span><span>- ${formatCurrency(credit)}</span></div>` : ''}
-                        <div class="dashed-line"></div>
-                        <div class="flex justify-between items-center"><span class="text-slate-800 font-bold text-lg">Total Payable</span><span class="text-brand-dark font-bold text-xl">${formatCurrency(finalPrice)}</span></div>
-                    </div>
-                    <div class="mt-6 flex gap-3">
-                        <button onclick="closeModal()" class="flex-1 py-3 rounded-xl border border-slate-200 text-slate-500 font-medium">Cancel</button>
-                        <button onclick="confirmPurchase(${pkg.id}, ${finalPrice})" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-cyan-500 text-white font-bold shadow-lg shadow-cyan-200/50">Confirm</button>
-                    </div>
-                </div>`;
-            modal.style.display = 'flex';
-            setTimeout(() => modal.classList.add('active'), 10);
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('modal-overlay');
-            modal.classList.remove('active');
-            setTimeout(() => modal.style.display = 'none', 300);
-        }
-
-        function confirmPurchase(pkgId, cost) {
-            closeModal();
-            if (state.balance < cost) { showToast("Insufficient Balance!", "error"); return; }
-            state.balance -= cost; state.activePackageId = pkgId;
-            document.getElementById('header-balance').innerText = formatCurrency(state.balance);
-            renderPackages();
-            showToast("Purchase Successful!", "success");
-        }
-
-        function showToast(msg, type) {
-            const toast = document.createElement('div');
-            const colorClass = type === 'error' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-green-50 text-green-600 border-green-200';
-            const icon = type === 'error' ? 'ph-warning-circle' : 'ph-check-circle';
-            toast.className = `fixed top-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-[2000] flex items-center gap-3 border ${colorClass} min-w-[280px] justify-center toast-enter backdrop-blur-md`;
-            toast.innerHTML = `<i class="ph-bold ${icon} text-lg"></i><span class="font-semibold text-sm">${msg}</span>`;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translate(-50%, -20px)'; setTimeout(() => toast.remove(), 500); }, 3000);
-        }
-
-        window.togglePackage = (id) => {
-            const content = document.getElementById(`details-${id}`);
-            const icon = document.getElementById(`icon-${id}`);
-            const isOpen = content.classList.contains('open');
-            document.querySelectorAll('.accordion-content').forEach(el => el.classList.remove('open'));
-            document.querySelectorAll('.ph-caret-down').forEach(el => el.style.transform = 'rotate(0deg)');
-            if (!isOpen) { content.classList.add('open'); icon.style.transform = 'rotate(180deg)'; }
         };
 
-        // CAROUSEL
-        let slideIndex = 0;
-        const slides = document.querySelectorAll('.slide-item');
-        const progress = document.getElementById('slide-progress');
-        function nextSlide() {
-            slideIndex = (slideIndex + 1) % slides.length;
-            slides.forEach((s, i) => s.style.opacity = i === slideIndex ? '1' : '0');
-            progress.classList.remove('progress-active');
-            void progress.offsetWidth; 
-            progress.classList.add('progress-active');
-        }
-        setInterval(nextSlide, 12000);
-
-        renderPackages();
+        // --- BOOTSTRAP ---
+        window.onload = App.init;
     </script>
 </body>
 </html>
-
-
