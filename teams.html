@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CashForge | Team</title>
+    
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- GLOBAL STYLES -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    
+    <!-- ICONS -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- TAILWIND -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Teams Specific Styles */
+        
+        /* Progress Bar Magic */
+        .salary-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 99px;
+            overflow: hidden;
+            height: 10px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .salary-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00FFFF 0%, #06b6d4 100%);
+            width: 0%;
+            border-radius: 99px;
+            transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        
+        /* Shimmer Effect on Bar */
+        .salary-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: skewX(-20deg) translateX(-100%);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            from { transform: translateX(-100%) skewX(-20deg); }
+            to { transform: translateX(200%) skewX(-20deg); }
+        }
+
+        /* Locked State */
+        .locked-grayscale {
+            filter: grayscale(1);
+            opacity: 0.7;
+            transition: all 0.3s var(--ease-smooth);
+        }
+        .locked-grayscale:hover {
+            filter: grayscale(0.5); /* Slight color on hover to encourage user */
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-dots"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <!-- HEADER -->
+    <header class="gradient-bar fixed top-0 w-full z-50 h-[70px] flex items-center justify-between px-5 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300 to-cyan-500 shadow-lg shadow-cyan-200/50">
+                <i class="ph-bold ph-lightning text-white text-xl"></i>
+            </div>
+            <div>
+                <span class="heading-font font-bold text-xl tracking-tight text-slate-800 leading-none block">CashForge</span>
+            </div>
+        </div>
+        <div class="glass-panel px-4 py-1.5 rounded-full flex items-center gap-2 border border-cyan-100 shadow-sm">
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <!-- Initial state is loading/zero -->
+            <span class="heading-font font-bold text-slate-800" id="header-balance">...</span>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="w-full max-w-lg mx-auto px-4 relative z-10 pt-4">
+        
+        <!-- REFERRAL LINK CARD -->
+        <div class="glass-panel rounded-[24px] p-6 mb-8 text-center border-t-4 border-cyan-400">
+            <h2 class="heading-font text-xl font-bold text-slate-800 mb-1">Invite Friends</h2>
+            <p class="text-xs text-slate-500 mb-4">Earn rewards when your team grows.</p>
+            
+            <div class="relative group">
+                <!-- Empty initially, waiting for backend data -->
+                <input type="text" id="ref-link" value="Loading link..." readonly
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 pl-4 pr-12 text-sm text-slate-600 font-mono focus:outline-none focus:border-cyan-400 transition-colors cursor-pointer"
+                    onclick="copyLink()">
+                
+                <button onclick="copyLink()" class="absolute right-2 top-2 w-9 h-9 bg-white rounded-lg shadow-sm border border-slate-100 flex items-center justify-center text-slate-500 hover:text-cyan-500 hover:scale-105 active:scale-95 transition-all">
+                    <i class="ph-bold ph-copy text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- STATS GRID -->
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div class="glass-panel rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm">
+                <div class="w-10 h-10 bg-cyan-50 rounded-full flex items-center justify-center text-brand-dark mb-2">
+                    <i class="ph-bold ph-users text-xl"></i>
+                </div>
+                <!-- Zero state -->
+                <div class="text-2xl font-bold text-slate-800" id="total-refs">0</div>
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Team</div>
+            </div>
+            <div class="glass-panel rounded-2xl p-4 flex flex-col items-center justify-center shadow-sm">
+                <div class="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center text-green-600 mb-2">
+                    <i class="ph-bold ph-money text-xl"></i>
+                </div>
+                <div class="text-2xl font-bold text-slate-800">₨ 0</div>
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Salary Claimed</div>
+            </div>
+        </div>
+
+        <!-- SALARY TIERS HEADER -->
+        <div class="flex items-center justify-between mb-4 px-1">
+            <h3 class="heading-font text-lg font-bold text-slate-800 flex items-center gap-2">
+                <i class="ph-fill ph-trophy text-brand-dark"></i> VIP Salaries
+            </h3>
+        </div>
+
+        <!-- SALARY LIST -->
+        <div id="salary-list" class="space-y-4 pb-6">
+            <!-- Injected via JS -->
+        </div>
+
+    </main>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast" class="toast"></div>
+
+    <!-- NAVIGATION BAR -->
+    <nav class="gradient-bar fixed bottom-0 w-full z-50 h-[80px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        <div class="flex justify-around items-end h-full max-w-lg mx-auto pb-4">
+            <a href="home.html" class="nav-item flex flex-col items-center group w-16">
+                <div class="nav-icon-box"><i class="ph-bold ph-house nav-icon"></i></div><span class="nav-text">Home</span>
+            </a>
+            <a href="tasks.html" class="nav-item flex flex-col items-center group w-16">
+                <div class="nav-icon-box"><i class="ph-bold ph-list-checks nav-icon"></i></div><span class="nav-text">Tasks</span>
+            </a>
+            <a href="trade.html" class="nav-item flex flex-col items-center group w-16">
+                <div class="nav-icon-box"><i class="ph-bold ph-chart-line-up nav-icon"></i></div><span class="nav-text">Trade</span>
+            </a>
+            <!-- TEAM (Active) -->
+            <a href="teams.html" class="nav-item active flex flex-col items-center group w-16">
+                <div class="nav-icon-box"><i class="ph-bold ph-users-three nav-icon"></i></div><span class="nav-text">Team</span>
+            </a>
+            <a href="profile.html" class="nav-item flex flex-col items-center group w-16">
+                <div class="nav-icon-box"><i class="ph-bold ph-user-circle nav-icon"></i></div><span class="nav-text">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        // --- 1. CONFIGURATION (Static Constants) ---
+        const VIP_LEVELS = [
+            { level: 5, required: 50, salary: 12000 },
+            { level: 4, required: 180, salary: 50000 },
+            { level: 3, required: 300, salary: 120000 },
+            { level: 2, required: 500, salary: 480000 },
+            { level: 1, required: 1500, salary: 1000000 }
+        ];
+
+        // --- 2. STATE (Initialized to Zero/Empty) ---
+        // In the final build, this will be populated by 'db.js' fetching from Supabase
+        let state = {
+            referrals: 0, 
+            claimedLevels: [],
+            balance: 0,
+            referralLink: "" // Will be populated by backend logic
+        };
+
+        const formatCurrency = (val) => '₨ ' + val.toLocaleString();
+
+        // --- 3. RENDER SALARY CARDS ---
+        function renderSalaries() {
+            const container = document.getElementById('salary-list');
+            container.innerHTML = '';
+
+            VIP_LEVELS.forEach(vip => {
+                // Calculate Percentage based on real state
+                const percent = Math.min(100, (state.referrals / vip.required) * 100);
+                const isUnlocked = state.referrals >= vip.required;
+                
+                // Status Badge Logic
+                let statusBadge = '';
+                if(isUnlocked) {
+                    statusBadge = `
+                        <div class="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded border border-green-200 flex items-center gap-1">
+                            <i class="ph-bold ph-check"></i> UNLOCKED
+                        </div>`;
+                } else {
+                    statusBadge = `
+                        <div class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded border border-slate-200 flex items-center gap-1">
+                            <i class="ph-bold ph-lock-key"></i> LOCKED
+                        </div>`;
+                }
+
+                const html = `
+                    <div class="glass-panel rounded-2xl p-5 relative overflow-hidden ${!isUnlocked ? 'locked-grayscale' : ''}">
+                        <!-- Top Row -->
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold shadow-md font-heading text-lg">
+                                    ${vip.level}
+                                </div>
+                                <div>
+                                    <h4 class="heading-font font-bold text-slate-800">VIP Level ${vip.level}</h4>
+                                    <p class="text-xs text-slate-500 font-medium">Monthly: <span class="text-brand-dark font-bold">${formatCurrency(vip.salary)}</span></p>
+                                </div>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                        
+                        <!-- Progress Section -->
+                        <div class="mt-2">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-bold mb-1.5">
+                                <span>Progress</span>
+                                <span>${state.referrals} / ${vip.required} Refs</span>
+                            </div>
+                            <div class="salary-track">
+                                <div class="salary-fill" style="width: ${percent}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        // --- 4. COPY LINK ACTION ---
+        function copyLink() {
+            const link = document.getElementById('ref-link');
+            // Prevent copying if link hasn't loaded yet
+            if (link.value === "Loading link..." || link.value === "") return;
+
+            link.select();
+            link.setSelectionRange(0, 99999); // Mobile fix
+            
+            // Clipboard API
+            navigator.clipboard.writeText(link.value).then(() => {
+                showToast("Referral Link Copied!", "success");
+            });
+            
+            // Haptic feedback (Mobile)
+            if(navigator.vibrate) navigator.vibrate(50);
+        }
+
+        function showToast(msg, type) {
+            const toast = document.getElementById('toast');
+            const color = type === 'success' ? 'success' : 'error';
+            const icon = type === 'success' ? 'ph-check-circle' : 'ph-warning-circle';
+            
+            toast.className = `toast active ${color}`;
+            toast.innerHTML = `<i class="ph-fill ${icon} text-lg"></i> ${msg}`;
+            
+            setTimeout(() => toast.classList.remove('active'), 3000);
+        }
+
+        // INIT
+        // Delay slightly to let CSS load so animations trigger visibly
+        setTimeout(() => {
+            // In the real app, we will fetch data here before rendering
+            // For now, render with zero state
+            renderSalaries();
+            document.getElementById('header-balance').innerText = formatCurrency(state.balance);
+        }, 100);
+
+    </script>
+</body>
+</html>

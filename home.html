@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CashForge | Dashboard</title>
+    
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- GLOBAL STYLES -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    
+    <!-- ICONS -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- TAILWIND -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* --- HOME SPECIFIC STYLES --- */
+        
+        /* Carousel Animation */
+        .carousel-track {
+            display: flex;
+            transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .carousel-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+            opacity: 0.4;
+            transform: scale(0.9);
+            transition: all 0.6s ease;
+        }
+        .carousel-slide.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Package Accordion */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .accordion-content.open {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        /* Progress Bar for Carousel */
+        .progress-bar { height: 3px; background: #008b8b; width: 0%; border-radius: 2px; }
+        .progress-active { animation: fillProgress 12s linear forwards; }
+        @keyframes fillProgress { from { width: 0%; } to { width: 100%; } }
+
+        /* Receipt Slip */
+        .receipt-slip {
+            background: #ffffff; width: 90%; max-width: 340px; border-radius: 24px; padding: 24px;
+            position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.9) translateY(20px); opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .receipt-slip { transform: scale(1) translateY(0); opacity: 1; }
+        .dashed-line { border-bottom: 2px dashed #cbd5e1; margin: 16px 0; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-dots"></div>
+    <!-- Floating Blobs -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <!-- HEADER -->
+    <header class="gradient-bar fixed top-0 w-full z-50 h-[70px] flex items-center justify-between px-5 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300 to-cyan-500 shadow-lg shadow-cyan-200/50">
+                <i class="ph-bold ph-lightning text-white text-xl"></i>
+            </div>
+            <div>
+                <span class="heading-font font-bold text-xl tracking-tight text-slate-800 leading-none block">CashForge</span>
+            </div>
+        </div>
+        <div class="glass-panel px-4 py-1.5 rounded-full flex items-center gap-2 border border-cyan-100 shadow-sm">
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <!-- Initial state is loading/zero -->
+            <span class="heading-font font-bold text-slate-800" id="header-balance">...</span>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="w-full max-w-lg mx-auto px-4 relative z-10 pt-4">
+        
+        <!-- CAROUSEL -->
+        <div class="mt-2 mb-8 relative cursor-pointer glass-panel rounded-[24px] overflow-hidden shadow-lg border-white/50">
+            <div class="relative h-44 w-full overflow-hidden">
+                <div class="carousel-track" id="carousel-track">
+                    <!-- Slide 1 -->
+                    <div class="carousel-slide flex flex-col items-center justify-center p-6 text-center h-44">
+                        <div class="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center mb-3 text-brand-dark">
+                            <i class="ph-duotone ph-gift text-2xl"></i>
+                        </div>
+                        <h2 class="heading-font text-2xl font-bold text-slate-800 mb-1">New User Bonus</h2>
+                        <p class="text-sm text-slate-500">Get 3 Free Keys instantly on signup.</p>
+                    </div>
+                    <!-- Slide 2 -->
+                    <div class="carousel-slide flex flex-col items-center justify-center p-6 text-center h-44">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3 text-purple-600">
+                            <i class="ph-duotone ph-crown text-2xl"></i>
+                        </div>
+                        <h2 class="heading-font text-2xl font-bold text-slate-800 mb-1">VIP Salaries</h2>
+                        <p class="text-sm text-slate-500">Earn up to ₨ 1,000,000 monthly.</p>
+                    </div>
+                    <!-- Slide 3 -->
+                    <div class="carousel-slide flex flex-col items-center justify-center p-6 text-center h-44">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3 text-green-600">
+                            <i class="ph-duotone ph-shield-check text-2xl"></i>
+                        </div>
+                        <h2 class="heading-font text-2xl font-bold text-slate-800 mb-1">Secure Trading</h2>
+                        <p class="text-sm text-slate-500">Verified logic. Instant withdrawals.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Progress Bar -->
+            <div class="absolute bottom-0 left-0 w-full h-[3px] bg-slate-100">
+                <div id="slide-progress" class="progress-bar progress-active"></div>
+            </div>
+        </div>
+
+        <!-- PACKAGES HEADER -->
+        <div class="flex items-center justify-between mb-4 px-1">
+            <h3 class="heading-font text-xl font-bold text-slate-800 flex items-center gap-2">
+                <i class="ph-fill ph-trend-up text-brand-dark"></i> Investment Plans
+            </h3>
+            <span class="text-[10px] font-bold bg-white/50 px-2 py-1 rounded text-slate-500 border border-white">Live ROI</span>
+        </div>
+
+        <!-- PACKAGE LIST -->
+        <div id="packages-container" class="space-y-4 pb-6">
+            <!-- Injected via JS -->
+        </div>
+
+    </main>
+
+    <!-- RECEIPT MODAL -->
+    <div id="modal-overlay" class="modal-overlay">
+        <!-- Receipt Content Injected via JS -->
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast" class="toast"></div>
+
+    <!-- NAVIGATION BAR -->
+    <nav class="gradient-bar fixed bottom-0 w-full z-50 h-[80px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        <div class="flex justify-around items-end h-full max-w-lg mx-auto pb-4">
+            
+            <!-- HOME (Active) -->
+            <a href="home.html" class="nav-item active flex flex-col items-center group w-16">
+                <div class="nav-icon-box"><i class="ph-bold ph-house nav-icon"></i></div><span class="nav-text">Home</span>
+            </a>
+
+            <!-- TASKS -->
+            <a href="tasks.html" class="nav-item flex flex-col items-center group w-16">
+                <div class="nav-icon-box"><i class="ph-bold ph-list-checks nav-icon"></i></div><span class="nav-text">Tasks</span>
+            </a>
+
+            <!-- TRADE -->
+            <a href="trade.html" class="nav-item flex flex-col items-center group w-16">
+                <div class="nav-icon-box"><i class="ph-bold ph-chart-line-up nav-icon"></i></div><span class="nav-text">Trade</span>
+            </a>
+
+            <!-- TEAM -->
+            <a href="teams.html" class="nav-item flex flex-col items-center group w-16">
+                <div class="nav-icon-box"><i class="ph-bold ph-users-three nav-icon"></i></div><span class="nav-text">Team</span>
+            </a>
+
+            <!-- PROFILE -->
+            <a href="profile.html" class="nav-item flex flex-col items-center group w-16">
+                <div class="nav-icon-box"><i class="ph-bold ph-user-circle nav-icon"></i></div><span class="nav-text">Profile</span>
+            </a>
+
+        </div>
+    </nav>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        // --- 1. CONFIGURATION ---
+        const PACKAGES = [
+            { id: 1, name: 'Basic', investment: 900, daily: 35 },
+            { id: 2, name: 'Standard', investment: 3900, daily: 135 },
+            { id: 3, name: 'Advanced', investment: 8900, daily: 300 },
+            { id: 4, name: 'Pro', investment: 18500, daily: 620 },
+            { id: 5, name: 'Premium', investment: 32500, daily: 1100 },
+            { id: 6, name: 'Supreme', investment: 54900, daily: 2000 },
+            { id: 7, name: 'Elite', investment: 112000, daily: 3900 },
+            { id: 8, name: 'Ultimate', investment: 250000, daily: 8500 },
+        ];
+
+        // State initialized to ZERO (Real Logic)
+        let state = {
+            balance: 0,
+            activePackageId: 0, // 0 = None
+        };
+
+        const formatCurrency = (val) => '₨ ' + val.toLocaleString();
+
+        // --- 2. RENDER PACKAGES ---
+        function renderPackages() {
+            const container = document.getElementById('packages-container');
+            container.innerHTML = '';
+
+            PACKAGES.forEach(pkg => {
+                const isActive = state.activePackageId === pkg.id;
+                const isOwned = state.activePackageId > pkg.id; 
+                
+                // Monthly Profit Logic (Daily * 30)
+                const monthlyProfit = pkg.daily * 30;
+
+                // Visual States
+                let borderClass = isActive ? 'border-cyan-400 ring-1 ring-cyan-200' : 'border-white/60';
+                let btnClass = isActive ? 'bg-cyan-500 cursor-default' : (isOwned ? 'bg-slate-300 cursor-default' : 'bg-gradient-to-r from-cyan-400 to-cyan-500 shadow-lg shadow-cyan-200/50 hover:scale-[1.02] active:scale-95');
+                let btnText = isActive ? 'Current Plan' : (isOwned ? 'Owned' : 'Upgrade Now <i class="ph-bold ph-arrow-right"></i>');
+                let btnAction = isActive || isOwned ? '' : `onclick="openReceipt(${pkg.id})"`;
+
+                const html = `
+                    <div class="glass-panel rounded-[20px] p-0 overflow-hidden group border ${borderClass} transition-all duration-300">
+                        <!-- Header (Always Visible) -->
+                        <div class="p-5 flex justify-between items-center cursor-pointer relative z-10" onclick="toggleAccordion(${pkg.id})">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-50 to-white shadow-sm flex items-center justify-center border border-slate-100 text-brand-dark font-heading font-bold text-lg">
+                                    ${pkg.id}
+                                </div>
+                                <div>
+                                    <h4 class="heading-font font-bold text-lg text-slate-800">${pkg.name}</h4>
+                                    <p class="text-xs text-slate-500 font-medium mt-0.5">Daily: <span class="text-brand-dark font-bold">${formatCurrency(pkg.daily)}</span></p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="heading-font font-bold text-lg text-slate-800">${formatCurrency(pkg.investment)}</div>
+                                <i class="ph-bold ph-caret-down text-slate-400 transition-transform duration-300" id="icon-${pkg.id}"></i>
+                            </div>
+                        </div>
+
+                        <!-- Body (Hidden) -->
+                        <div id="details-${pkg.id}" class="accordion-content bg-white/40 border-t border-white/50">
+                            <div class="p-5 pt-2">
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <div class="bg-white/60 p-3 rounded-xl border border-white text-center shadow-sm">
+                                        <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Monthly Profit</div>
+                                        <div class="text-sm font-bold text-brand-dark">${formatCurrency(monthlyProfit)}</div>
+                                    </div>
+                                    <div class="bg-white/60 p-3 rounded-xl border border-white text-center shadow-sm">
+                                        <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Validity</div>
+                                        <div class="text-sm font-bold text-slate-700">365 Days</div>
+                                    </div>
+                                </div>
+                                
+                                <button ${btnAction} 
+                                    class="w-full relative overflow-hidden group/btn ${btnClass} text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                                    ${btnText}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        // --- 3. RECEIPT MODAL LOGIC ---
+        function openReceipt(pkgId) {
+            const pkg = PACKAGES.find(p => p.id === pkgId);
+            
+            // Calculate Upgrade Cost
+            let originalPrice = pkg.investment;
+            let credit = 0;
+            let isUpgrade = false;
+
+            if (state.activePackageId > 0 && state.activePackageId < pkg.id) {
+                const currentPkg = PACKAGES.find(p => p.id === state.activePackageId);
+                if (currentPkg) {
+                    credit = currentPkg.investment;
+                    isUpgrade = true;
+                }
+            }
+
+            const finalPrice = originalPrice - credit;
+
+            // Generate Modal HTML
+            const modal = document.getElementById('modal-overlay');
+            modal.innerHTML = `
+                <div class="receipt-slip">
+                    <div class="text-center mb-5">
+                        <div class="w-12 h-12 bg-cyan-50 rounded-full flex items-center justify-center mx-auto mb-3 text-brand-dark border border-cyan-100">
+                            <i class="ph-bold ph-receipt text-2xl"></i>
+                        </div>
+                        <h3 class="heading-font font-bold text-xl text-slate-800">Confirm Purchase</h3>
+                        <p class="text-xs text-slate-500 mt-1">Package: <span class="font-bold text-slate-700">${pkg.name}</span></p>
+                    </div>
+
+                    <div class="space-y-3 font-medium text-sm">
+                        <div class="flex justify-between text-slate-500">
+                            <span>Original Price</span>
+                            <span>${formatCurrency(originalPrice)}</span>
+                        </div>
+                        
+                        ${isUpgrade ? `
+                        <div class="flex justify-between text-green-600 bg-green-50 px-2 py-1 rounded">
+                            <span>Plan Credit Applied</span>
+                            <span>- ${formatCurrency(credit)}</span>
+                        </div>
+                        ` : ''}
+
+                        <div class="dashed-line"></div>
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-800 font-bold text-lg">Total Payable</span>
+                            <span class="text-brand-dark font-bold text-2xl text-glow">${formatCurrency(finalPrice)}</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex gap-3">
+                        <button onclick="closeModal()" class="flex-1 py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-sm hover:bg-slate-50 transition">Cancel</button>
+                        <button onclick="confirmPurchase(${pkg.id}, ${finalPrice})" class="flex-1 py-3 rounded-xl bg-slate-800 text-white font-bold text-sm shadow-lg shadow-slate-400/50 active:scale-95 transition-transform">Confirm Pay</button>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+        }
+
+        function confirmPurchase(pkgId, cost) {
+            closeModal();
+            
+            if (state.balance < cost) {
+                showToast("Insufficient Balance!", "error");
+                return;
+            }
+
+            // Simulate Transaction
+            state.balance -= cost;
+            state.activePackageId = pkgId;
+            
+            document.getElementById('header-balance').innerText = formatCurrency(state.balance);
+            renderPackages(); // Refresh UI to show "Current Plan"
+            showToast("Package Activated Successfully!", "success");
+        }
+
+        // --- 4. ACCORDION & CAROUSEL ---
+        function toggleAccordion(id) {
+            const content = document.getElementById(`details-${id}`);
+            const icon = document.getElementById(`icon-${id}`);
+            const isOpen = content.classList.contains('open');
+
+            // Close others
+            document.querySelectorAll('.accordion-content').forEach(el => el.classList.remove('open'));
+            document.querySelectorAll('.ph-caret-down').forEach(el => el.style.transform = 'rotate(0deg)');
+
+            if (!isOpen) {
+                content.classList.add('open');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        let slideIndex = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        const track = document.getElementById('carousel-track');
+        const progress = document.getElementById('slide-progress');
+
+        function nextSlide() {
+            slideIndex = (slideIndex + 1) % slides.length;
+            
+            // Move Track
+            track.style.transform = `translateX(-${slideIndex * 100}%)`;
+            
+            // Activate Slide Style
+            slides.forEach((s, i) => {
+                if (i === slideIndex) s.classList.add('active');
+                else s.classList.remove('active');
+            });
+
+            // Reset Progress Bar
+            progress.classList.remove('progress-active');
+            void progress.offsetWidth; // Trigger reflow
+            progress.classList.add('progress-active');
+        }
+        
+        // Init Slide 0
+        slides[0].classList.add('active');
+        setInterval(nextSlide, 12000);
+
+        function showToast(msg, type) {
+            const toast = document.getElementById('toast');
+            const icon = type === 'success' ? 'ph-check-circle' : 'ph-warning-circle';
+            const color = type === 'success' ? 'success' : 'error';
+            
+            toast.className = `toast active ${color}`;
+            toast.innerHTML = `<i class="ph-fill ${icon} text-lg"></i> ${msg}`;
+            
+            setTimeout(() => toast.classList.remove('active'), 3000);
+        }
+
+        // INIT
+        setTimeout(() => {
+            renderPackages();
+            document.getElementById('header-balance').innerText = formatCurrency(state.balance);
+        }, 100);
+
+    </script>
+</body>
+</html>
