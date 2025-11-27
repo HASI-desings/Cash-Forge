@@ -96,6 +96,17 @@
             border-radius: 99px;
             transition: width 0.1s linear;
         }
+        
+        /* Fallback Styling */
+        .logo-fallback {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            background: #dcfcfc; color: #008b8b;
+            border-radius: 24px; font-weight: 800; font-size: 32px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            font-family: 'Space Grotesk', sans-serif;
+            position: relative; z-index: 20;
+        }
     </style>
 </head>
 <body>
@@ -109,13 +120,16 @@
     <div class="flex flex-col items-center z-10 relative">
         
         <!-- Logo -->
-        <div class="logo-container">
+        <div class="logo-container" id="logo-box">
             <div class="logo-glow"></div>
-            <!-- Points to assets/images/logo.png. Includes Fallback if image not found -->
+            <!-- FIX: Changed onerror to use a safer replacement method -->
             <img src="assets/images/logo.png" 
                  alt="CashForge" 
                  class="w-full h-full object-contain relative z-20 drop-shadow-2xl"
-                 onerror="this.style.display='none'; this.parentElement.innerHTML += '<div class=\'w-full h-full flex items-center justify-center bg-cyan-100 rounded-2xl text-cyan-800 font-bold text-3xl shadow-lg\'>CF</div>'">
+                 onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';">
+            
+            <!-- Hidden Fallback Element -->
+            <div id="logo-fallback" class="logo-fallback" style="display: none;">CF</div>
         </div>
 
         <!-- Typography -->
@@ -180,9 +194,7 @@
             navigate: (path) => {
                 const status = document.getElementById('status-text');
                 
-                // --- CRASH FIX ---
-                // If running in a 'blob:' URL (Preview Mode), relative paths break.
-                // We detect this and show a message instead of crashing.
+                // SAFEGUARD FOR PREVIEW ENVIRONMENTS (Blob URLs)
                 if (window.location.protocol === 'blob:' || window.location.href.includes('scf.usercontent') || window.location.href.includes('googleusercontent')) {
                     console.log(`[Router] Navigation Simulated: ${path}`);
                     status.innerHTML = `Navigating to: <strong class="text-brand-dark">${path}</strong><br><span class="text-[9px] text-slate-300">(Redirect disabled in Preview)</span>`;
@@ -194,7 +206,6 @@
                     window.location.replace(path);
                 } catch (e) {
                     console.error("Navigation failed:", e);
-                    // Fallback to simple href assignment
                     window.location.href = path;
                 }
             }
