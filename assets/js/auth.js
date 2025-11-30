@@ -4,7 +4,6 @@
  */
 
 import { supabase } from './supabase-client.js';
-// Removed UI import dependency to keep it cleaner, assumes UI is global or handled by caller
 
 export const Auth = {
     
@@ -28,6 +27,8 @@ export const Auth = {
 
             if (error) throw error;
 
+            // Check if session was created immediately (Auto-confirm enabled?)
+            // If session is null, it means Email Verification is REQUIRED.
             if (data.user && !data.session) {
                 return { 
                     success: true, 
@@ -53,6 +54,7 @@ export const Auth = {
             });
 
             if (error) {
+                // Custom error message for unverified emails
                 if (error.message.includes("Email not confirmed")) {
                     throw new Error("Please verify your email address before logging in.");
                 }
@@ -72,7 +74,9 @@ export const Auth = {
         try {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
+            
             localStorage.removeItem('cashforge_intro_seen'); 
+            
             return { success: true };
         } catch (error) {
             console.error("SignOut Error:", error);
@@ -91,6 +95,7 @@ export const Auth = {
         return user;
     },
     
+    // Check if user is authenticated, else redirect
     requireAuth: async () => {
         const session = await Auth.getSession();
         if (!session) {
@@ -98,5 +103,16 @@ export const Auth = {
             return null;
         }
         return session.user;
+    },
+
+    // --- 5. UPDATE PASSWORD ---
+    updatePassword: async (newPassword) => {
+        try {
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
+            if (error) throw error;
+            return { success: true };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
     }
 };
