@@ -19,16 +19,14 @@
     <!-- TAILWIND -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- SUPABASE (Required for Auth) -->
+    <!-- SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* Auth Specific Overrides */
         body {
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; /* Prevent scrolling on auth screen */
+            overflow: hidden; 
         }
-
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
@@ -44,23 +42,20 @@
 <body>
 
     <div class="bg-dots"></div>
-    <!-- Floating Orbs -->
     <div class="blob blob-1" style="top: -10%; left: -10%;"></div>
     <div class="blob blob-2" style="bottom: -10%; right: -10%;"></div>
 
-    <!-- MAIN CARD -->
     <main class="glass-card" id="main-card">
         
         <!-- LOGO HEADER -->
         <div class="text-center mb-6">
-            <!-- Circular Logo Container -->
-            <div class="relative w-24 h-24 mx-auto mb-4">
+            <div class="relative w-28 h-28 mx-auto mb-4">
                 <div class="absolute inset-0 bg-cyan-400/30 blur-2xl rounded-full animate-pulse-glow"></div>
                 <div class="w-full h-full rounded-full overflow-hidden bg-white/20 backdrop-blur-sm shadow-xl flex items-center justify-center border border-white/40">
-                    <!-- Correctly closed image tag -->
-                    <img src="assets/images/logo.png" 
+                    <!-- UPDATED: Points to logo.svg -->
+                    <img src="assets/images/logo.svg" 
                          alt="CashForge" 
-                         class="w-full h-full object-cover transform scale-110"
+                         class="w-full h-full object-cover p-1"
                          onerror="this.style.display='none'; this.parentElement.innerHTML = '<div class=\'w-full h-full flex items-center justify-center bg-cyan-100 text-cyan-800 font-bold text-3xl\'>CF</div>'">
                 </div>
             </div>
@@ -69,11 +64,11 @@
             <p class="text-sm text-slate-500 mt-1" id="auth-subtitle">Secure access to your portfolio</p>
         </div>
 
-        <!-- Sliding Container -->
+        <!-- SLIDING FORMS -->
         <div class="overflow-hidden">
             <div class="form-slider" id="slider">
                 
-                <!-- LOGIN FORM -->
+                <!-- LOGIN -->
                 <div class="form-view" id="login-view">
                     <form id="login-form">
                         <div class="input-group">
@@ -100,7 +95,7 @@
                     </div>
                 </div>
 
-                <!-- REGISTER FORM -->
+                <!-- REGISTER -->
                 <div class="form-view inactive" id="register-view">
                     <form id="register-form">
                         <div class="input-group">
@@ -117,7 +112,6 @@
                             <i class="ph-bold ph-eye toggle-password" onclick="window.togglePass('reg-pass', this)"></i>
                         </div>
                         
-                        <!-- Strength Indicators -->
                         <div class="flex gap-1 mb-6 pl-2">
                             <div class="strength-dot" id="dot-1"></div>
                             <div class="strength-dot" id="dot-2"></div>
@@ -140,16 +134,28 @@
 
     </main>
 
-    <!-- TOAST NOTIFICATION -->
     <div id="toast" class="toast"></div>
 
-    <!-- UI LOGIC & AUTH INTEGRATION -->
     <script type="module">
-        // Import Authentication Logic
         import { Auth } from './assets/js/auth.js';
         
-        // --- UI FUNCTIONS (Attached to Window for HTML access) ---
-        
+        // --- INIT ---
+        window.onload = async () => {
+            // Handle Email Confirmation Return
+            const hash = window.location.hash;
+            if (hash && hash.includes('access_token')) {
+                showToast("Email Verified! Logging in...", "success");
+                setTimeout(async () => {
+                    const user = await Auth.getCurrentUser();
+                    if (user) window.location.href = 'home.html';
+                }, 1500);
+            } else {
+                const user = await Auth.getCurrentUser();
+                if (user) window.location.href = 'home.html';
+            }
+        };
+
+        // --- UI LOGIC ---
         window.switchMode = (mode) => {
             const slider = document.getElementById('slider');
             const loginView = document.getElementById('login-view');
@@ -184,45 +190,32 @@
         };
 
         window.checkStrength = (pass) => {
-            const dot1 = document.getElementById('dot-1');
-            const dot2 = document.getElementById('dot-2');
-            const dot3 = document.getElementById('dot-3');
+            const dots = [document.getElementById('dot-1'), document.getElementById('dot-2'), document.getElementById('dot-3')];
             const text = document.getElementById('strength-text');
-
             let score = 0;
             if (pass.length >= 8) score++;
             if (/\d/.test(pass)) score++;
             if (/[!@#$%^&*]/.test(pass)) score++;
 
-            // Reset
-            [dot1, dot2, dot3].forEach(d => { d.className = 'strength-dot'; });
-            
-            if (score >= 1) { dot1.classList.add('active', 'bg-red-400'); text.innerText = "Weak"; }
-            if (score >= 2) { dot2.classList.add('active', 'bg-yellow-400'); dot1.classList.add('active', 'bg-yellow-400'); text.innerText = "Good"; }
-            if (score === 3) { 
-                dot3.classList.add('active', 'bg-green-400'); 
-                dot1.className = 'strength-dot active bg-green-400';
-                dot2.className = 'strength-dot active bg-green-400';
-                text.innerText = "Strong"; 
-            }
+            dots.forEach(d => d.className = 'strength-dot');
+            if (score >= 1) { dots[0].classList.add('active', 'bg-red-400'); text.innerText = "Weak"; }
+            if (score >= 2) { dots[1].classList.add('active', 'bg-yellow-400'); dots[0].classList.add('active', 'bg-yellow-400'); text.innerText = "Good"; }
+            if (score === 3) { dots[2].classList.add('active', 'bg-green-400'); dots[0].className = 'strength-dot active bg-green-400'; dots[1].className = 'strength-dot active bg-green-400'; text.innerText = "Strong"; }
         };
 
-        // --- AUTHENTICATION HANDLERS ---
-
-        // 1. LOGIN
+        // --- HANDLERS ---
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('login-btn');
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
-
             startLoading(btn, "Authenticating...");
-
-            const response = await Auth.signIn(email, pass);
+            
+            const response = await Auth.signIn(
+                document.getElementById('login-email').value,
+                document.getElementById('login-pass').value
+            );
 
             if (response.success) {
                 showToast("Login Successful!", "success");
-                // Redirect logic
                 setTimeout(() => window.location.href = 'home.html', 1000);
             } else {
                 stopLoading(btn, "Sign In", "ph-arrow-right");
@@ -231,34 +224,31 @@
             }
         });
 
-        // 2. REGISTER
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('reg-btn');
-            const name = document.getElementById('reg-name').value;
-            const email = document.getElementById('reg-email').value;
             const pass = document.getElementById('reg-pass').value;
 
-            // Validation
             if (pass.length < 8) {
-                showToast("Password must be at least 8 characters", "error");
+                showToast("Password too short", "error");
                 shakeCard();
                 return;
             }
 
             startLoading(btn, "Creating Account...");
             
-            const response = await Auth.signUp(email, pass, name);
+            const response = await Auth.signUp(
+                document.getElementById('reg-email').value,
+                pass,
+                document.getElementById('reg-name').value
+            );
 
             if (response.success) {
                 if (response.requiresVerification) {
-                    // Email Verification Required Flow
                     showToast("Verification Email Sent! Check Inbox.", "success");
                     btn.innerHTML = `<i class="ph-bold ph-check"></i> Check Email`;
                     btn.classList.remove('btn-loading');
-                    // Don't switch immediately so user sees the message
                 } else {
-                    // Instant Success Flow
                     showToast("Account Created!", "success");
                     stopLoading(btn, "Create Account", "ph-user-plus");
                     window.switchMode('login');
@@ -270,26 +260,22 @@
             }
         });
 
-        // --- UTILS ---
         function startLoading(btn, text) {
             btn.classList.add('btn-loading');
             btn.innerHTML = `<div class="loader-spinner w-5 h-5 border-white"></div> <span>${text}</span>`;
         }
-
         function stopLoading(btn, text, icon) {
             btn.classList.remove('btn-loading');
             btn.innerHTML = `<span>${text}</span> <i class="ph-bold ${icon}"></i>`;
         }
-
         function showToast(msg, type) {
-            const toast = document.getElementById('toast');
+            const t = document.getElementById('toast');
             const color = type === 'success' ? 'success' : 'error';
             const icon = type === 'success' ? 'ph-check-circle' : 'ph-warning-circle';
-            toast.className = `toast active ${color}`;
-            toast.innerHTML = `<i class="ph-fill ${icon} text-lg"></i> ${msg}`;
-            setTimeout(() => toast.classList.remove('active'), 3000);
+            t.className = `toast active ${color}`;
+            t.innerHTML = `<i class="ph-fill ${icon} text-lg"></i> ${msg}`;
+            setTimeout(() => t.classList.remove('active'), 3000);
         }
-
         function shakeCard() {
             const card = document.getElementById('main-card');
             card.classList.add('animate-shake');
