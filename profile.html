@@ -17,6 +17,9 @@
     <!-- TAILWIND -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- 🚨 SECURITY GUARD: This line prevents unauthorized access -->
+    <script type="module" src="assets/js/router.js"></script>
+
     <style>
         /* Avatar Glow Ring */
         .avatar-ring {
@@ -42,7 +45,7 @@
         
         <!-- HEADER -->
         <div class="flex items-center justify-between mb-8">
-            <!-- DYNAMIC HEADER: Shows "{Username}'s Profile" -->
+            <!-- DYNAMIC HEADER -->
             <h2 class="heading-font text-2xl font-bold text-slate-800 truncate max-w-[240px]">
                 <span id="header-username">Loading...</span>'s Profile
             </h2>
@@ -65,11 +68,11 @@
                 </a>
             </div>
 
-            <!-- USERNAME (Fixed, set at Signup) -->
+            <!-- USERNAME (Fixed) -->
             <h3 class="heading-font text-2xl font-bold text-slate-800 mb-1" id="user-name">...</h3>
             <p class="text-sm text-slate-500 font-mono mb-3" id="user-email">...</p>
             
-            <!-- PACKAGE BADGE (Hidden if no package) -->
+            <!-- PACKAGE BADGE -->
             <div id="plan-badge" class="hidden inline-flex items-center gap-1 bg-cyan-50 px-3 py-1 rounded-full border border-cyan-100 mb-6">
                 <i class="ph-fill ph-crown text-brand-dark text-xs"></i>
                 <span class="text-xs font-bold text-brand-dark tracking-wide uppercase" id="plan-name"></span>
@@ -161,93 +164,72 @@
         </div>
     </nav>
 
-    <script>
-        // --- CONFIG: Packages Map (Must match config.js) ---
+    <script type="module">
+        import { Auth } from './assets/js/auth.js';
+        import { DB } from './assets/js/db.js';
+        import { Router } from './assets/js/router.js'; // The Security Guard
+
+        // CONFIG MAP
         const PACKAGES_MAP = {
             1: 'Basic Plan', 2: 'Standard Plan', 3: 'Advanced Plan', 4: 'Pro Plan',
             5: 'Premium Plan', 6: 'Supreme Plan', 7: 'Elite Plan', 8: 'Ultimate Plan'
         };
 
-        // --- STATE (Empty Initial State) ---
-        // Real data will be fetched by db.js and populate this
-        let userState = {
-            name: "", 
-            email: "",
-            balance: 0,
-            profit: 0,
-            activePackageId: 0 
-        };
-
         const formatCurrency = (val) => '₨ ' + val.toLocaleString();
 
-        window.onload = () => {
-            // In production, call: await DB.getUserProfile()
-            // For preview, we leave it empty/loading until connected
-            setTimeout(() => {
-                updateUI();
-            }, 100);
+        window.onload = async () => {
+            // 1. Auth Check
+            const user = await Auth.getCurrentUser();
+            if(!user) return; // Router will redirect
+
+            // 2. Get Real Profile Data
+            const profile = await DB.getProfile(user.id);
+            
+            if(profile) {
+                // Update Username (Header & Card)
+                const displayName = profile.full_name || "User";
+                document.getElementById('header-username').innerText = displayName;
+                document.getElementById('user-name').innerText = displayName;
+                
+                // Update Email & Stats
+                document.getElementById('user-email').innerText = profile.email;
+                document.getElementById('display-balance').innerText = formatCurrency(profile.balance);
+                // document.getElementById('display-profit').innerText = formatCurrency(profile.total_profit); // Assuming field exists
+
+                // Logic: Update Package Badge
+                const badge = document.getElementById('plan-badge');
+                const spacer = document.getElementById('plan-spacer');
+                const planName = document.getElementById('plan-name');
+                
+                if (profile.active_package_id > 0 && PACKAGES_MAP[profile.active_package_id]) {
+                    planName.innerText = PACKAGES_MAP[profile.active_package_id];
+                    badge.classList.remove('hidden');
+                    spacer.classList.add('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                    spacer.classList.remove('hidden');
+                }
+                
+                // Dynamic Avatar
+                document.getElementById('profile-avatar').src = `https://ui-avatars.com/api/?name=${displayName}&background=00FFFF&color=fff`;
+            }
         };
 
-        function updateUI() {
-            // 1. Update Username (Header & Card)
-            // If name is empty, show "Loading..." or fallback
-            const displayName = userState.name || "Loading...";
-            document.getElementById('header-username').innerText = displayName;
-            document.getElementById('user-name').innerText = displayName;
-            
-            // 2. Update Email & Stats
-            document.getElementById('user-email').innerText = userState.email || "...";
-            document.getElementById('display-balance').innerText = formatCurrency(userState.balance);
-            document.getElementById('display-profit').innerText = formatCurrency(userState.profit);
-
-            // 3. Logic: Update Package Badge
-            const badge = document.getElementById('plan-badge');
-            const spacer = document.getElementById('plan-spacer');
-            const planName = document.getElementById('plan-name');
-            
-            if (userState.activePackageId > 0 && PACKAGES_MAP[userState.activePackageId]) {
-                // User has a plan
-                planName.innerText = PACKAGES_MAP[userState.activePackageId];
-                badge.classList.remove('hidden');
-                spacer.classList.add('hidden'); // Hide spacer
-            } else {
-                // User has NO plan
-                badge.classList.add('hidden');
-                spacer.classList.remove('hidden'); // Show spacer to keep layout
-            }
-            
-            // Dynamic Avatar Init (using username for seed if available)
-            if (userState.name) {
-                 document.getElementById('profile-avatar').src = `https://ui-avatars.com/api/?name=${userState.name}&background=00FFFF&color=fff`;
-            }
-        }
-
-        // --- LOGOUT LOGIC ---
-        function confirmLogout() {
+        // Expose functions to window for onclicks
+        window.confirmLogout = () => {
             document.getElementById('logout-modal').classList.add('active');
-        }
+        };
         
-        function closeLogout() {
+        window.closeLogout = () => {
             document.getElementById('logout-modal').classList.remove('active');
-        }
+        };
         
-        function performLogout() {
-            closeLogout();
-            showToast("Logging out...", "success");
-            setTimeout(() => {
-                localStorage.removeItem('sb-auth-token'); // Clear session
+        window.performLogout = () => {
+            window.closeLogout();
+            Auth.signOut().then(() => {
                 window.location.href = 'auth.html';
-            }, 1000);
-        }
-
-        function showToast(msg, type) {
-            const t = document.getElementById('toast');
-            const icon = type === 'success' ? 'ph-check-circle' : 'ph-warning-circle';
-            const color = type === 'success' ? 'success' : 'error';
-            t.className = `toast active ${color}`;
-            t.innerHTML = `<i class="ph-fill ${icon} text-lg"></i> ${msg}`;
-            setTimeout(() => t.classList.remove('active'), 3000);
-        }
+            });
+        };
     </script>
 </body>
 </html>
