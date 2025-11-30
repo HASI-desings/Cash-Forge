@@ -98,7 +98,7 @@
             </div>
         </div>
 
-        <!-- === SUB-PAGE: CHANGE PASSWORD === -->
+        <!-- === VIEW 2: CHANGE PASSWORD === -->
         <div id="view-password" class="sub-view">
             <div class="glass-panel rounded-2xl p-6">
                 <div class="space-y-4">
@@ -121,7 +121,7 @@
             </div>
         </div>
 
-        <!-- === SUB-PAGE: TRANSACTION PIN === -->
+        <!-- === VIEW 3: TRANSACTION PIN === -->
         <div id="view-pin" class="sub-view">
             <div class="glass-panel rounded-2xl p-6">
                 
@@ -160,7 +160,7 @@
             </div>
         </div>
 
-        <!-- === SUB-PAGE: MANAGE WALLETS === -->
+        <!-- === VIEW 4: MANAGE WALLETS === -->
         <div id="view-wallets" class="sub-view">
             <div class="glass-panel rounded-2xl p-6 mb-4">
                 <h3 class="text-sm font-bold text-slate-800 mb-4">Add New Wallet</h3>
@@ -182,7 +182,7 @@
             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 pl-2">Saved Wallets</h4>
             <div id="saved-wallets-list" class="space-y-2">
                 <div class="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl">
-                    <p class="text-xs text-slate-400">Loading wallets...</p>
+                    <p class="text-xs text-slate-400">No wallets added yet.</p>
                 </div>
             </div>
         </div>
@@ -192,7 +192,7 @@
     <!-- TOAST -->
     <div id="toast" class="toast"></div>
 
-    <!-- NAVIGATION BAR -->
+    <!-- NAVIGATION BAR (Injected by components.js in real build, added here for standalone testing) -->
     <nav class="gradient-bar fixed bottom-0 w-full z-50 h-[80px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
         <div class="flex justify-around items-end h-full max-w-lg mx-auto pb-4">
             <a href="home.html" class="nav-item flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-house nav-icon"></i></div><span class="nav-text">Home</span></a>
@@ -265,7 +265,7 @@
         // --- PIN LOGIC (FIXED) ---
         window.verifyOldPin = () => {
             const input = document.getElementById('old-pin').value;
-            
+            // Verify against DB profile data
             if (input === currentProfile.withdrawal_pin) {
                 UI.showToast("PIN Verified", "success");
                 document.getElementById('pin-step-verify').classList.add('hidden');
