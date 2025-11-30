@@ -24,22 +24,26 @@ export const DB = {
         }
     },
 
-    createProfile: async (userId, email, fullName) => {
-        // Note: The SQL trigger usually handles this, but manual fallback is good
+    // Profile creation is handled by Supabase Auth Trigger, but update is manual
+    updateProfile: async (userId, updates) => {
         try {
             const { error } = await supabase
                 .from('profiles')
-                .insert([{ id: userId, email, full_name: fullName, referral_code: Math.random().toString(36).substring(2, 10) }]);
+                .update(updates)
+                .eq('id', userId);
             
-            if (error) console.log("Profile auto-creation skipped (likely trigger handled it).");
+            if (error) throw error;
+            return { success: true };
         } catch (error) {
-            // Ignore duplicate key errors if trigger worked
+            console.error("DB: Update Profile Error", error);
+            return { success: false, message: error.message };
         }
     },
 
+    // --- 2. BALANCE & TRANSACTIONS ---
     updateBalance: async (userId, amount) => {
-        // WARNING: In production, use RPC (Remote Procedure Call) for atomic updates
-        // to prevent race conditions. For now, we do read-modify-write.
+        // Fetch current balance first to ensure atomic-like update
+        // In production, use a Postgres Function (RPC) for true atomicity
         try {
             const { data: profile } = await supabase.from('profiles').select('balance').eq('id', userId).single();
             const newBalance = (parseFloat(profile.balance) || 0) + parseFloat(amount);
@@ -57,8 +61,7 @@ export const DB = {
         }
     },
 
-    // --- 2. TRANSACTIONS ---
-    createTransaction: async (userId, type, amount, method, proofUrl = null) => {
+    createTransaction: async (userId, type, amount, method = 'System', status = 'success', proofUrl = null) => {
         try {
             const { data, error } = await supabase
                 .from('transactions')
@@ -67,17 +70,17 @@ export const DB = {
                     type: type, // 'deposit', 'withdraw', 'trade_profit', 'task_reward'
                     amount: amount,
                     method: method,
-                    status: 'pending',
+                    status: status,
                     proof_url: proofUrl
                 }])
                 .select()
                 .single();
 
             if (error) throw error;
-            return data;
+            return { success: true, data };
         } catch (error) {
             console.error("DB: Create Transaction Error", error);
-            return null;
+            return { success: false, message: error.message };
         }
     },
 
@@ -113,7 +116,7 @@ export const DB = {
         }
     },
 
-    addWallet: async (userId, label, address, network) => {
+    addWallet: async (userId, label, address, network = 'TRC20') => {
         try {
             const { data, error } = await supabase
                 .from('user_wallets')
@@ -128,7 +131,54 @@ export const DB = {
         }
     },
 
-    // --- 4. TRADES ---
+    // --- 4. PACKAGES ---
+    getActivePackage: async (userId) => {
+        try {
+            const { data, error } = await supabase
+                .from('user_packages')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('is_active', true)
+                .single();
+            
+            if (error && error.code !== 'PGRST116') throw error;
+            return data;
+        } catch (error) {
+            return null;
+        }
+    },
+
+    purchasePackage: async (userId, packageId, cost, dailyRoi) => {
+        try {
+            // Deactivate old packages first (Single Package Rule)
+            await supabase
+                .from('user_packages')
+                .update({ is_active: false })
+                .eq('user_id', userId);
+
+            // Add new package
+            const { error } = await supabase
+                .from('user_packages')
+                .insert([{
+                    user_id: userId,
+                    package_id: packageId,
+                    invested_amount: cost,
+                    daily_roi: dailyRoi,
+                    is_active: true
+                }]);
+
+            if(error) throw error;
+            
+            // Update Profile active_package_id for quick access
+            await supabase.from('profiles').update({ active_package_id: packageId }).eq('id', userId);
+
+            return { success: true };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    },
+
+    // --- 5. TRADES ---
     getActiveTrade: async (userId) => {
         try {
             const { data, error } = await supabase
@@ -138,10 +188,9 @@ export const DB = {
                 .eq('status', 'active')
                 .single();
             
-            if (error && error.code !== 'PGRST116') throw error; // Ignore "No rows found"
-            return data; // Returns null if no active trade
+            if (error && error.code !== 'PGRST116') throw error;
+            return data;
         } catch (error) {
-            console.error("DB: Get Active Trade Error", error);
             return null;
         }
     },
@@ -166,9 +215,7 @@ export const DB = {
 
             if(error) throw error;
             
-            // Deduct Balance
-            await DB.updateBalance(userId, -amount);
-            
+            // Balance deduction should be handled by caller (logic.js) via updateBalance
             return { success: true, trade: data };
         } catch (error) {
             return { success: false, message: error.message };
@@ -177,30 +224,22 @@ export const DB = {
 
     completeTrade: async (userId, tradeId, profitAmount) => {
         try {
-            // 1. Mark Trade Complete
             const { error } = await supabase
                 .from('trades')
                 .update({ status: 'completed' })
                 .eq('id', tradeId);
             
             if(error) throw error;
-
-            // 2. Add Profit to Balance (Principal + Profit)
-            await DB.updateBalance(userId, profitAmount);
             
-            // 3. Log Transaction
-            await DB.createTransaction(userId, 'trade_profit', profitAmount, 'System');
-
+            // Transaction log creation should be handled by caller
             return { success: true };
         } catch (error) {
-            console.error("DB: Complete Trade Error", error);
             return { success: false };
         }
     },
 
-    // --- 5. TASKS ---
-    getDailyTasks: async (userId) => {
-        // Check logs for tasks completed TODAY
+    // --- 6. TASKS ---
+    getCompletedTasksToday: async (userId) => {
         const startOfDay = new Date();
         startOfDay.setHours(0,0,0,0);
         
@@ -212,52 +251,47 @@ export const DB = {
                 .gte('completed_at', startOfDay.toISOString());
                 
             if(error) throw error;
-            return data.map(t => t.task_id); // Return array of completed IDs [1, 2, 3]
+            return data.map(t => t.task_id);
         } catch (error) {
-            console.error("DB: Get Tasks Error", error);
             return [];
         }
     },
 
-    completeTask: async (userId, taskId, reward) => {
+    logTaskCompletion: async (userId, taskId, reward) => {
         try {
-            // Log Task
             const { error } = await supabase
                 .from('task_logs')
                 .insert([{ user_id: userId, task_id: taskId, reward_amount: reward }]);
             
             if(error) throw error;
-
-            // Add Balance
-            await DB.updateBalance(userId, reward);
-            
             return { success: true };
         } catch (error) {
             return { success: false, message: error.message };
         }
     },
 
-    // --- 6. FILE UPLOAD (Storage) ---
-    uploadProof: async (userId, file) => {
+    // --- 7. IMAGE UPLOAD ---
+    uploadAvatar: async (userId, file) => {
         try {
             const fileExt = file.name.split('.').pop();
             const fileName = `${userId}-${Date.now()}.${fileExt}`;
-            const filePath = `${fileName}`;
-
+            
             const { error: uploadError } = await supabase.storage
-                .from('deposit-proofs')
-                .upload(filePath, file);
+                .from('profile-pictures')
+                .upload(fileName, file, { upsert: true });
 
             if (uploadError) throw uploadError;
 
-            // Get Public URL
             const { data } = supabase.storage
-                .from('deposit-proofs')
-                .getPublicUrl(filePath);
+                .from('profile-pictures')
+                .getPublicUrl(fileName);
                 
+            // Update profile
+            await DB.updateProfile(userId, { avatar_url: data.publicUrl });
+
             return { success: true, url: data.publicUrl };
         } catch (error) {
-            console.error("DB: Upload Error", error);
+            console.error("Upload Error", error);
             return { success: false, message: error.message };
         }
     }
