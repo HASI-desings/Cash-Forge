@@ -42,7 +42,10 @@
         
         <!-- HEADER -->
         <div class="flex items-center justify-between mb-8">
-            <h2 class="heading-font text-3xl font-bold text-slate-800">My Profile</h2>
+            <!-- DYNAMIC HEADER: Shows "{Username}'s Profile" -->
+            <h2 class="heading-font text-2xl font-bold text-slate-800 truncate max-w-[240px]">
+                <span id="header-username">Loading...</span>'s Profile
+            </h2>
             <button onclick="confirmLogout()" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-red-50 hover:text-red-500 transition-colors">
                 <i class="ph-bold ph-sign-out text-xl"></i>
             </button>
@@ -54,7 +57,7 @@
             
             <div class="relative w-28 h-28 mx-auto mb-4">
                 <div class="avatar-ring"></div>
-                <!-- Avatar image (Replace source dynamically) -->
+                <!-- Avatar image -->
                 <img id="profile-avatar" src="https://ui-avatars.com/api/?name=User&background=random" alt="User" class="w-full h-full rounded-full border-4 border-white shadow-xl bg-white object-cover relative z-10">
                 
                 <a href="settings.html" class="absolute bottom-0 right-0 bg-slate-800 text-white p-2 rounded-full z-20 shadow-lg hover:scale-110 transition-transform">
@@ -62,14 +65,17 @@
                 </a>
             </div>
 
-            <h3 class="heading-font text-2xl font-bold text-slate-800 mb-1" id="user-name">Loading...</h3>
+            <!-- USERNAME (Fixed, set at Signup) -->
+            <h3 class="heading-font text-2xl font-bold text-slate-800 mb-1" id="user-name">...</h3>
             <p class="text-sm text-slate-500 font-mono mb-3" id="user-email">...</p>
             
-            <!-- VIP Badge -->
-            <div class="inline-flex items-center gap-1 bg-cyan-50 px-3 py-1 rounded-full border border-cyan-100 mb-6">
+            <!-- PACKAGE BADGE (Hidden if no package) -->
+            <div id="plan-badge" class="hidden inline-flex items-center gap-1 bg-cyan-50 px-3 py-1 rounded-full border border-cyan-100 mb-6">
                 <i class="ph-fill ph-crown text-brand-dark text-xs"></i>
-                <span class="text-xs font-bold text-brand-dark tracking-wide uppercase">VIP Level 1</span>
+                <span class="text-xs font-bold text-brand-dark tracking-wide uppercase" id="plan-name"></span>
             </div>
+            <!-- Spacer if badge is hidden -->
+            <div id="plan-spacer" class="mb-4"></div>
 
             <div class="grid grid-cols-2 gap-3 mb-6">
                 <div class="bg-white/60 p-4 rounded-2xl border border-white shadow-sm flex flex-col items-center">
@@ -156,29 +162,65 @@
     </nav>
 
     <script>
-        // --- MOCK DATA FOR PREVIEW (No fake numbers, just placeholders) ---
-        // In production, this data comes from Supabase via db.js
-        // We set initial state to 0 or Loading
-        const mockUser = {
-            name: "Loading...",
-            email: "...",
+        // --- CONFIG: Packages Map (Must match config.js) ---
+        const PACKAGES_MAP = {
+            1: 'Basic Plan', 2: 'Standard Plan', 3: 'Advanced Plan', 4: 'Pro Plan',
+            5: 'Premium Plan', 6: 'Supreme Plan', 7: 'Elite Plan', 8: 'Ultimate Plan'
+        };
+
+        // --- STATE (Empty Initial State) ---
+        // Real data will be fetched by db.js and populate this
+        let userState = {
+            name: "", 
+            email: "",
             balance: 0,
-            profit: 0
+            profit: 0,
+            activePackageId: 0 
         };
 
         const formatCurrency = (val) => '₨ ' + val.toLocaleString();
 
         window.onload = () => {
-            // Simulate Data Fetch Delay
+            // In production, call: await DB.getUserProfile()
+            // For preview, we leave it empty/loading until connected
             setTimeout(() => {
-                // In a real app, these values would update from the DB
-                // For now, they remain at 0/Loading to show the initial state
-                document.getElementById('user-name').innerText = "New User";
-                document.getElementById('user-email').innerText = "user@example.com";
-                document.getElementById('display-balance').innerText = formatCurrency(0);
-                document.getElementById('display-profit').innerText = formatCurrency(0);
-            }, 500);
+                updateUI();
+            }, 100);
         };
+
+        function updateUI() {
+            // 1. Update Username (Header & Card)
+            // If name is empty, show "Loading..." or fallback
+            const displayName = userState.name || "Loading...";
+            document.getElementById('header-username').innerText = displayName;
+            document.getElementById('user-name').innerText = displayName;
+            
+            // 2. Update Email & Stats
+            document.getElementById('user-email').innerText = userState.email || "...";
+            document.getElementById('display-balance').innerText = formatCurrency(userState.balance);
+            document.getElementById('display-profit').innerText = formatCurrency(userState.profit);
+
+            // 3. Logic: Update Package Badge
+            const badge = document.getElementById('plan-badge');
+            const spacer = document.getElementById('plan-spacer');
+            const planName = document.getElementById('plan-name');
+            
+            if (userState.activePackageId > 0 && PACKAGES_MAP[userState.activePackageId]) {
+                // User has a plan
+                planName.innerText = PACKAGES_MAP[userState.activePackageId];
+                badge.classList.remove('hidden');
+                spacer.classList.add('hidden'); // Hide spacer
+            } else {
+                // User has NO plan
+                badge.classList.add('hidden');
+                spacer.classList.remove('hidden'); // Show spacer to keep layout
+            }
+            
+            // Dynamic Avatar Init (using username for seed if available)
+            if (userState.name) {
+                 document.getElementById('profile-avatar').src = `https://ui-avatars.com/api/?name=${userState.name}&background=00FFFF&color=fff`;
+            }
+        }
 
         // --- LOGOUT LOGIC ---
         function confirmLogout() {
