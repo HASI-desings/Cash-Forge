@@ -18,6 +18,15 @@
         .sub-view { display: none; animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         .sub-view.active { display: block; }
         @keyframes slideInRight { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        /* Profile Upload Save Button */
+        .save-avatar-btn {
+            position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%) scale(0);
+            background: #10b981; color: white; padding: 6px 16px; border-radius: 20px;
+            font-size: 10px; font-weight: bold; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; z-index: 30;
+        }
+        .save-avatar-btn.show { transform: translateX(-50%) scale(1); bottom: 10px; }
     </style>
 </head>
 <body>
@@ -38,14 +47,16 @@
         <div id="view-main" class="sub-view active">
             
             <!-- AVATAR UPLOAD -->
-            <div class="glass-panel rounded-[24px] p-6 mb-6 flex flex-col items-center">
+            <div class="glass-panel rounded-[24px] p-6 mb-6 flex flex-col items-center relative">
                 <div class="relative w-24 h-24 mb-4 avatar-container group">
-                    <img id="setting-avatar" src="https://ui-avatars.com/api/?name=User&background=random" class="w-full h-full rounded-full border-4 border-white shadow-lg object-cover">
+                    <img id="setting-avatar" src="" class="w-full h-full rounded-full border-4 border-white shadow-lg object-cover bg-slate-100">
                     <div class="upload-overlay z-20" onclick="document.getElementById('file-upload').click()">
                         <i class="ph-bold ph-camera text-white text-2xl"></i>
                     </div>
+                    <!-- Save Button (Hidden initially) -->
+                    <div id="save-avatar-btn" class="save-avatar-btn" onclick="uploadSelectedImage()">Save</div>
                 </div>
-                <input type="file" id="file-upload" class="hidden" accept="image/*" onchange="handleImageUpload(event)">
+                <input type="file" id="file-upload" class="hidden" accept="image/*" onchange="previewImage(event)">
                 <p class="text-xs text-brand-dark font-bold cursor-pointer" onclick="document.getElementById('file-upload').click()">Change Profile Picture</p>
             </div>
 
@@ -104,8 +115,9 @@
                 <div class="space-y-4">
                     <div>
                         <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Current Password</label>
-                        <input type="password" class="input-glass" placeholder="••••••••">
+                        <input type="password" id="old-pass" class="input-glass" placeholder="Enter current password">
                     </div>
+                    <hr class="border-slate-200 my-4">
                     <div>
                         <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">New Password</label>
                         <input type="password" id="new-pass" class="input-glass" placeholder="Min 8 chars">
@@ -182,7 +194,7 @@
             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 pl-2">Saved Wallets</h4>
             <div id="saved-wallets-list" class="space-y-2">
                 <div class="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl">
-                    <p class="text-xs text-slate-400">No wallets added yet.</p>
+                    <p class="text-xs text-slate-400">Loading wallets...</p>
                 </div>
             </div>
         </div>
@@ -192,7 +204,7 @@
     <!-- TOAST -->
     <div id="toast" class="toast"></div>
 
-    <!-- NAVIGATION BAR (Injected by components.js in real build, added here for standalone testing) -->
+    <!-- NAVIGATION BAR -->
     <nav class="gradient-bar fixed bottom-0 w-full z-50 h-[80px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
         <div class="flex justify-around items-end h-full max-w-lg mx-auto pb-4">
             <a href="home.html" class="nav-item flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-house nav-icon"></i></div><span class="nav-text">Home</span></a>
@@ -208,10 +220,12 @@
         import { Auth } from './assets/js/auth.js';
         import { DB } from './assets/js/db.js';
         import { UI } from './assets/js/ui.js';
+        import { supabase } from './assets/js/supabase-client.js';
 
         let currentView = 'main';
         let currentUser = null;
         let currentProfile = null;
+        let selectedFile = null;
 
         window.onload = async () => {
             // 1. Get Real User Data
@@ -224,7 +238,8 @@
                 document.getElementById('static-email').value = currentUser.email;
                 
                 // Avatar
-                document.getElementById('setting-avatar').src = `https://ui-avatars.com/api/?name=${currentProfile?.full_name || 'User'}&background=00FFFF&color=fff`;
+                const avatarUrl = currentProfile?.avatar_url || `https://ui-avatars.com/api/?name=${currentProfile?.full_name || 'User'}&background=00FFFF&color=fff`;
+                document.getElementById('setting-avatar').src = avatarUrl;
                 
                 // Load Wallets
                 loadWallets();
@@ -243,11 +258,9 @@
             // Special Logic for PIN Page
             if (viewName === 'pin') {
                 if (currentProfile && currentProfile.withdrawal_pin) {
-                    // PIN Exists -> Force Verify
                     document.getElementById('pin-step-verify').classList.remove('hidden');
                     document.getElementById('pin-step-set').classList.add('hidden');
                 } else {
-                    // No PIN -> Direct Set
                     document.getElementById('pin-step-verify').classList.add('hidden');
                     document.getElementById('pin-step-set').classList.remove('hidden');
                 }
@@ -262,10 +275,9 @@
             }
         };
 
-        // --- PIN LOGIC (FIXED) ---
+        // --- PIN LOGIC ---
         window.verifyOldPin = () => {
             const input = document.getElementById('old-pin').value;
-            // Verify against DB profile data
             if (input === currentProfile.withdrawal_pin) {
                 UI.showToast("PIN Verified", "success");
                 document.getElementById('pin-step-verify').classList.add('hidden');
@@ -283,26 +295,109 @@
             if (newP.length !== 6 || isNaN(newP)) return UI.showToast("PIN must be 6 digits", "error");
             if (newP !== confP) return UI.showToast("PINs do not match", "error");
 
-            // Simulate DB update
-            // await DB.updateProfile(currentUser.id, { withdrawal_pin: newP });
+            // DB Update
+            const { error } = await supabase
+                .from('profiles')
+                .update({ withdrawal_pin: newP })
+                .eq('id', currentUser.id);
             
-            // Update local state immediately so we don't need refresh
-            if (currentProfile) currentProfile.withdrawal_pin = newP;
+            if (error) {
+                UI.showToast("Update Failed", "error");
+            } else {
+                currentProfile.withdrawal_pin = newP; // Update local
+                UI.showToast("PIN Updated Successfully!", "success");
+                setTimeout(() => window.handleBack(), 1500);
+            }
+        };
 
-            UI.showToast("PIN Updated Successfully!", "success");
-            setTimeout(() => window.handleBack(), 1500);
+        // --- PASSWORD LOGIC ---
+        window.updatePassword = async () => {
+            const oldPass = document.getElementById('old-pass').value;
+            const newPass = document.getElementById('new-pass').value;
+            const confirmPass = document.getElementById('confirm-pass').value;
+
+            if (!oldPass) return UI.showToast("Enter current password", "error");
+            if (newPass.length < 8) return UI.showToast("Password too short", "error");
+            if (newPass !== confirmPass) return UI.showToast("Passwords do not match", "error");
+
+            // 1. Re-Authenticate with Old Password to verify identity
+            const { error: authError } = await supabase.auth.signInWithPassword({
+                email: currentUser.email,
+                password: oldPass
+            });
+
+            if (authError) {
+                return UI.showToast("Incorrect Current Password", "error");
+            }
+
+            // 2. Update Password
+            const { error: updateError } = await supabase.auth.updateUser({ password: newPass });
+            
+            if (updateError) {
+                UI.showToast("Update Failed: " + updateError.message, "error");
+            } else {
+                UI.showToast("Password Updated! Please re-login.", "success");
+                setTimeout(() => {
+                    Auth.signOut();
+                    window.location.href = 'auth.html';
+                }, 2000);
+            }
+        };
+
+        // --- AVATAR LOGIC ---
+        window.previewImage = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    document.getElementById('setting-avatar').src = evt.target.result;
+                    // Show Save Button
+                    document.getElementById('save-avatar-btn').classList.add('show');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.uploadSelectedImage = async () => {
+            if (!selectedFile) return;
+            
+            const btn = document.getElementById('save-avatar-btn');
+            btn.innerText = 'Saving...';
+            
+            // DB Upload
+            const result = await DB.uploadAvatar(currentUser.id, selectedFile);
+            
+            if (result.success) {
+                UI.showToast("Profile Picture Saved!", "success");
+                btn.classList.remove('show');
+                btn.innerText = 'Save';
+            } else {
+                UI.showToast("Upload Failed", "error");
+                btn.innerText = 'Retry';
+            }
         };
 
         // --- WALLET LOGIC ---
         async function loadWallets() {
-            // const wallets = await DB.getWallets(currentUser.id);
-            const wallets = []; // Mock empty
+            const wallets = await DB.getWallets(currentUser.id);
             const list = document.getElementById('saved-wallets-list');
-            
+            list.innerHTML = '';
+
             if(wallets.length === 0) {
                 list.innerHTML = `<div class="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl"><p class="text-xs text-slate-400">No wallets added yet.</p></div>`;
             } else {
-                // Render List
+                wallets.forEach(w => {
+                    list.innerHTML += `
+                        <div class="bg-white/50 p-3 rounded-xl border border-slate-100 flex justify-between items-center">
+                            <div>
+                                <p class="text-sm font-bold text-slate-700">${w.label}</p>
+                                <p class="text-[10px] font-mono text-slate-400">${w.address}</p>
+                            </div>
+                            <div class="text-[10px] font-bold text-cyan-600 bg-cyan-50 px-2 py-1 rounded">${w.network}</div>
+                        </div>
+                    `;
+                });
             }
         }
 
@@ -311,20 +406,17 @@
             const addr = document.getElementById('wallet-address').value;
             if(!label || !addr) return UI.showToast("Please fill all fields", "error");
             
-            // await DB.addWallet(currentUser.id, label, addr);
-            UI.showToast("Wallet Saved", "success");
-            loadWallets(); // Refresh
+            const result = await DB.addWallet(currentUser.id, label, addr);
+            if (result.success) {
+                UI.showToast("Wallet Saved", "success");
+                loadWallets(); // Refresh list
+                // Clear inputs
+                document.getElementById('wallet-label').value = '';
+                document.getElementById('wallet-address').value = '';
+            } else {
+                UI.showToast("Failed to save wallet", "error");
+            }
         }
-
-        window.updatePassword = () => {
-            // Call Auth.updatePassword()
-            UI.showToast("Password Updated!", "success");
-        };
-        
-        window.handleImageUpload = (e) => {
-             // ... image logic ...
-             UI.showToast("Image Uploaded", "success");
-        };
     </script>
 </body>
 </html>
