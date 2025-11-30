@@ -20,7 +20,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* Intro-Specific Styles (Supplementing style.css) */
+        /* Intro-Specific Styles */
         .card-header {
             padding: 16px 20px; 
             border-bottom: 1px solid rgba(0,0,0,0.05);
@@ -34,19 +34,16 @@
             font-size: 20px; transition: all 0.3s ease;
         }
 
-        /* Hover Animation: Icon Rotation & Color Change */
+        /* Hover Animation */
         .info-card:hover .card-icon {
             transform: rotate(10deg) scale(1.1);
             background: #00FFFF; color: #0f172a;
         }
         
-        .info-card:hover .card-title {
-            color: #008b8b;
-        }
+        .info-card:hover .card-title { color: #008b8b; }
 
         .card-body { padding: 16px 20px; font-size: 13px; line-height: 1.6; color: #64748b; }
         
-        /* Initial Opacity for Animation Entry */
         .opacity-0-init { opacity: 0; }
     </style>
 </head>
@@ -59,14 +56,20 @@
 
     <!-- LOGO HEADER -->
     <header class="flex flex-col items-center justify-center text-center relative z-10 mb-8 mt-6">
-        <div class="relative w-28 h-28 mb-4 opacity-0-init animate-fade-up">
+        <!-- Logo Container: Increased size (w-32) and added rounded-full for circle shape -->
+        <div class="relative w-32 h-32 mb-4 opacity-0-init animate-fade-up">
+            <!-- Glow Effect -->
             <div class="absolute inset-0 bg-cyan-400/30 blur-2xl rounded-full animate-pulse-glow"></div>
-            <!-- Logo from Assets -->
-            <img src="assets/images/logo.png" 
-                 alt="CashForge" 
-                 class="w-full h-full object-contain relative z-10 drop-shadow-2xl transform hover:scale-105 transition-transform duration-500"
-                 onerror="this.style.display='none'; this.parentElement.innerHTML += '<div class=\'w-full h-full flex items-center justify-center bg-cyan-100 rounded-2xl text-cyan-800 font-bold text-4xl\'>CF</div>'">
+            
+            <!-- Logo Image: Rounded Circle + Slight Zoom (scale-110) -->
+            <div class="w-full h-full rounded-full overflow-hidden bg-white/20 backdrop-blur-sm shadow-xl flex items-center justify-center border border-white/40">
+                <img src="assets/images/logo.png" 
+                     alt="CashForge" 
+                     class="w-full h-full object-cover transform scale-110"
+                     onerror="this.style.display='none'; this.parentElement.innerHTML = '<div class=\'w-full h-full flex items-center justify-center bg-cyan-100 text-cyan-800 font-bold text-4xl\'>CF</div>'">
+            </div>
         </div>
+        
         <h1 class="heading-font text-3xl font-bold text-slate-800 mb-1 opacity-0-init animate-fade-up delay-100">
             CashForge
         </h1>
@@ -132,7 +135,7 @@
 
     <script>
         function goToAuth() {
-            // Mark intro as seen in localStorage so index.html doesn't show it again
+            // Mark intro as seen in localStorage
             localStorage.setItem('cashforge_intro_seen', 'true');
 
             const btn = document.querySelector('button');
