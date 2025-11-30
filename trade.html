@@ -66,8 +66,26 @@
     <!-- HEADER -->
     <header class="gradient-bar fixed top-0 w-full z-50 h-[70px] flex items-center justify-between px-5 shadow-sm">
         <div class="flex items-center gap-3">
-            <div class="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300 to-cyan-500 shadow-lg shadow-cyan-200/50">
-                <i class="ph-bold ph-lightning text-white text-xl"></i>
+            <!-- Circular Logo Container -->
+            <div class="w-10 h-10 relative">
+                <div class="absolute inset-0 bg-cyan-400/30 blur-lg rounded-full animate-pulse-glow"></div>
+                <!-- Embedded SVG Logo (Updated Circular Version) -->
+                <svg class="w-full h-full relative z-10 drop-shadow-md" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="gradSmall" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00FFFF;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#008b8b;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="256" cy="256" r="240" fill="white" stroke="url(#gradSmall)" stroke-width="20"/>
+                    <g transform="translate(106, 106) scale(0.6)">
+                        <path d="M150 50 A 150 150 0 1 0 150 450 L 150 350 A 50 50 0 1 1 150 150 Z" fill="url(#gradSmall)" />
+                        <rect x="180" y="50" width="80" height="400" rx="20" fill="url(#gradSmall)" />
+                        <rect x="280" y="50" width="180" height="80" rx="20" fill="url(#gradSmall)" />
+                        <rect x="280" y="210" width="120" height="80" rx="20" fill="url(#gradSmall)" />
+                        <path d="M180 50 L 220 -50 L 260 50 Z" fill="#00FFFF" />
+                    </g>
+                </svg>
             </div>
             <div>
                 <span class="heading-font font-bold text-xl tracking-tight text-slate-800 leading-none block">CashForge</span>
@@ -142,11 +160,13 @@
 
     <!-- LOGIC SCRIPT -->
     <script>
-        // --- 1. UPDATED CONFIGURATION (Your New Tiers) ---
+        // --- 1. CONFIGURATION ---
         const TIERS = [
             { id: 'weekly', name: 'Weekly Booster', days: 7, dailyPercent: 1.5, min: 3000, max: 50000 },
-            { id: 'turbo', name: 'Ten-Day Turbo', days: 10, dailyPercent: 2.0, min: 15000, max: 100000 },
-            { id: 'mega', name: 'Monthly Mega', days: 35, dailyPercent: 7.0, min: 100000, max: 1000000 }
+            { id: 'turbo', name: 'Ten-Day Turbo', days: 10, dailyPercent: 1.7, min: 5000, max: 100000 },
+            { id: 'mega', name: 'Monthly Mega', days: 35, dailyPercent: 1.9, min: 15000, max: 300000 },
+            { id: 'quant', name: 'Quarterly Quant', days: 120, dailyPercent: 3.0, min: 100000, max: 1000000 },
+            { id: 'bull', name: 'Biannual Bull', days: 200, dailyPercent: 5.0, min: 150000, max: 2000000 }
         ];
 
         let state = {
@@ -202,8 +222,11 @@
                                     MAX
                                 </button>
                             </div>
-                            <!-- Live Feedback -->
-                            <div id="feedback-${tier.id}" class="h-auto min-h-[24px] mt-1.5 text-[11px] font-bold pl-1 leading-snug"></div>
+                            <!-- Live Feedback & Error Area -->
+                            <div class="mt-1.5 pl-1">
+                                <div id="feedback-${tier.id}" class="h-auto min-h-[20px] text-[11px] font-bold leading-snug"></div>
+                                <div id="error-${tier.id}" class="h-auto min-h-[0px] text-[10px] font-bold text-red-500 flex items-center gap-1 transition-all"></div>
+                            </div>
                         </div>
 
                         <button onclick="startTrade('${tier.id}')" 
@@ -216,48 +239,47 @@
             });
         }
 
-        // --- 4. PROFIT CALCULATOR ---
+        // --- 4. PROFIT CALCULATOR & VALIDATION ---
         function calculateProfit(id, dailyPercent, days, min, max) {
             const input = document.getElementById(`input-${id}`);
             const feedback = document.getElementById(`feedback-${id}`);
+            const errorBox = document.getElementById(`error-${id}`);
             const box = document.getElementById(`box-${id}`);
             const val = parseFloat(input.value);
 
+            // Reset Styles
             box.classList.remove('error');
+            errorBox.innerHTML = '';
 
             if (!val || isNaN(val)) {
                 feedback.innerHTML = '';
                 return;
             }
 
-            // Validation
-            if (val < min) {
-                feedback.innerHTML = `<span class="text-red-500 flex items-center gap-1"><i class="ph-fill ph-warning-circle"></i> Min: ${formatCurrency(min)}</span>`;
-                box.classList.add('error');
-                return;
-            }
-            if (val > max) {
-                feedback.innerHTML = `<span class="text-red-500 flex items-center gap-1"><i class="ph-fill ph-warning-circle"></i> Max: ${formatCurrency(max)}</span>`;
-                box.classList.add('error');
-                return;
-            }
-            if (val > state.balance) {
-                feedback.innerHTML = `<span class="text-red-500 flex items-center gap-1"><i class="ph-fill ph-wallet"></i> Insufficient Balance</span>`;
-                box.classList.add('error');
-                return;
-            }
-
-            // Calculation: Daily Profit & Total Profit
+            // Calculation: Always calculate profit even if error exists
             const dailyProfit = val * (dailyPercent / 100);
             const totalProfit = dailyProfit * days;
             const totalReturn = val + totalProfit;
             
+            // Display Profit (Always visible)
             feedback.innerHTML = `
                 <div class="flex justify-between text-slate-500">
                     <span>Daily: <span class="text-green-600">+${formatCurrency(dailyProfit)}</span></span>
                     <span>Total: <span class="text-brand-dark font-extrabold">${formatCurrency(totalReturn)}</span></span>
                 </div>
             `;
+
+            // Error Checking (Shows BELOW the profit)
+            if (val < min) {
+                errorBox.innerHTML = `<i class="ph-fill ph-warning-circle"></i> Min investment: ${formatCurrency(min)}`;
+                box.classList.add('error');
+            } else if (val > max) {
+                errorBox.innerHTML = `<i class="ph-fill ph-warning-circle"></i> Max investment: ${formatCurrency(max)}`;
+                box.classList.add('error');
+            } else if (val > state.balance) {
+                errorBox.innerHTML = `<i class="ph-fill ph-wallet"></i> Insufficient Balance`;
+                box.classList.add('error');
+            }
         }
 
         function setMax(id, max, dailyPercent, days, min) {
@@ -273,9 +295,12 @@
             const input = document.getElementById(`input-${tierId}`);
             const amount = parseInt(input.value);
 
+            // Validation Check
             if (!amount || amount < tier.min || amount > tier.max || amount > state.balance) {
-                showToast("Please enter a valid amount.", 'error');
+                showToast("Please fix errors before trading.", 'error');
                 document.getElementById(`box-${tierId}`).classList.add('error');
+                document.getElementById(`box-${tierId}`).classList.add('animate-shake');
+                setTimeout(() => document.getElementById(`box-${tierId}`).classList.remove('animate-shake'), 500);
                 return;
             }
 
@@ -357,6 +382,7 @@
             const t = document.getElementById('toast');
             const color = type === 'success' ? 'success' : 'error';
             const icon = type === 'success' ? 'ph-check-circle' : 'ph-warning-circle';
+            
             t.className = `toast active ${color}`;
             t.innerHTML = `<i class="ph-fill ${icon} text-lg"></i> ${msg}`;
             setTimeout(() => t.classList.remove('active'), 3000);
