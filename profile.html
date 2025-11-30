@@ -17,8 +17,10 @@
     <!-- TAILWIND -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- 🚨 SECURITY GUARD: This line prevents unauthorized access -->
+    <!-- 🚨 SECURITY GUARD: Protects this page -->
     <script type="module" src="assets/js/router.js"></script>
+    <!-- SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         /* Avatar Glow Ring */
@@ -45,7 +47,7 @@
         
         <!-- HEADER -->
         <div class="flex items-center justify-between mb-8">
-            <!-- DYNAMIC HEADER -->
+            <!-- DYNAMIC HEADER: Shows "{Username}'s Profile" -->
             <h2 class="heading-font text-2xl font-bold text-slate-800 truncate max-w-[240px]">
                 <span id="header-username">Loading...</span>'s Profile
             </h2>
@@ -72,7 +74,7 @@
             <h3 class="heading-font text-2xl font-bold text-slate-800 mb-1" id="user-name">...</h3>
             <p class="text-sm text-slate-500 font-mono mb-3" id="user-email">...</p>
             
-            <!-- PACKAGE BADGE -->
+            <!-- PACKAGE BADGE (Hidden initially) -->
             <div id="plan-badge" class="hidden inline-flex items-center gap-1 bg-cyan-50 px-3 py-1 rounded-full border border-cyan-100 mb-6">
                 <i class="ph-fill ph-crown text-brand-dark text-xs"></i>
                 <span class="text-xs font-bold text-brand-dark tracking-wide uppercase" id="plan-name"></span>
@@ -167,7 +169,7 @@
     <script type="module">
         import { Auth } from './assets/js/auth.js';
         import { DB } from './assets/js/db.js';
-        import { Router } from './assets/js/router.js'; // The Security Guard
+        import { Router } from './assets/js/router.js'; // Forces login check
 
         // CONFIG MAP
         const PACKAGES_MAP = {
@@ -178,44 +180,45 @@
         const formatCurrency = (val) => '₨ ' + val.toLocaleString();
 
         window.onload = async () => {
-            // 1. Auth Check
+            // 1. Get Current User (Router.js already handles redirection if null, but safety check here)
             const user = await Auth.getCurrentUser();
-            if(!user) return; // Router will redirect
-
-            // 2. Get Real Profile Data
-            const profile = await DB.getProfile(user.id);
             
-            if(profile) {
-                // Update Username (Header & Card)
-                const displayName = profile.full_name || "User";
-                document.getElementById('header-username').innerText = displayName;
-                document.getElementById('user-name').innerText = displayName;
+            // 2. If user exists, fetch their DB Profile
+            if (user) {
+                const profile = await DB.getProfile(user.id);
                 
-                // Update Email & Stats
-                document.getElementById('user-email').innerText = profile.email;
-                document.getElementById('display-balance').innerText = formatCurrency(profile.balance);
-                // document.getElementById('display-profit').innerText = formatCurrency(profile.total_profit); // Assuming field exists
+                if (profile) {
+                    // 3. Populate Real Data
+                    const displayName = profile.full_name || "User";
+                    
+                    document.getElementById('header-username').innerText = displayName;
+                    document.getElementById('user-name').innerText = displayName;
+                    document.getElementById('user-email').innerText = profile.email;
+                    document.getElementById('display-balance').innerText = formatCurrency(profile.balance || 0);
+                    // If you have a total_profit field in DB, use it here. Default to 0 for now.
+                    document.getElementById('display-profit').innerText = formatCurrency(0); 
 
-                // Logic: Update Package Badge
-                const badge = document.getElementById('plan-badge');
-                const spacer = document.getElementById('plan-spacer');
-                const planName = document.getElementById('plan-name');
-                
-                if (profile.active_package_id > 0 && PACKAGES_MAP[profile.active_package_id]) {
-                    planName.innerText = PACKAGES_MAP[profile.active_package_id];
-                    badge.classList.remove('hidden');
-                    spacer.classList.add('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                    spacer.classList.remove('hidden');
+                    // 4. Package Badge Logic
+                    const badge = document.getElementById('plan-badge');
+                    const spacer = document.getElementById('plan-spacer');
+                    const planName = document.getElementById('plan-name');
+                    
+                    if (profile.active_package_id > 0 && PACKAGES_MAP[profile.active_package_id]) {
+                        planName.innerText = PACKAGES_MAP[profile.active_package_id];
+                        badge.classList.remove('hidden');
+                        spacer.classList.add('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                        spacer.classList.remove('hidden');
+                    }
+                    
+                    // 5. Dynamic Avatar
+                    document.getElementById('profile-avatar').src = `https://ui-avatars.com/api/?name=${displayName}&background=00FFFF&color=fff`;
                 }
-                
-                // Dynamic Avatar
-                document.getElementById('profile-avatar').src = `https://ui-avatars.com/api/?name=${displayName}&background=00FFFF&color=fff`;
             }
         };
 
-        // Expose functions to window for onclicks
+        // Expose logout functions globally for onclick events
         window.confirmLogout = () => {
             document.getElementById('logout-modal').classList.add('active');
         };
