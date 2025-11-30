@@ -19,6 +19,9 @@
     <!-- TAILWIND -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- SUPABASE (Required for Auth) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         /* Auth Specific Overrides */
         body {
@@ -72,7 +75,7 @@
                 
                 <!-- LOGIN FORM -->
                 <div class="form-view" id="login-view">
-                    <form onsubmit="handleLogin(event)">
+                    <form id="login-form">
                         <div class="input-group">
                             <input type="email" id="login-email" class="input-glass" placeholder="Email Address" required>
                             <i class="ph-bold ph-envelope-simple input-icon"></i>
@@ -80,7 +83,7 @@
                         <div class="input-group">
                             <input type="password" id="login-pass" class="input-glass" placeholder="Password" required>
                             <i class="ph-bold ph-lock-key input-icon"></i>
-                            <i class="ph-bold ph-eye toggle-password" onclick="togglePass('login-pass', this)"></i>
+                            <i class="ph-bold ph-eye toggle-password" onclick="window.togglePass('login-pass', this)"></i>
                         </div>
                         
                         <div class="flex justify-end mb-6">
@@ -93,13 +96,13 @@
                     </form>
 
                     <div class="text-center mt-6">
-                        <p class="text-sm text-slate-500">Don't have an account? <button onclick="switchMode('register')" class="text-cyan-600 font-bold hover:underline">Create one</button></p>
+                        <p class="text-sm text-slate-500">Don't have an account? <button type="button" onclick="window.switchMode('register')" class="text-cyan-600 font-bold hover:underline">Create one</button></p>
                     </div>
                 </div>
 
                 <!-- REGISTER FORM -->
                 <div class="form-view inactive" id="register-view">
-                    <form onsubmit="handleRegister(event)">
+                    <form id="register-form">
                         <div class="input-group">
                             <input type="text" id="reg-name" class="input-glass" placeholder="Full Name" required>
                             <i class="ph-bold ph-user input-icon"></i>
@@ -109,9 +112,9 @@
                             <i class="ph-bold ph-envelope-simple input-icon"></i>
                         </div>
                         <div class="input-group mb-2">
-                            <input type="password" id="reg-pass" class="input-glass" placeholder="Create Password" required oninput="checkStrength(this.value)">
+                            <input type="password" id="reg-pass" class="input-glass" placeholder="Create Password" required oninput="window.checkStrength(this.value)">
                             <i class="ph-bold ph-lock-key input-icon"></i>
-                            <i class="ph-bold ph-eye toggle-password" onclick="togglePass('reg-pass', this)"></i>
+                            <i class="ph-bold ph-eye toggle-password" onclick="window.togglePass('reg-pass', this)"></i>
                         </div>
                         
                         <!-- Strength Indicators -->
@@ -128,7 +131,7 @@
                     </form>
 
                     <div class="text-center mt-6">
-                        <p class="text-sm text-slate-500">Already have an account? <button onclick="switchMode('login')" class="text-cyan-600 font-bold hover:underline">Sign In</button></p>
+                        <p class="text-sm text-slate-500">Already have an account? <button type="button" onclick="window.switchMode('login')" class="text-cyan-600 font-bold hover:underline">Sign In</button></p>
                     </div>
                 </div>
 
@@ -140,10 +143,14 @@
     <!-- TOAST NOTIFICATION -->
     <div id="toast" class="toast"></div>
 
-    <!-- UI LOGIC -->
-    <script>
-        // --- 1. SLIDER LOGIC ---
-        function switchMode(mode) {
+    <!-- UI LOGIC & AUTH INTEGRATION -->
+    <script type="module">
+        // Import Authentication Logic
+        import { Auth } from './assets/js/auth.js';
+        
+        // --- UI FUNCTIONS (Attached to Window for HTML access) ---
+        
+        window.switchMode = (mode) => {
             const slider = document.getElementById('slider');
             const loginView = document.getElementById('login-view');
             const regView = document.getElementById('register-view');
@@ -163,10 +170,9 @@
                 title.innerText = "Welcome Back";
                 subtitle.innerText = "Secure access to your portfolio";
             }
-        }
+        };
 
-        // --- 2. PASSWORD TOGGLE ---
-        function togglePass(id, icon) {
+        window.togglePass = (id, icon) => {
             const input = document.getElementById(id);
             if (input.type === "password") {
                 input.type = "text";
@@ -175,10 +181,9 @@
                 input.type = "password";
                 icon.classList.replace('ph-eye-slash', 'ph-eye');
             }
-        }
+        };
 
-        // --- 3. STRENGTH CHECKER ---
-        function checkStrength(pass) {
+        window.checkStrength = (pass) => {
             const dot1 = document.getElementById('dot-1');
             const dot2 = document.getElementById('dot-2');
             const dot3 = document.getElementById('dot-3');
@@ -200,34 +205,70 @@
                 dot2.className = 'strength-dot active bg-green-400';
                 text.innerText = "Strong"; 
             }
-        }
+        };
 
-        // --- 4. FORM HANDLERS (Connect to auth.js later) ---
-        function handleLogin(e) {
+        // --- AUTHENTICATION HANDLERS ---
+
+        // 1. LOGIN
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('login-btn');
-            startLoading(btn, "Authenticating...");
-            
-            // NOTE: In production, call Auth.signIn() here
-            setTimeout(() => {
-                // Mock Success
-                localStorage.setItem('sb-auth-token', 'mock-token');
-                window.location.href = 'home.html';
-            }, 1500);
-        }
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
 
-        function handleRegister(e) {
+            startLoading(btn, "Authenticating...");
+
+            const response = await Auth.signIn(email, pass);
+
+            if (response.success) {
+                showToast("Login Successful!", "success");
+                // Redirect logic
+                setTimeout(() => window.location.href = 'home.html', 1000);
+            } else {
+                stopLoading(btn, "Sign In", "ph-arrow-right");
+                showToast(response.message, "error");
+                shakeCard();
+            }
+        });
+
+        // 2. REGISTER
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('reg-btn');
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+
+            // Validation
+            if (pass.length < 8) {
+                showToast("Password must be at least 8 characters", "error");
+                shakeCard();
+                return;
+            }
+
             startLoading(btn, "Creating Account...");
             
-            // NOTE: In production, call Auth.signUp() here
-            setTimeout(() => {
+            const response = await Auth.signUp(email, pass, name);
+
+            if (response.success) {
+                if (response.requiresVerification) {
+                    // Email Verification Required Flow
+                    showToast("Verification Email Sent! Check Inbox.", "success");
+                    btn.innerHTML = `<i class="ph-bold ph-check"></i> Check Email`;
+                    btn.classList.remove('btn-loading');
+                    // Don't switch immediately so user sees the message
+                } else {
+                    // Instant Success Flow
+                    showToast("Account Created!", "success");
+                    stopLoading(btn, "Create Account", "ph-user-plus");
+                    window.switchMode('login');
+                }
+            } else {
                 stopLoading(btn, "Create Account", "ph-user-plus");
-                switchMode('login');
-                showToast("Account Created! Please Sign In.", "success");
-            }, 1500);
-        }
+                showToast(response.message, "error");
+                shakeCard();
+            }
+        });
 
         // --- UTILS ---
         function startLoading(btn, text) {
@@ -247,6 +288,12 @@
             toast.className = `toast active ${color}`;
             toast.innerHTML = `<i class="ph-fill ${icon} text-lg"></i> ${msg}`;
             setTimeout(() => toast.classList.remove('active'), 3000);
+        }
+
+        function shakeCard() {
+            const card = document.getElementById('main-card');
+            card.classList.add('animate-shake');
+            setTimeout(() => card.classList.remove('animate-shake'), 500);
         }
     </script>
 </body>
