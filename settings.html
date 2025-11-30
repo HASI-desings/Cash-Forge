@@ -36,7 +36,7 @@
 
     <main class="w-full max-w-lg mx-auto px-4 pt-4 pb-24">
         
-        <!-- HEADER (Dynamic Back Button) -->
+        <!-- HEADER -->
         <div class="flex items-center gap-4 mb-6">
             <button onclick="handleBack()" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 active:scale-95 transition-transform">
                 <i class="ph-bold ph-arrow-left text-lg"></i>
@@ -50,7 +50,6 @@
             <!-- AVATAR UPLOAD -->
             <div class="glass-panel rounded-[24px] p-6 mb-6 flex flex-col items-center">
                 <div class="relative w-24 h-24 mb-4 avatar-container group">
-                    <!-- Default Placeholder -->
                     <img id="setting-avatar" src="https://ui-avatars.com/api/?name=User&background=random" class="w-full h-full rounded-full border-4 border-white shadow-lg object-cover">
                     <div class="upload-overlay z-20" onclick="document.getElementById('file-upload').click()">
                         <i class="ph-bold ph-camera text-white text-2xl"></i>
@@ -61,7 +60,26 @@
             </div>
 
             <div class="space-y-6">
-                <!-- Security Section -->
+                
+                <!-- 1. USER INFO (FIXED) -->
+                <div>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 pl-2">Personal Info</h4>
+                    <div class="glass-panel rounded-2xl p-4 space-y-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Username</label>
+                            <input type="text" id="static-username" value="Loading..." readonly class="w-full bg-slate-100 border-none rounded-lg p-3 text-sm font-medium text-slate-500 mt-1 cursor-not-allowed outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Email Address</label>
+                            <input type="email" id="static-email" value="Loading..." readonly class="w-full bg-slate-100 border-none rounded-lg p-3 text-sm font-medium text-slate-500 mt-1 cursor-not-allowed outline-none">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                            <i class="ph-fill ph-lock-key"></i> These details cannot be changed.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 2. SECURITY -->
                 <div>
                     <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 pl-2">Security</h4>
                     <div class="glass-panel rounded-2xl p-2 space-y-1">
@@ -77,7 +95,7 @@
                     </div>
                 </div>
 
-                <!-- Payment Methods Section -->
+                <!-- 3. PAYMENT METHODS -->
                 <div>
                     <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 pl-2">Payment Methods</h4>
                     <div class="glass-panel rounded-2xl p-2">
@@ -116,20 +134,39 @@
         <!-- === SUB-PAGE: TRANSACTION PIN === -->
         <div id="view-pin" class="sub-view">
             <div class="glass-panel rounded-2xl p-6">
-                <div class="space-y-4">
-                    <p class="text-xs text-slate-500 mb-4">Set a 6-digit PIN for withdrawals.</p>
-                    <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">New PIN</label>
-                        <input type="tel" maxlength="6" class="input-glass text-center tracking-widest text-lg font-mono" placeholder="••••••">
+                
+                <!-- Step 1: Old PIN -->
+                <div id="pin-step-1">
+                    <p class="text-xs text-slate-500 mb-4">To change your PIN, please verify your current one.</p>
+                    <div class="mb-4">
+                        <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Current PIN</label>
+                        <input type="tel" id="old-pin" maxlength="6" class="input-glass text-center tracking-widest text-lg font-mono" placeholder="••••••">
                     </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Confirm PIN</label>
-                        <input type="tel" maxlength="6" class="input-glass text-center tracking-widest text-lg font-mono" placeholder="••••••">
-                    </div>
-                    <button class="w-full py-4 rounded-xl bg-slate-800 text-white font-bold shadow-lg mt-4 active:scale-95 transition-transform">
-                        Set PIN
+                    <button onclick="verifyOldPin()" class="w-full py-3 rounded-xl bg-slate-800 text-white font-bold shadow-lg active:scale-95 transition-transform">
+                        Verify & Continue
                     </button>
                 </div>
+
+                <!-- Step 2: New PIN (Hidden Initially) -->
+                <div id="pin-step-2" class="hidden fade-in-up">
+                    <div class="flex items-center gap-2 mb-4 text-green-600 bg-green-50 p-2 rounded-lg text-xs font-bold">
+                        <i class="ph-bold ph-check-circle"></i> Verified
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">New PIN</label>
+                            <input type="tel" id="new-pin" maxlength="6" class="input-glass text-center tracking-widest text-lg font-mono" placeholder="••••••">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Confirm New PIN</label>
+                            <input type="tel" id="confirm-pin" maxlength="6" class="input-glass text-center tracking-widest text-lg font-mono" placeholder="••••••">
+                        </div>
+                        <button onclick="setNewPin()" class="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-400 to-cyan-500 text-white font-bold shadow-lg mt-2 active:scale-95 transition-transform">
+                            Set New PIN
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -154,7 +191,6 @@
 
             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 pl-2">Saved Wallets</h4>
             <div id="saved-wallets-list" class="space-y-2">
-                <!-- Empty state initially -->
                 <div class="text-center py-6 border-2 border-dashed border-slate-200 rounded-xl">
                     <p class="text-xs text-slate-400">No wallets added yet.</p>
                 </div>
@@ -179,18 +215,23 @@
 
     <script>
         let currentView = 'main';
+        const MOCK_USER = { name: "HaroonUser", email: "haroon@gmail.com", pin: "123456" }; // Mock DB
+
+        window.onload = () => {
+            // Load Static Info
+            document.getElementById('static-username').value = MOCK_USER.name;
+            document.getElementById('static-email').value = MOCK_USER.email;
+            
+            // Avatar
+            document.getElementById('setting-avatar').src = `https://ui-avatars.com/api/?name=${MOCK_USER.name}&background=00FFFF&color=fff`;
+        };
 
         function openView(viewName) {
             document.querySelectorAll('.sub-view').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${viewName}`).classList.add('active');
             
             // Update Title
-            const titles = {
-                'main': 'Settings',
-                'password': 'Change Password',
-                'pin': 'Transaction PIN',
-                'wallets': 'Manage Wallets'
-            };
+            const titles = { 'main': 'Settings', 'password': 'Change Password', 'pin': 'Transaction PIN', 'wallets': 'Manage Wallets' };
             document.getElementById('page-title').innerText = titles[viewName];
             currentView = viewName;
         }
@@ -201,6 +242,33 @@
             } else {
                 openView('main');
             }
+        }
+
+        // --- PIN LOGIC ---
+        function verifyOldPin() {
+            const input = document.getElementById('old-pin').value;
+            
+            // In production, call API to verify hash
+            if (input === MOCK_USER.pin) {
+                showToast("PIN Verified", "success");
+                document.getElementById('pin-step-1').classList.add('hidden');
+                document.getElementById('pin-step-2').classList.remove('hidden');
+            } else {
+                showToast("Incorrect PIN", "error");
+                document.getElementById('old-pin').classList.add('border-red-400');
+            }
+        }
+
+        function setNewPin() {
+            const newP = document.getElementById('new-pin').value;
+            const confP = document.getElementById('confirm-pin').value;
+
+            if (newP.length !== 6 || isNaN(newP)) return showToast("PIN must be 6 digits", "error");
+            if (newP !== confP) return showToast("PINs do not match", "error");
+
+            // Call API update
+            showToast("PIN Updated Successfully!", "success");
+            setTimeout(() => handleBack(), 1500);
         }
 
         function handleImageUpload(e) {
@@ -219,7 +287,7 @@
             const t = document.getElementById('toast');
             const color = type === 'success' ? 'success' : 'error';
             t.className = `toast active ${color}`;
-            t.innerHTML = `<i class="ph-fill ph-check-circle text-lg"></i> ${msg}`;
+            t.innerHTML = `<i class="ph-fill ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'} text-lg"></i> ${msg}`;
             setTimeout(() => t.classList.remove('active'), 3000);
         }
     </script>
