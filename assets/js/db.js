@@ -24,15 +24,17 @@ export const DB = {
         }
     },
 
-    // --- 2. IMAGE UPLOAD (Generic for Avatar & Proofs) ---
+    // --- 2. FILE UPLOADER (Generic) ---
     uploadFile: async (bucket, path, file) => {
         try {
+            // Upload
             const { error: uploadError } = await supabase.storage
                 .from(bucket)
                 .upload(path, file, { upsert: true });
 
             if (uploadError) throw uploadError;
 
+            // Get URL
             const { data } = supabase.storage
                 .from(bucket)
                 .getPublicUrl(path);
@@ -44,22 +46,23 @@ export const DB = {
         }
     },
 
-    // --- 3. TRANSACTIONS & BALANCE ---
-    createTransaction: async (userId, type, amount, method, proofFile = null) => {
+    // --- 3. TRANSACTIONS ---
+    createTransaction: async (userId, type, amount, method, status, proofFile) => {
         try {
             let proofUrl = null;
 
-            // 1. Upload Proof if exists
+            // 1. Upload Proof if provided
             if (proofFile) {
                 const fileExt = proofFile.name.split('.').pop();
                 const fileName = `${userId}-${Date.now()}.${fileExt}`;
-                // Upload to 'deposit-proofs' bucket
+                
                 const upload = await DB.uploadFile('deposit-proofs', fileName, proofFile);
-                if (!upload.success) throw new Error("Proof upload failed: " + upload.message);
+                if (!upload.success) throw new Error("Image upload failed: " + upload.message);
+                
                 proofUrl = upload.url;
             }
 
-            // 2. Insert Record
+            // 2. Insert Database Record
             const { data, error } = await supabase
                 .from('transactions')
                 .insert([{
@@ -67,7 +70,7 @@ export const DB = {
                     type: type, 
                     amount: amount,
                     method: method,
-                    status: 'pending', // Always pending first
+                    status: status,
                     proof_url: proofUrl
                 }])
                 .select()
@@ -75,19 +78,11 @@ export const DB = {
 
             if (error) throw error;
             return { success: true, data };
+
         } catch (error) {
             console.error("DB: Transaction Error", error);
             return { success: false, message: error.message };
         }
-    },
-
-    getTransactions: async (userId) => {
-        const { data, error } = await supabase
-            .from('transactions')
-            .select('*')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false });
-        return data || [];
     },
 
     // --- 4. WALLETS ---
@@ -95,12 +90,11 @@ export const DB = {
         const { data } = await supabase.from('user_wallets').select('*').eq('user_id', userId);
         return data || [];
     },
-    
+
     addWallet: async (userId, label, address, network = 'TRC20') => {
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('user_wallets')
-            .insert([{ user_id: userId, label, address, network }])
-            .select().single();
-        return { success: !error, data };
+            .insert([{ user_id: userId, label, address, network }]);
+        return { success: !error };
     }
 };
