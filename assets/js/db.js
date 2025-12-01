@@ -24,85 +24,42 @@ export const DB = {
         }
     },
 
-    // Update generic profile fields
-    updateProfile: async (userId, updates) => {
+    // --- 2. IMAGE UPLOAD (Generic for Avatar & Proofs) ---
+    uploadFile: async (bucket, path, file) => {
         try {
-            const { error } = await supabase
-                .from('profiles')
-                .update(updates)
-                .eq('id', userId);
-            
-            if (error) throw error;
-            return { success: true };
-        } catch (error) {
-            console.error("DB: Update Profile Error", error);
-            return { success: false, message: error.message };
-        }
-    },
-
-    // --- 2. IMAGE UPLOAD (AVATAR) ---
-    uploadAvatar: async (userId, file) => {
-        try {
-            // 1. Create unique file path: userId/timestamp.ext
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`;
-            const filePath = `${userId}/${fileName}`;
-
-            // 2. Upload to Storage Bucket 'profile-pictures'
-            // UPSERT = true means overwrite if exists (saves space)
             const { error: uploadError } = await supabase.storage
-                .from('profile-pictures')
-                .upload(filePath, file, { upsert: true });
+                .from(bucket)
+                .upload(path, file, { upsert: true });
 
             if (uploadError) throw uploadError;
 
-            // 3. Get Public URL
             const { data } = supabase.storage
-                .from('profile-pictures')
-                .getPublicUrl(filePath);
+                .from(bucket)
+                .getPublicUrl(path);
                 
-            const publicUrl = data.publicUrl;
-
-            // 4. Update Profile Table with new URL so it persists
-            const { error: dbError } = await supabase
-                .from('profiles')
-                .update({ avatar_url: publicUrl })
-                .eq('id', userId);
-
-            if (dbError) throw dbError;
-
-            return { success: true, url: publicUrl };
-
+            return { success: true, url: data.publicUrl };
         } catch (error) {
-            console.error("Upload Avatar Error:", error);
+            console.error("DB: Upload Error", error);
             return { success: false, message: error.message };
         }
     },
 
-    // --- 3. BALANCE & TRANSACTIONS ---
-    createTransaction: async (userId, type, amount, method = 'System', status = 'success', proofFile = null) => {
+    // --- 3. TRANSACTIONS & BALANCE ---
+    createTransaction: async (userId, type, amount, method, proofFile = null) => {
         try {
             let proofUrl = null;
 
-            // If there is a proof file, upload it first
+            // 1. Upload Proof if exists
             if (proofFile) {
                 const fileExt = proofFile.name.split('.').pop();
                 const fileName = `${userId}-${Date.now()}.${fileExt}`;
-                
-                const { error: uploadError } = await supabase.storage
-                    .from('deposit-proofs')
-                    .upload(fileName, proofFile);
-
-                if (uploadError) throw uploadError;
-
-                const { data } = supabase.storage
-                    .from('deposit-proofs')
-                    .getPublicUrl(fileName);
-                    
-                proofUrl = data.publicUrl;
+                // Upload to 'deposit-proofs' bucket
+                const upload = await DB.uploadFile('deposit-proofs', fileName, proofFile);
+                if (!upload.success) throw new Error("Proof upload failed: " + upload.message);
+                proofUrl = upload.url;
             }
 
-            // Create the Transaction Record
+            // 2. Insert Record
             const { data, error } = await supabase
                 .from('transactions')
                 .insert([{
@@ -110,8 +67,8 @@ export const DB = {
                     type: type, 
                     amount: amount,
                     method: method,
-                    status: status,
-                    proof_url: proofUrl // Save the URL we just generated
+                    status: 'pending', // Always pending first
+                    proof_url: proofUrl
                 }])
                 .select()
                 .single();
@@ -119,34 +76,31 @@ export const DB = {
             if (error) throw error;
             return { success: true, data };
         } catch (error) {
-            console.error("DB: Create Transaction Error", error);
+            console.error("DB: Transaction Error", error);
             return { success: false, message: error.message };
         }
     },
 
-    // ... (Keep getTransactions, getWallets, addWallet, etc. from previous versions) ...
     getTransactions: async (userId) => {
-        try {
-            const { data, error } = await supabase
-                .from('transactions')
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            return data;
-        } catch (error) {
-            return [];
-        }
+        const { data, error } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+        return data || [];
     },
 
+    // --- 4. WALLETS ---
     getWallets: async (userId) => {
         const { data } = await supabase.from('user_wallets').select('*').eq('user_id', userId);
         return data || [];
     },
     
-    addWallet: async (userId, label, address) => {
-        const { error } = await supabase.from('user_wallets').insert([{ user_id: userId, label, address }]);
-        return { success: !error };
+    addWallet: async (userId, label, address, network = 'TRC20') => {
+        const { data, error } = await supabase
+            .from('user_wallets')
+            .insert([{ user_id: userId, label, address, network }])
+            .select().single();
+        return { success: !error, data };
     }
 };
