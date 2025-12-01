@@ -24,17 +24,15 @@ export const DB = {
         }
     },
 
-    // --- 2. FILE UPLOADER (Generic) ---
+    // --- 2. GENERIC FILE UPLOAD ---
     uploadFile: async (bucket, path, file) => {
         try {
-            // Upload
             const { error: uploadError } = await supabase.storage
                 .from(bucket)
                 .upload(path, file, { upsert: true });
 
             if (uploadError) throw uploadError;
 
-            // Get URL
             const { data } = supabase.storage
                 .from(bucket)
                 .getPublicUrl(path);
@@ -56,6 +54,7 @@ export const DB = {
                 const fileExt = proofFile.name.split('.').pop();
                 const fileName = `${userId}-${Date.now()}.${fileExt}`;
                 
+                // Upload to 'deposit-proofs' bucket
                 const upload = await DB.uploadFile('deposit-proofs', fileName, proofFile);
                 if (!upload.success) throw new Error("Image upload failed: " + upload.message);
                 
