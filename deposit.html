@@ -18,32 +18,22 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* --- DEPOSIT SPECIFIC STYLES --- */
-        
         /* Network Selector Cards */
         .net-card {
-            border: 1px solid rgba(255,255,255,0.6);
-            background: rgba(255,255,255,0.4);
-            padding: 16px; border-radius: 16px;
-            display: flex; align-items: center; justify-content: space-between;
+            border: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.4);
+            padding: 16px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between;
             cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .net-card.active {
-            background: rgba(0, 255, 255, 0.1);
-            border-color: #00FFFF;
+            background: rgba(0, 255, 255, 0.1); border-color: #00FFFF;
             box-shadow: 0 4px 15px rgba(0, 255, 255, 0.15);
         }
-        
         /* Custom Radio Button (Fixed Alignment) */
         .radio-circle {
-            width: 20px; height: 20px; border-radius: 50%;
-            border: 2px solid #cbd5e1; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center; /* Center the dot */
-            transition: all 0.2s;
+            width: 20px; height: 20px; border-radius: 50%; border: 2px solid #cbd5e1; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
-        .net-card.active .radio-circle {
-            border-color: #00FFFF;
-        }
+        .net-card.active .radio-circle { border-color: #00FFFF; }
         .radio-dot {
             width: 10px; height: 10px; background: #00FFFF; border-radius: 50%;
             transform: scale(0); transition: transform 0.2s;
@@ -51,26 +41,17 @@
         .net-card.active .radio-dot { transform: scale(1); }
 
         /* Step Container Transition */
-        .step-container {
-            display: none;
-            animation: slideUp 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-        }
+        .step-container { display: none; animation: slideUp 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
         .step-container.active { display: block; }
 
         /* Upload Area */
         .upload-box {
-            border: 2px dashed #cbd5e1;
-            border-radius: 16px;
-            background: rgba(255,255,255,0.3);
-            min-height: 120px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: all 0.2s; cursor: pointer;
-            position: relative; overflow: hidden;
+            border: 2px dashed #cbd5e1; border-radius: 16px; background: rgba(255,255,255,0.3);
+            min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden;
         }
         .upload-box:hover { border-color: #00FFFF; background: rgba(0,255,255,0.05); }
-        .upload-box img {
-            width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;
-        }
+        .upload-box img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
     </style>
 </head>
 <body>
@@ -91,8 +72,8 @@
         </div>
         <div class="glass-panel px-4 py-1.5 rounded-full flex items-center gap-2 border border-cyan-100 shadow-sm">
             <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <!-- Loading state initially -->
-            <span class="heading-font font-bold text-slate-800" id="header-balance">...</span>
+            <!-- Initial state is loading/zero -->
+            <span class="heading-font font-bold text-slate-800" id="header-balance">Loading...</span>
         </div>
     </header>
 
@@ -106,59 +87,41 @@
             </div>
         </div>
 
-        <!-- ================= STEP 1: AMOUNT & NETWORK ================= -->
+        <!-- ================= STEP 1 ================= -->
         <div id="step-1" class="step-container active">
-            
-            <!-- Calculator Card -->
             <div class="glass-panel rounded-3xl p-6 mb-6">
                 <div class="input-group mb-4">
                     <label class="text-xs font-bold text-slate-400 uppercase ml-1 mb-1 block">Deposit Amount (PKR)</label>
-                    <input type="number" id="dep-amount" oninput="calcConversion()" placeholder="Min 500 - Max 999,999" class="input-glass text-lg font-bold">
+                    <input type="number" id="dep-amount" oninput="calcConversion()" placeholder="Min 500" class="input-glass text-lg font-bold">
                 </div>
 
                 <div class="bg-cyan-50 rounded-2xl p-4 border border-cyan-100 flex items-center justify-between">
                     <div>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">You Will Pay</p>
-                        <!-- Updated Logic: Shows USDT to pay -->
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">You Pay</p>
                         <p class="font-mono text-xl font-bold text-slate-800" id="display-pay">0.00 USDT</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">You Receive</p>
-                        <!-- Updated Logic: Shows PKR Received -->
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">You Get</p>
                         <p class="font-mono text-xl font-bold text-brand-dark" id="display-receive">₨ 0</p>
                     </div>
                 </div>
                 <p class="text-center text-[10px] text-slate-400 mt-2 font-mono">Current Rate: 1 USDT = 285 PKR</p>
             </div>
 
-            <!-- Network Selection -->
             <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 ml-2">Select Network</h3>
             <div class="space-y-3 mb-8">
                 <div class="net-card active" onclick="selectNetwork('TRC20', this)">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 border border-red-100">
-                            <i class="ph-bold ph-asterisk-simple text-xl"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-slate-800 text-sm">USDT (TRC20)</h4>
-                            <p class="text-[10px] text-slate-400">Tron Network • 1-3 Mins</p>
-                        </div>
+                        <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 border border-red-100"><i class="ph-bold ph-asterisk-simple text-xl"></i></div>
+                        <div><h4 class="font-bold text-slate-800 text-sm">USDT (TRC20)</h4><p class="text-[10px] text-slate-400">Tron Network • 1-3 Mins</p></div>
                     </div>
-                    <!-- Fixed Radio Circle -->
                     <div class="radio-circle"><div class="radio-dot"></div></div>
                 </div>
-
                 <div class="net-card" onclick="selectNetwork('BEP20', this)">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600 border border-yellow-100">
-                            <i class="ph-bold ph-diamond text-xl"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-slate-800 text-sm">USDT (BEP20)</h4>
-                            <p class="text-[10px] text-slate-400">BNB Smart Chain • 1-2 Mins</p>
-                        </div>
+                        <div class="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600 border border-yellow-100"><i class="ph-bold ph-diamond text-xl"></i></div>
+                        <div><h4 class="font-bold text-slate-800 text-sm">USDT (BEP20)</h4><p class="text-[10px] text-slate-400">BNB Smart Chain • 1-2 Mins</p></div>
                     </div>
-                    <!-- Fixed Radio Circle -->
                     <div class="radio-circle"><div class="radio-dot"></div></div>
                 </div>
             </div>
@@ -168,41 +131,30 @@
             </button>
         </div>
 
-        <!-- ================= STEP 2: ADDRESS & PROOF ================= -->
+        <!-- ================= STEP 2 ================= -->
         <div id="step-2" class="step-container">
-            
-            <!-- Address Card -->
             <div class="glass-panel rounded-3xl p-6 mb-6 text-center">
                 <p class="text-xs text-slate-500 mb-4">Scan QR code or copy address below</p>
-                
                 <div class="mx-auto w-fit p-3 bg-white rounded-2xl shadow-sm mb-4 border border-slate-100">
                     <img src="" alt="QR Code" class="w-32 h-32 rounded-lg" id="qr-image">
                 </div>
-
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-2">
                     <p class="text-[10px] font-mono text-slate-600 truncate flex-1" id="wallet-address">Loading...</p>
-                    <button onclick="copyAddress()" class="p-2 bg-white rounded-lg shadow-sm text-brand-dark hover:scale-110 transition">
-                        <i class="ph-bold ph-copy"></i>
-                    </button>
+                    <button onclick="copyAddress()" class="p-2 bg-white rounded-lg shadow-sm text-brand-dark hover:scale-110 transition"><i class="ph-bold ph-copy"></i></button>
                 </div>
-                
                 <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-left">
                     <p class="text-[10px] text-yellow-700 leading-relaxed">
-                        <i class="ph-fill ph-warning-circle mr-1"></i>
-                        Send exactly <strong id="confirm-amount">...</strong> USDT. Only send <span id="confirm-network">...</span> network assets. Other assets will be lost forever.
+                        <i class="ph-fill ph-warning-circle mr-1"></i> Send exactly <strong id="confirm-amount">...</strong> USDT. Only send <span id="confirm-network">...</span> network assets.
                     </p>
                 </div>
             </div>
 
-            <!-- Proof Form -->
             <div class="glass-panel rounded-3xl p-6">
                 <h3 class="text-sm font-bold text-slate-800 mb-4">Submit Proof</h3>
-                
                 <div class="mb-4">
                     <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Transaction ID (Hash)</label>
                     <input type="text" id="tx-id" placeholder="Paste Transaction ID here" class="input-glass">
                 </div>
-
                 <div class="mb-4">
                     <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Upload Screenshot</label>
                     <div class="upload-box" onclick="document.getElementById('file-upload').click()">
@@ -214,13 +166,11 @@
                         <img id="image-preview" class="hidden">
                     </div>
                 </div>
-
                 <div class="flex gap-3">
                     <button onclick="goBackStep1()" class="flex-1 py-3 rounded-xl border border-slate-300 text-slate-600 font-bold text-sm">Back</button>
                     <button onclick="submitDeposit()" class="flex-[2] py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-cyan-500 text-white font-bold text-sm shadow-lg shadow-cyan-200/50">Submit Request</button>
                 </div>
             </div>
-
         </div>
 
     </main>
@@ -228,24 +178,14 @@
     <!-- TOAST -->
     <div id="toast" class="toast"></div>
 
-    <!-- NAVIGATION BAR -->
+    <!-- NAVIGATION -->
     <nav class="gradient-bar fixed bottom-0 w-full z-50 h-[80px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
         <div class="flex justify-around items-end h-full max-w-lg mx-auto pb-4">
-            <a href="home.html" class="nav-item flex flex-col items-center group w-16">
-                <div class="nav-icon-box"><i class="ph-bold ph-house nav-icon"></i></div><span class="nav-text">Home</span>
-            </a>
-            <a href="tasks.html" class="nav-item flex flex-col items-center group w-16">
-                <div class="nav-icon-box"><i class="ph-bold ph-list-checks nav-icon"></i></div><span class="nav-text">Tasks</span>
-            </a>
-            <a href="trade.html" class="nav-item flex flex-col items-center group w-16">
-                <div class="nav-icon-box"><i class="ph-bold ph-chart-line-up nav-icon"></i></div><span class="nav-text">Trade</span>
-            </a>
-            <a href="teams.html" class="nav-item flex flex-col items-center group w-16">
-                <div class="nav-icon-box"><i class="ph-bold ph-users-three nav-icon"></i></div><span class="nav-text">Team</span>
-            </a>
-            <a href="profile.html" class="nav-item active flex flex-col items-center group w-16">
-                <div class="nav-icon-box"><i class="ph-bold ph-user-circle nav-icon"></i></div><span class="nav-text">Profile</span>
-            </a>
+            <a href="home.html" class="nav-item flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-house nav-icon"></i></div><span class="nav-text">Home</span></a>
+            <a href="tasks.html" class="nav-item flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-list-checks nav-icon"></i></div><span class="nav-text">Tasks</span></a>
+            <a href="trade.html" class="nav-item flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-chart-line-up nav-icon"></i></div><span class="nav-text">Trade</span></a>
+            <a href="teams.html" class="nav-item flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-users-three nav-icon"></i></div><span class="nav-text">Team</span></a>
+            <a href="profile.html" class="nav-item active flex flex-col items-center group w-16"><div class="nav-icon-box"><i class="ph-bold ph-user-circle nav-icon"></i></div><span class="nav-text">Profile</span></a>
         </div>
     </nav>
 
@@ -276,11 +216,11 @@
         // --- INITIALIZATION ---
         window.onload = async () => {
             const user = await Auth.getCurrentUser();
-            
             if (user) {
                 const profile = await DB.getProfile(user.id);
                 if (profile) {
                     state.balance = profile.balance;
+                    // Immediate UI update
                     document.getElementById('header-balance').innerText = formatCurrency(state.balance);
                 }
             }
@@ -291,7 +231,6 @@
             const input = document.getElementById('dep-amount');
             let val = parseFloat(input.value);
             
-            // Max Limit Logic
             if (val > MAX_DEPOSIT_PKR) {
                 val = MAX_DEPOSIT_PKR;
                 input.value = MAX_DEPOSIT_PKR;
@@ -343,7 +282,6 @@
             const addr = document.getElementById('wallet-address').innerText;
             navigator.clipboard.writeText(addr);
             UI.showToast("Address Copied!", "success");
-            if(navigator.vibrate) navigator.vibrate(50);
         };
 
         window.previewImage = (event) => {
@@ -379,8 +317,8 @@
                     'deposit',
                     state.amountPKR,
                     `${state.network} | ${txId}`,
-                    'pending',
-                    file // Pass file object
+                    'pending', // Initial status
+                    file 
                 );
 
                 if (result.success) {
