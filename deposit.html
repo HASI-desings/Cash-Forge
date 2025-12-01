@@ -34,11 +34,11 @@
             box-shadow: 0 4px 15px rgba(0, 255, 255, 0.15);
         }
         
-        /* Custom Radio Button */
+        /* Custom Radio Button (Fixed Alignment) */
         .radio-circle {
             width: 20px; height: 20px; border-radius: 50%;
-            border: 2px solid #cbd5e1; flex-shrink: 0; /* Prevents squishing */
-            display: flex; align-items: center; justify-content: center;
+            border: 2px solid #cbd5e1; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; /* Center the dot */
             transition: all 0.2s;
         }
         .net-card.active .radio-circle {
@@ -97,7 +97,7 @@
     </header>
 
     <!-- CONTENT -->
-    <main class="w-full max-w-lg mx-auto px-4 relative z-10 pt-4 pb-24">
+    <main class="w-full max-w-lg mx-auto px-4 relative z-10 pt-24 pb-24">
         
         <div class="flex items-center justify-between mb-6">
             <h2 class="heading-font text-2xl font-bold text-slate-800">Deposit Funds</h2>
@@ -113,7 +113,7 @@
             <div class="glass-panel rounded-3xl p-6 mb-6">
                 <div class="input-group mb-4">
                     <label class="text-xs font-bold text-slate-400 uppercase ml-1 mb-1 block">Deposit Amount (PKR)</label>
-                    <input type="number" id="dep-amount" oninput="calcConversion()" placeholder="Min 500" class="input-glass text-lg font-bold">
+                    <input type="number" id="dep-amount" oninput="calcConversion()" placeholder="Min 500 - Max 999,999" class="input-glass text-lg font-bold">
                 </div>
 
                 <div class="bg-cyan-50 rounded-2xl p-4 border border-cyan-100 flex items-center justify-between">
@@ -189,7 +189,7 @@
                 <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-left">
                     <p class="text-[10px] text-yellow-700 leading-relaxed">
                         <i class="ph-fill ph-warning-circle mr-1"></i>
-                        Send exactly <strong id="confirm-amount">...</strong> USDT. Only send <span id="confirm-network">...</span> network assets.
+                        Send exactly <strong id="confirm-amount">...</strong> USDT. Only send <span id="confirm-network">...</span> network assets. Other assets will be lost forever.
                     </p>
                 </div>
             </div>
@@ -250,62 +250,76 @@
     </nav>
 
     <!-- LOGIC SCRIPT -->
-    <script>
-        // --- CONSTANTS ---
+    <script type="module">
+        import { Auth } from './assets/js/auth.js';
+        import { DB } from './assets/js/db.js';
+        import { UI } from './assets/js/ui.js';
+
+        // CONSTANTS
         const RATE = 285;
-        const MIN_DEPOSIT_PKR = 500; // UPDATED to 500
+        const MIN_DEPOSIT_PKR = 500;
+        const MAX_DEPOSIT_PKR = 999999;
         const WALLETS = {
             'TRC20': 'TAjyw8fVP8dkXJjqFE3vNMBWGaNz5sRbeG',
             'BEP20': '0x216c7d58c3F07428D3c1Be3762F402f71b43Eb56'
         };
 
-        // --- STATE ---
         let state = {
             amountPKR: 0,
             amountUSDT: 0,
-            network: 'TRC20', 
-            balance: 0 
+            network: 'TRC20',
+            balance: 0
         };
 
-        const formatCurrency = (val) => '₨ ' + val.toLocaleString();
+        const formatCurrency = (val) => '₨ ' + parseFloat(val).toLocaleString();
 
         // --- INITIALIZATION ---
-        window.onload = () => {
-            setTimeout(() => {
-                document.getElementById('header-balance').innerText = formatCurrency(state.balance);
-            }, 100);
+        window.onload = async () => {
+            const user = await Auth.getCurrentUser();
+            
+            if (user) {
+                const profile = await DB.getProfile(user.id);
+                if (profile) {
+                    state.balance = profile.balance;
+                    document.getElementById('header-balance').innerText = formatCurrency(state.balance);
+                }
+            }
         };
 
-        // --- CALCULATOR LOGIC (CORRECTED) ---
-        function calcConversion() {
+        // --- CALCULATOR LOGIC ---
+        window.calcConversion = () => {
             const input = document.getElementById('dep-amount');
             let val = parseFloat(input.value);
             
+            // Max Limit Logic
+            if (val > MAX_DEPOSIT_PKR) {
+                val = MAX_DEPOSIT_PKR;
+                input.value = MAX_DEPOSIT_PKR;
+                UI.showToast("Maximum deposit limit reached", "error");
+            }
+            
             if (isNaN(val) || val < 0) val = 0;
+            
             state.amountPKR = val;
-            // Pay USDT = PKR / Rate
             state.amountUSDT = (val / RATE).toFixed(2);
 
-            // Display Logic Flipped
-            document.getElementById('display-pay').innerText = state.amountUSDT + ' USDT'; // User Pays USDT
-            document.getElementById('display-receive').innerText = formatCurrency(val); // User Gets PKR
-        }
+            document.getElementById('display-pay').innerText = state.amountUSDT + ' USDT';
+            document.getElementById('display-receive').innerText = formatCurrency(val);
+        };
 
-        // --- NETWORK SELECTION ---
-        function selectNetwork(net, card) {
+        // --- UI LOGIC ---
+        window.selectNetwork = (net, card) => {
             state.network = net;
-            
             document.querySelectorAll('.net-card').forEach(c => c.classList.remove('active'));
             card.classList.add('active');
-        }
+        };
 
-        // --- STEP NAVIGATION ---
-        function goToStep2() {
+        window.goToStep2 = () => {
             if (state.amountPKR < MIN_DEPOSIT_PKR) {
-                showToast(`Minimum deposit is ${formatCurrency(MIN_DEPOSIT_PKR)}`, 'error');
+                UI.showToast(`Minimum deposit is ${formatCurrency(MIN_DEPOSIT_PKR)}`, 'error');
                 return;
             }
-
+            
             const address = WALLETS[state.network];
             document.getElementById('wallet-address').innerText = address;
             document.getElementById('confirm-amount').innerText = state.amountUSDT;
@@ -317,23 +331,22 @@
                 document.getElementById('step-2').classList.add('active');
                 document.getElementById('step-count').innerText = "2";
             }, 50);
-        }
+        };
 
-        function goBackStep1() {
+        window.goBackStep1 = () => {
             document.getElementById('step-2').classList.remove('active');
             document.getElementById('step-1').classList.add('active');
             document.getElementById('step-count').innerText = "1";
-        }
+        };
 
-        // --- UTILS ---
-        function copyAddress() {
+        window.copyAddress = () => {
             const addr = document.getElementById('wallet-address').innerText;
             navigator.clipboard.writeText(addr);
-            showToast("Address Copied!", "success");
+            UI.showToast("Address Copied!", "success");
             if(navigator.vibrate) navigator.vibrate(50);
-        }
+        };
 
-        function previewImage(event) {
+        window.previewImage = (event) => {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -345,34 +358,42 @@
                 };
                 reader.readAsDataURL(file);
             }
-        }
+        };
 
-        function submitDeposit() {
+        // --- SUBMISSION ---
+        window.submitDeposit = async () => {
             const txId = document.getElementById('tx-id').value;
             const file = document.getElementById('file-upload').files[0];
 
-            if (!txId) return showToast("Please enter Transaction ID", "error");
-            if (!file) return showToast("Please upload screenshot", "error");
+            if (!txId) return UI.showToast("Enter Transaction ID", "error");
+            if (!file) return UI.showToast("Upload Proof Screenshot", "error");
 
             const btn = event.currentTarget;
+            const oldText = btn.innerText;
             btn.innerHTML = `<div class="loader-spinner w-5 h-5 border-white"></div>`;
             
-            setTimeout(() => {
-                showToast("Deposit Submitted!", "success");
-                btn.innerText = "Submitted";
-                btn.disabled = true;
-                btn.classList.add('opacity-50');
-            }, 1500);
-        }
+            try {
+                const user = await Auth.getCurrentUser();
+                const result = await DB.createTransaction(
+                    user.id,
+                    'deposit',
+                    state.amountPKR,
+                    `${state.network} | ${txId}`,
+                    'pending',
+                    file // Pass file object
+                );
 
-        function showToast(msg, type) {
-            const t = document.getElementById('toast');
-            const icon = type === 'success' ? 'ph-check-circle' : 'ph-warning-circle';
-            const color = type === 'success' ? 'success' : 'error';
-            t.className = `toast active ${color}`;
-            t.innerHTML = `<i class="ph-fill ${icon} text-lg"></i> ${msg}`;
-            setTimeout(() => t.classList.remove('active'), 3000);
-        }
+                if (result.success) {
+                    UI.showToast("Deposit Submitted!", "success");
+                    setTimeout(() => window.location.href = 'profile.html', 2000);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                UI.showToast(error.message, "error");
+                btn.innerHTML = oldText;
+            }
+        };
     </script>
 </body>
 </html>
