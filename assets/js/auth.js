@@ -1,43 +1,36 @@
 /**
- * 🔐 CASHFORGE SECURE AUTHENTICATION
- * Logic: Enforces Email Verification & Profile Creation
+ * 🔐 CASHFORGE AUTHENTICATION MODULE
+ * Handles Sign Up, Sign In, Sign Out, and Session Management.
+ * Modified to support Referral Codes.
  */
 
 import { supabase } from './supabase-client.js';
 
 export const Auth = {
     
-    // --- 1. SIGN UP (With Verification) ---
-    signUp: async (email, password, fullName) => {
+    // --- 1. SIGN UP ---
+    // [UPDATED] Added refCode parameter to support referral system
+    signUp: async (email, password, fullName, refCode = null) => {
         try {
-            // DYNAMIC REDIRECT URL
-            // This grabs "https://cashforge.online" or "http://127.0.0.1:5500" automatically
-            const redirectUrl = window.location.origin + '/auth.html';
-
-            console.log("Sign Up Redirect URL:", redirectUrl); // Debugging
-
+            // 1. Create Auth User
             const { data, error } = await supabase.auth.signUp({
                 email: email,
                 password: password,
                 options: {
-                    data: { full_name: fullName },
-                    emailRedirectTo: redirectUrl 
+                    // This metadata is accessible in SQL Triggers
+                    data: { 
+                        full_name: fullName,
+                        referral_code: refCode 
+                    } 
                 }
             });
 
             if (error) throw error;
 
-            // Check if session was created immediately (Auto-confirm enabled?)
-            // If session is null, it means Email Verification is REQUIRED.
-            if (data.user && !data.session) {
-                return { 
-                    success: true, 
-                    requiresVerification: true,
-                    message: "Registration successful! Please check your email to verify your account." 
-                };
-            }
-
-            return { success: true, requiresVerification: false, user: data.user };
+            // 2. Database Trigger usually handles profile creation.
+            // However, we return the user data so the frontend can handle redirects or manual profile creation if needed.
+            
+            return { success: true, user: data.user };
 
         } catch (error) {
             console.error("SignUp Error:", error);
@@ -45,7 +38,7 @@ export const Auth = {
         }
     },
 
-    // --- 2. SIGN IN (Strict Check) ---
+    // --- 2. SIGN IN ---
     signIn: async (email, password) => {
         try {
             const { data, error } = await supabase.auth.signInWithPassword({
@@ -53,19 +46,13 @@ export const Auth = {
                 password: password
             });
 
-            if (error) {
-                // Custom error message for unverified emails
-                if (error.message.includes("Email not confirmed")) {
-                    throw new Error("Please verify your email address before logging in.");
-                }
-                throw error;
-            }
+            if (error) throw error;
 
             return { success: true, user: data.user };
 
         } catch (error) {
             console.error("SignIn Error:", error);
-            return { success: false, message: error.message };
+            return { success: false, message: "Invalid email or password." };
         }
     },
 
@@ -75,7 +62,8 @@ export const Auth = {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
             
-            localStorage.removeItem('cashforge_intro_seen'); 
+            // Clear any local state/cache if used
+            localStorage.removeItem('cashforge_user_cache');
             
             return { success: true };
         } catch (error) {
@@ -84,35 +72,23 @@ export const Auth = {
         }
     },
 
-    // --- 4. SESSION MANAGEMENT ---
+    // --- 4. GET SESSION ---
     getSession: async () => {
         const { data } = await supabase.auth.getSession();
         return data.session;
     },
 
+    // --- 5. GET CURRENT USER ---
     getCurrentUser: async () => {
         const { data: { user } } = await supabase.auth.getUser();
         return user;
     },
-    
-    // Check if user is authenticated, else redirect
-    requireAuth: async () => {
-        const session = await Auth.getSession();
-        if (!session) {
-            window.location.href = 'auth.html';
-            return null;
-        }
-        return session.user;
-    },
 
-    // --- 5. UPDATE PASSWORD ---
-    updatePassword: async (newPassword) => {
-        try {
-            const { error } = await supabase.auth.updateUser({ password: newPassword });
-            if (error) throw error;
-            return { success: true };
-        } catch (error) {
-            return { success: false, message: error.message };
-        }
+    // --- 6. PASSWORD RESET (Optional but good to have) ---
+    resetPassword: async (email) => {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/settings.html',
+        });
+        return error ? { success: false, message: error.message } : { success: true };
     }
 };
