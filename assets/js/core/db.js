@@ -1,174 +1,246 @@
 /**
- * CashForge Reactive State Manager (Supabase Ready)
- * Handles state store, subscriptions, and DOM binding using asynchronous DB calls.
- * Dependencies: config.js, db.js, auth.js
+ * CashForge Database Abstraction Layer (Supabase Final)
+ * Handles all asynchronous CRUD operations via Supabase PostgREST API.
+ * Dependencies: config.js, supabase.js, auth.js
  */
 
-const State = {
+const DB = {
     
+    // --- Data Caching (For performance, avoids repetitive DB calls) ---
+    _cache: { user: null, plans: null },
+
     // =================================
-    // 1. CENTRAL STORE
+    // 1. AUTH & USER MANAGEMENT
     // =================================
-    store: {
-        user: null,
-        balance: 0,
-        vipLevel: 0,
-        dailyYield: 0, 
-        activeTasks: 0,
-        isLoggedIn: false
+
+    /** Gets the currently authenticated user's ID. */
+    getAuthId: async function() {
+        const { data } = await supabase.auth.getUser();
+        return data.user ? data.user.id : null;
+    },
+    
+    /** Fetches the full user profile data from the 'users' table. */
+    getUser: async function() {
+        const userId = await this.getAuthId();
+        if (!userId) return null;
+
+        // Try to retrieve from cache first
+        if (this._cache.user && this._cache.user.id === userId) return this._cache.user;
+
+        const { data, error } = await supabase
+            .from(TABLE_USERS)
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+        if (error || !data) {
+            console.error("DB: Error fetching user profile:", error ? error.message : "No data.");
+            return null;
+        }
+
+        this._cache.user = data;
+        return data;
     },
 
-    listeners: {},
+    /** Updates a single field for the current user profile. */
+    updateUserField: async function(field, value) {
+        const userId = await this.getAuthId();
+        if (!userId) return { success: false, msg: "Not authenticated." };
 
-    // =================================
-    // 2. INITIALIZATION & REFRESH
-    // =================================
-    
-    /** Initializes the state by loading user data and setting up listeners. */
-    init: async function() { 
-        console.log("State: Initializing...");
+        const { error } = await supabase
+            .from(TABLE_USERS)
+            .update({ [field]: value })
+            .eq('id', userId);
+
+        this._cache.user = null; // Invalidate cache
+        return { success: !error, msg: error ? error.message : "Updated successfully." };
+    },
+
+    /** Adds or deducts balance and logs the change. */
+    updateBalance: async function(amount, type, details = {}) {
+        const user = await this.getUser();
+        if (!user) return { success: false, msg: "User not found." };
         
-        // Check authentication status
-        const authenticated = await Auth.isAuthenticated();
-        this.store.isLoggedIn = authenticated;
+        const newBalance = parseFloat((user.balance + amount).toFixed(2));
+        
+        // 1. Update user balance
+        const { error: balanceError } = await supabase
+            .from(TABLE_USERS)
+            .update({ balance: newBalance })
+            .eq('id', user.id);
 
-        if (authenticated) {
-            // Load all necessary user-specific data asynchronously
-            const user = await DB.getUser();
-            const plans = await DB.getPlansData();
-            const tasks = await DB.getTaskProgress();
-            
-            if (user) {
-                // Batch update state
-                this.store.user = user;
-                this.store.balance = user.balance || 0;
-                this.store.vipLevel = user.vip_level || 0; 
-                this.store.dailyYield = FinanceManager.calculateDailyYield(plans) || 0; // Requires plan data
-                
-                // Calculate active tasks
-                this.store.activeTasks = Math.max(0, CONFIG.TOTAL_DAILY_TASKS - (tasks.count || 0));
-                
-                // Trigger global UI updates after all data is loaded
-                this.notifyAll();
-            }
+        if (balanceError) {
+             return { success: false, msg: `Balance update failed: ${balanceError.message}` };
         }
-        
-        // Start listening for storage changes (Sync tabs)
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'supabase.auth.token') {
-                this.refresh();
-            }
+
+        // 2. Log transaction
+        await this.addTransaction({
+            user_id: user.id,
+            amount: amount,
+            type: type, // 'deposit', 'withdraw', 'profit', 'investment', 'commission'
+            status: 'success',
+            details: details
         });
-    },
 
-    /** Pulls the latest data from the DB and updates the state/UI. */
-    refresh: async function() { 
-        console.log("State: Refreshing data from DB...");
-        
-        const user = await DB.getUser();
-        const plans = await DB.getPlansData();
-        
-        if (user) {
-            this.update('balance', user.balance);
-            this.update('vipLevel', user.vip_level);
-            this.update('user', user);
-            this.update('dailyYield', FinanceManager.calculateDailyYield(plans));
-        }
-    },
-
-    // =================================
-    // 3. CORE METHODS & REACTIVITY
-    // =================================
-    
-    get: function(key) {
-        return this.store[key];
-    },
-
-    update: function(key, value) {
-        if (this.store[key] === value) return;
-        
-        this.store[key] = value;
-        
-        // Save the user object back to DB if core profile data changed
-        if (key === 'balance' || key === 'vipLevel' || key === 'user') {
-             // DB interaction should be handled directly by calling function (e.g., DB.updateUserField)
-             // State only persists non-profile data locally if needed.
-        }
-
-        // Notify subscribers
-        this.notify(key, value);
-    },
-
-    notify: function(key, value) {
-        if (this.listeners[key]) {
-            this.listeners[key].forEach(callback => callback(value));
-        }
+        this._cache.user = null; // Invalidate user cache
+        return { success: true, newBalance: newBalance };
     },
     
-    notifyAll: function() {
-         Object.keys(this.store).forEach(key => this.notify(key, this.store[key]));
-    },
+    // =================================
+    // 2. FINANCIAL & INVESTMENT DATA
+    // =================================
+    
+    /** Fetches the static list of plans from the database. */
+    getPlansData: async function() {
+        if (this._cache.plans) return this._cache.plans;
 
-    /**
-     * Subscribe to changes
-     * @param {string} key - State key to watch (e.g., 'balance')
-     * @param {function} callback - Function to run when data changes
-     */
-    subscribe: function(key, callback) {
-        if (!this.listeners[key]) {
-            this.listeners[key] = [];
-        }
-        this.listeners[key].push(callback);
+        const { data, error } = await supabase
+            .from(TABLE_PLANS)
+            .select('*')
+            .order('price', { ascending: true });
         
-        // Run immediately with current value if available
-        if (this.store[key] !== undefined && this.store[key] !== null) {
-            callback(this.store[key]);
-        }
+        if (error) console.error("DB: Error fetching plans:", error.message);
+        
+        this._cache.plans = data;
+        return data || [];
     },
-
-    /**
-     * Bind a DOM element to a state key.
-     * @param {string} key - State key (e.g., 'balance')
-     * @param {string} elementId - DOM ID to update
-     * @param {function} formatter - Optional format function (e.g., format currency)
-     */
-    bind: function(key, elementId, formatter = null) {
-        const element = document.getElementById(elementId);
-        if (!element) return; 
-
-        this.subscribe(key, (value) => {
-            const displayValue = formatter ? formatter(value) : value;
+    
+    /** Fetches the current user's active investments. */
+    getMyActiveInvestments: async function() {
+        const userId = await this.getAuthId();
+        if (!userId) return [];
+        
+        const { data } = await supabase
+            .from(TABLE_INVESTMENTS)
+            .select('*, plan_id(name, duration_days)') // Join to get plan details
+            .eq('user_id', userId)
+            .eq('active', true);
             
-            // Animation for visual effect
-            if (typeof value === 'number' && key === 'balance') {
-                this.animateValue(element, displayValue);
-            } else {
-                element.innerText = displayValue;
-            }
-        });
+        return data || [];
+    },
+    
+    /** Logs a generic transaction record. */
+    addTransaction: async function(data) {
+        const { error } = await supabase.from(TABLE_TRANSACTIONS).insert(data);
+        if (error) console.error("DB: Transaction logging failed:", error.message);
+        return { success: !error };
+    },
+    
+    /** Fetches transaction history for the current user. */
+    getTransactions: async function(type = null) {
+        const userId = await this.getAuthId();
+        if (!userId) return [];
+        
+        let query = supabase
+            .from(TABLE_TRANSACTIONS)
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (type) {
+            query = query.eq('type', type);
+        }
+
+        const { data } = await query;
+        return data || [];
     },
 
-    // Helper: Number Counter Animation (Placeholder)
-    animateValue: function(obj, endValue) {
-        obj.innerText = endValue;
-        obj.classList.add('animate-pulse-slow');
-        setTimeout(() => obj.classList.remove('animate-pulse-slow'), 500);
+    // =================================
+    // 3. TASK LOGIC
+    // =================================
+    
+    /** Fetches today's task status. */
+    getTaskProgress: async function() {
+        const userId = await this.getAuthId();
+        if (!userId) return { tasks_completed: 0, claimed: true };
+        
+        const today = new Date().toISOString().split('T')[0];
+        
+        let { data, error } = await supabase
+            .from(TABLE_TASKS)
+            .select('tasks_completed, claimed')
+            .eq('user_id', userId)
+            .eq('date', today)
+            .single();
+            
+        // If no row found, return default uncompleted state
+        if (error && error.code === 'PGRST116') { 
+             data = { tasks_completed: 0, claimed: false };
+        }
+        
+        return data || { tasks_completed: 0, claimed: false };
+    },
+    
+    /** Updates the number of tasks completed for today. */
+    completeTask: async function(newCount) {
+        const userId = await this.getAuthId();
+        const today = new Date().toISOString().split('T')[0];
+
+        // Upsert (Insert or Update) the row
+        const { error } = await supabase
+            .from(TABLE_TASKS)
+            .upsert({ user_id: userId, date: today, tasks_completed: newCount, claimed: false }, 
+                    { onConflict: 'user_id, date' });
+                    
+        return { success: !error, error: error };
+    },
+
+    // =================================
+    // 4. TEAM LOGIC (Requires Supabase Functions/Views)
+    // =================================
+    
+    /** Mocks team stats retrieval (Actual logic requires Supabase function/view) */
+    getTeamStats: async function() {
+        const userId = await this.getAuthId();
+        if (!userId) return { l1Members: 0, l2Members: 0, l3Members: 0, totalCommission: 0 };
+        
+        // NOTE: In a real app, you would call a Supabase RPC here: 
+        // const { data } = await supabase.rpc('get_team_stats', { user_id: userId });
+        
+        // Mocked response for frontend stability:
+        return { 
+            l1Members: 12, 
+            l2Members: 45, 
+            l3Members: 128, 
+            totalCommission: 45200 
+        };
+    },
+    
+    /** Fetches mock tier member lists (Requires Supabase function/view) */
+    getTierMembers: async function(level) {
+        // NOTE: In a real app, this calls Supabase Function to retrieve team members by level.
+        // Mocked response for frontend stability:
+        const data = [
+            { user_name: 'MemberA' + level, commission_earned: 1500 * level, active: true, joined_at: '2023-10-25' },
+            { user_name: 'MemberB' + level, commission_earned: 500 * level, active: true, joined_at: '2023-10-24' },
+            { user_name: 'MemberC' + level, commission_earned: 0, active: false, joined_at: '2023-10-22' },
+        ];
+        return data;
+    },
+
+    /** Claims VIP Salary (Requires update to both user table and log in vip_salary_claims) */
+    claimVIPSalaary: async function(level, amount) {
+        const userId = await this.getAuthId();
+        if (!userId) return { success: false, msg: "Not authenticated." };
+
+        // 1. Update user VIP level and add balance
+        const balanceResult = await this.updateBalance(amount, 'vip_salary');
+        
+        if (!balanceResult.success) return { success: false, msg: "Failed to update balance." };
+
+        // 2. Mark VIP level on user profile
+        await this.updateUserField('vip_level', level);
+
+        // 3. Log the claim
+        await supabase.from(TABLE_VIP_SALARY).insert({
+            user_id: userId,
+            level: level,
+            amount: amount,
+            date_claimed: new Date().toISOString().split('T')[0]
+        });
+
+        return { success: true };
     }
 };
 
-// =================================
-// GLOBAL BINDINGS (Must run after init)
-// =================================
-document.addEventListener('DOMContentLoaded', async () => {
-    // Wait for the state to initialize and fetch data
-    await State.init(); 
-
-    // Bind Balance Headers
-    State.bind('balance', 'header-balance', (val) => `${CONFIG.CURRENCY_SYMBOL} ${CONFIG.formatCurrency(val)}`);
-    State.bind('balance', 'wallet-balance', (val) => `${CONFIG.CURRENCY_SYMBOL} ${CONFIG.formatCurrency(val)}`);
-    State.bind('balance', 'main-balance', (val) => `${CONFIG.CURRENCY_SYMBOL} ${CONFIG.formatCurrency(val)}`);
-    
-    // Bind User Info
-    State.bind('user', 'user-name-display', (user) => user.name);
-    State.bind('user', 'user-uid-display', (user) => user.uid);
-});
+Object.freeze(DB);
