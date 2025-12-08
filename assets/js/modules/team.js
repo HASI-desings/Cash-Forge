@@ -13,12 +13,11 @@ const TeamManager = {
      * Renders the team overview section with live stats.
      */
     renderTeamOverview: async function() {
-        // Fetch current user details to get their referral code/UID
+        // Fetch current user details
         const user = await DB.getUser();
         if (!user) return;
         
-        // Mock team stats data retrieval (Requires Supabase Function to aggregate)
-        // For this frontend, we fetch sample data derived from the mock users list
+        // Fetch aggregated team stats (Requires Supabase Function/View)
         const stats = await DB.getTeamStats(); 
         
         // 1. Update Tier Counts
@@ -32,7 +31,7 @@ const TeamManager = {
 
         // 3. Update Referral Link in invite card
         const linkEl = document.querySelector('.invite-card input[type="text"]');
-        if (linkEl) linkEl.value = CONFIG.REF_LINK_BASE + user.uid; // Use actual UID
+        if (linkEl) linkEl.value = CONFIG.REF_LINK_BASE + user.uid; // Use user's unique referral UID
     },
 
     // --- 2. TIER LIST RENDERING ---
@@ -49,7 +48,6 @@ const TeamManager = {
         const members = await DB.getTierMembers(level);
         
         // Determine rates and labels for the header
-        const rateIndex = level === 1 ? 'A' : (level === 2 ? 'B' : 'C');
         const commissionRate = level === 1 ? '25%' : (level === 2 ? '10%' : '5%');
         const headerLabel = level === 1 ? 'Direct Team' : (level === 2 ? 'Secondary Team' : 'Extended Team');
         
@@ -61,13 +59,12 @@ const TeamManager = {
              container.innerHTML = `
                 <div class="text-center py-10 opacity-60">
                     <div class="w-16 h-16 bg-slate-100 rounded-full mx-auto flex items-center justify-center mb-3">
-                        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <svg class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     </div>
                     <p class="text-sm font-medium text-slate-500">No members found in Level ${level} yet.</p>
                 </div>
             `;
             // Update Summary Stats
-            const totalCommission = members.reduce((sum, member) => sum + member.commission, 0);
             document.querySelector('.grid-cols-2 div:first-child p.text-xl').innerText = CONFIG.formatCount(0);
             document.querySelector('.grid-cols-2 div:last-child p.text-xl').innerText = `${CONFIG.CURRENCY_SYMBOL} ${CONFIG.formatCurrency(0)}`;
             return;
@@ -115,9 +112,7 @@ const TeamManager = {
         if (!container) return;
 
         const user = await DB.getUser();
-        
-        // Mock active directs calculation (requires database view/function)
-        // For demonstration, we assume user data includes a field: active_directs_count
+        // Mock active directs calculation (Requires database view/function)
         const activeDirects = user.active_directs_count || 3; 
 
         let html = '';
@@ -125,13 +120,14 @@ const TeamManager = {
         CONFIG.SALARY_TIERS.forEach(tier => {
             const isAchieved = activeDirects >= tier.req;
             const isCurrentLevel = tier.level === user.vip_level;
+            const isNextLevel = tier.level === user.vip_level + 1;
             
             let btnText, btnClass;
             
             if (isCurrentLevel) {
                 btnText = "CURRENT VIP LEVEL";
                 btnClass = "btn btn-secondary text-white bg-gold-600 opacity-90";
-            } else if (isAchieved && tier.level === user.vip_level + 1) { // Ready to claim next level
+            } else if (isAchieved && isNextLevel) { // Ready to claim next level
                 btnText = `CLAIM VIP ${tier.level} SALARY`;
                 btnClass = "btn btn-primary bg-green-500 hover:bg-green-600";
             } else {
@@ -140,7 +136,7 @@ const TeamManager = {
             }
 
             html += `
-            <div class="white-card p-5 ${!isAchieved ? 'opacity-50 grayscale' : ''}">
+            <div class="white-card p-5 ${!isAchieved && !isCurrentLevel ? 'opacity-50 grayscale' : ''}">
                 <div class="row-between mb-3">
                     <div class="row-start gap-3">
                         <div class="w-10 h-10 bg-gold-100 rounded-full flex-center font-bold border border-gold-400 text-gold-600">
@@ -157,7 +153,7 @@ const TeamManager = {
                     </div>
                 </div>
                 
-                <button ${isAchieved && !isCurrentLevel ? '' : 'disabled'} class="w-full btn text-xs ${btnClass}" onclick="TeamManager.claimSalary(${tier.level}, ${tier.amount})">
+                <button ${isAchieved && isNextLevel ? '' : 'disabled'} class="w-full btn text-xs ${btnClass}" onclick="TeamManager.claimSalary(${tier.level}, ${tier.amount})">
                     ${btnText}
                 </button>
             </div>
@@ -192,11 +188,9 @@ const TeamManager = {
         const confirmed = confirm(`Are you sure you want to claim VIP ${level} salary of ${CONFIG.CURRENCY_SYMBOL} ${CONFIG.formatCurrency(amount)}?`);
         if (!confirmed) return;
 
-        // 1. Update user VIP level and add balance in the DB
         const result = await DB.claimVIPSalaary(level, amount); 
         
         if (result.success) {
-            // 2. Refresh global state
             await State.refresh();
             alert(`Salary claimed! ${CONFIG.CURRENCY_SYMBOL} ${CONFIG.formatCurrency(amount)} credited.`);
             TeamManager.renderVIPSalaary(); // Re-render the page
@@ -209,6 +203,7 @@ const TeamManager = {
         const user = await DB.getUser();
         if (!user || !user.uid) return;
         
+        // Uses the unique UID stored in the database for the referral link
         const link = CONFIG.REF_LINK_BASE + user.uid;
         const btn = document.getElementById('copyBtn');
         
