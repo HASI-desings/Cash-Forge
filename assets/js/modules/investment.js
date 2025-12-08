@@ -33,6 +33,11 @@ const InvestmentManager = {
 
         let html = '';
         
+        if (allPlans.length === 0) {
+            container.innerHTML = '<div class="text-center text-slate-400 py-10">No investment packages currently available. Please check back later.</div>';
+            return;
+        }
+
         allPlans.forEach(pkg => {
             // Data fields correspond to Supabase columns: price, daily_income, duration_days
             const isPopular = pkg.is_popular; 
@@ -89,21 +94,31 @@ const InvestmentManager = {
      * @param {number} price 
      */
     handlePurchaseConfirmation: function(id, name, price) {
-        // Assume modal elements exist from packages.html structure
+        // Find current user balance from state
+        const currentBalance = State.get('balance');
+        
         const modal = document.getElementById('buyModal');
         const modalTitle = document.getElementById('modal-title');
         const modalDesc = document.getElementById('modal-desc');
-        const confirmBtn = document.querySelector('#buyModal button:last-child');
+        const confirmBtn = document.querySelector('#buyModal button[data-role="confirm"]');
         
         if (!modal) return;
 
         modalTitle.innerText = `Unlock ${name}?`;
-        modalDesc.innerHTML = `Price: <span class="text-cyan-600 font-bold">${CONFIG.CURRENCY_SYMBOL} ${CONFIG.formatCurrency(price)}</span>. Deducted from balance.`;
         
-        // Bind data to the confirmation button
-        confirmBtn.onclick = () => this.handlePurchase(id);
+        if (currentBalance < price) {
+            modalDesc.innerHTML = `<span class="text-red-500 font-bold">Insufficient Balance!</span> Required: ${CONFIG.CURRENCY_SYMBOL} ${CONFIG.formatCurrency(price)}.`;
+            confirmBtn.innerText = "FUND WALLET";
+            confirmBtn.onclick = () => window.location.href = 'deposit.html';
+            confirmBtn.disabled = false; // Enable for redirection
+        } else {
+            modalDesc.innerHTML = `Price: <span class="text-cyan-600 font-bold">${CONFIG.CURRENCY_SYMBOL} ${CONFIG.formatCurrency(price)}</span>. Deducted from your current balance of ${CONFIG.CURRENCY_SYMBOL} ${CONFIG.formatCurrency(currentBalance)}.`;
+            confirmBtn.innerText = "CONFIRM PURCHASE";
+            confirmBtn.onclick = () => this.handlePurchase(id);
+            confirmBtn.disabled = false;
+        }
         
-        modal.classList.remove('hidden');
+        modal.classList.add('active'); // Use layout.css active class
     },
 
     /**
@@ -112,26 +127,23 @@ const InvestmentManager = {
      */
     handlePurchase: async function(planId) {
         const modal = document.getElementById('buyModal');
-        const confirmBtn = document.querySelector('#buyModal button:last-child');
+        const confirmBtn = document.querySelector('#buyModal button[data-role="confirm"]');
         
-        confirmBtn.innerText = "Processing...";
+        confirmBtn.innerText = "PROCESSING...";
         confirmBtn.disabled = true;
 
-        const result = await FinanceManager.purchaseInvestment(planId); // Calls FinanceManager logic
+        const result = await FinanceManager.purchaseInvestment(planId); 
 
         setTimeout(() => {
             if (result.success) {
-                // Update balance state globally
-                State.refresh(); 
-                
                 alert("Investment successful!");
                 window.location.href = 'my-investments.html';
             } else {
                 alert(`Purchase failed: ${result.msg}`);
-                // Restore button state
+                // Restore button state and close modal
                 confirmBtn.innerText = "Confirm";
                 confirmBtn.disabled = false;
-                modal.classList.add('hidden');
+                modal.classList.remove('active');
             }
         }, 1000);
     },
@@ -142,6 +154,7 @@ const InvestmentManager = {
      * Renders the user's active investment plans on my-investments.html.
      */
     renderMyInvestments: async function() {
+        // Fetches active investments with plan details joined
         const investments = await DB.getMyActiveInvestments();
         const container = document.getElementById('invest-list');
         if (!container) return;
@@ -157,16 +170,17 @@ const InvestmentManager = {
                     <a href="packages.html" class="text-cyan-600 font-bold ml-1">Invest Now!</a>
                 </div>
             `;
-            totalInvested = 0;
-            totalDailyYield = 0;
         } else {
             let html = '';
             
             investments.forEach(inv => {
+                const planDetails = inv.plan_id; // Data from the Supabase JOIN
+                
                 const startDate = new Date(inv.start_date);
-                // Calculate days run since purchase (excluding today)
+                // Calculate days run since purchase
                 const timeDiff = Math.abs(today.getTime() - startDate.getTime());
-                const daysRun = Math.max(0, Math.ceil(timeDiff / (1000 * 3600 * 24)));
+                const daysRun = Math.max(0, Math.ceil(timeDiff / (1000 * 3600 * 24))) - 1; // Exclude current day and start day
+                const daysLeft = Math.max(0, inv.duration_days - daysRun);
                 
                 const progressPercent = this.calculateProgress(daysRun, inv.duration_days);
                 
@@ -181,11 +195,11 @@ const InvestmentManager = {
                                 V${inv.plan_id}
                             </div>
                             <div>
-                                <h3 class="font-bold text-slate-800 text-sm">${inv.plan_name}</h3>
+                                <h3 class="font-bold text-slate-800 text-sm">${planDetails.name}</h3>
                                 <p class="text-[10px] text-slate-500 font-medium">Started: ${inv.start_date}</p>
                             </div>
                         </div>
-                        <span class="badge badge-success">ACTIVE</span>
+                        <span class="badge badge-success">${daysLeft > 0 ? 'ACTIVE' : 'EXPIRED'}</span>
                     </div>
 
                     <div class="layout-grid-2 gap-4 mb-4 border-b border-slate-50 pb-4">
@@ -215,8 +229,8 @@ const InvestmentManager = {
         }
 
         // Update Summary Stats (Total Invested and Total Daily Yield)
-        document.querySelector('#invest-list').closest('main').querySelector('.grid-cols-2 div:first-child p.text-lg').innerText = CONFIG.formatCurrency(totalInvested);
-        document.querySelector('#invest-list').closest('main').querySelector('.grid-cols-2 div:last-child p.text-lg').innerText = `+${CONFIG.formatCurrency(totalDailyYield)}`;
+        document.querySelector('#total-invested-display').innerText = CONFIG.formatCurrency(totalInvested);
+        document.querySelector('#total-daily-yield-display').innerText = `+${CONFIG.formatCurrency(totalDailyYield)}`;
     }
 };
 
@@ -224,6 +238,12 @@ const InvestmentManager = {
 document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
     
+    // Bind modal close button
+    const closeModalBtn = document.querySelector('#buyModal button[data-role="cancel"]');
+    if (closeModalBtn) {
+        closeModalBtn.onclick = () => document.getElementById('buyModal').classList.remove('active');
+    }
+
     // Check which page we are on and render accordingly
     if (path.includes('packages.html')) {
         InvestmentManager.renderPackagesPage();
