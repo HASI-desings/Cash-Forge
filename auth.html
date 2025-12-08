@@ -23,7 +23,7 @@
         }
 
         .glass-card {
-            background: var(--glass-bg, rgba(255, 255, 255, 0.7));
+            background: var(--glass-bg, rgba(255, 255, 255, 0.8));
             backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.5));
             box-shadow: 0 20px 40px -5px rgba(0,0,0,0.1);
@@ -165,12 +165,15 @@
     </div>
 
     <script type="module">
-        // Import your actual backend logic
+        // 1. IMPORT MODULES
+        // Ensure these paths match your folder structure exactly!
         import { Auth } from './assets/js/auth.js';
         import { DB } from './assets/js/db.js';
-        import { UI } from './assets/js/ui.js'; // Assuming UI.js is where showToast is
+        import { UI } from './assets/js/ui.js';
 
-        // --- 1. UI HELPERS (Attached to Window for HTML onclick access) ---
+        console.log("Auth Script Loaded Successfully");
+
+        // 2. ATTACH HELPERS TO WINDOW (So HTML onclick="..." works)
         window.switchMode = (mode) => {
             const slider = document.getElementById('slider');
             const loginView = document.getElementById('login-view');
@@ -215,76 +218,92 @@
             if (/[!@#$%^&*]/.test(pass)) score++;
 
             [dot1, dot2, dot3].forEach(d => d.className = 'strength-dot');
-            
             if (score >= 1) { dot1.classList.add('active', 'bg-red-400'); text.innerText = "Weak"; }
             if (score >= 2) { dot2.classList.add('active', 'bg-yellow-400'); dot1.className = 'strength-dot active bg-yellow-400'; text.innerText = "Good"; }
             if (score === 3) { dot3.classList.add('active', 'bg-green-400'); dot1.className = 'strength-dot active bg-green-400'; dot2.className = 'strength-dot active bg-green-400'; text.innerText = "Strong"; }
         };
 
-        // --- 2. AUTO-FILL REFERRAL CODE FROM URL ---
+        // 3. AUTO-FILL REFERRAL CODE
         window.onload = () => {
             const urlParams = new URLSearchParams(window.location.search);
             const refCode = urlParams.get('ref');
             if (refCode) {
                 const input = document.getElementById('reg-ref');
                 if (input) input.value = refCode;
-                // Switch to register view immediately if referred
                 window.switchMode('register');
             }
         };
 
-        // --- 3. FORM HANDLERS (Using Real Auth.js) ---
+        // 4. ATTACH FORM LISTENERS (This makes the buttons work)
         
-        // LOGIN
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('login-btn');
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
+        // LOGIN SUBMIT
+        const loginForm = document.getElementById('login-form');
+        if(loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); // Stop page reload
+                
+                const btn = document.getElementById('login-btn');
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-pass').value;
 
-            UI.setButtonLoading(btn, true);
+                // Show Loading
+                UI.setButtonLoading(btn, true);
 
-            const result = await Auth.signIn(email, pass);
+                try {
+                    const result = await Auth.signIn(email, pass);
 
-            if (result.success) {
-                UI.showToast("Login Successful!", "success");
-                setTimeout(() => window.location.href = 'home.html', 1000);
-            } else {
-                UI.setButtonLoading(btn, false);
-                UI.showToast(result.message, "error");
-                document.getElementById('main-card').classList.add('animate-shake');
-                setTimeout(() => document.getElementById('main-card').classList.remove('animate-shake'), 500);
-            }
-        });
+                    if (result.success) {
+                        UI.showToast("Login Successful!", "success");
+                        setTimeout(() => window.location.href = 'home.html', 1000);
+                    } else {
+                        UI.setButtonLoading(btn, false); // Reset button
+                        UI.showToast(result.message, "error");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    UI.setButtonLoading(btn, false);
+                    UI.showToast("Connection Error", "error");
+                }
+            });
+        }
 
-        // REGISTER
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('reg-btn');
-            const name = document.getElementById('reg-name').value;
-            const email = document.getElementById('reg-email').value;
-            const pass = document.getElementById('reg-pass').value;
-            const refCode = document.getElementById('reg-ref').value; // Get Referral Code
+        // REGISTER SUBMIT
+        const regForm = document.getElementById('register-form');
+        if(regForm) {
+            regForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const btn = document.getElementById('reg-btn');
+                const name = document.getElementById('reg-name').value;
+                const email = document.getElementById('reg-email').value;
+                const pass = document.getElementById('reg-pass').value;
+                const refCode = document.getElementById('reg-ref').value;
 
-            if (pass.length < 8) return UI.showToast("Password must be 8+ chars", "error");
+                if (pass.length < 8) return UI.showToast("Password must be 8+ chars", "error");
 
-            UI.setButtonLoading(btn, true);
+                UI.setButtonLoading(btn, true);
 
-            // Pass refCode to Auth.signUp
-            const result = await Auth.signUp(email, pass, name, refCode);
+                try {
+                    // Call Auth
+                    const result = await Auth.signUp(email, pass, name, refCode);
 
-            if (result.success) {
-                // Manual fallback: Create profile if trigger didn't handle it
-                // We pass the refCode here too just in case
-                await DB.createProfile(result.user.id, email, name, refCode);
-
-                UI.showToast("Account Created! Redirecting...", "success");
-                setTimeout(() => window.location.href = 'home.html', 1500);
-            } else {
-                UI.setButtonLoading(btn, false);
-                UI.showToast(result.message, "error");
-            }
-        });
+                    if (result.success) {
+                        // Create Profile immediately as backup
+                        await DB.createProfile(result.user.id, email, name, refCode);
+                        
+                        UI.showToast("Account Created! Signing in...", "success");
+                        setTimeout(() => window.location.href = 'home.html', 1500);
+                    } else {
+                        UI.setButtonLoading(btn, false);
+                        UI.showToast(result.message, "error");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    UI.setButtonLoading(btn, false);
+                    UI.showToast("Registration Error", "error");
+                }
+            });
+        }
     </script>
 </body>
 </html>
