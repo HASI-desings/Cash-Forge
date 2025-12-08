@@ -1,7 +1,7 @@
 /**
  * 🗄️ CASHFORGE DATABASE MODULE
  * Handles all CRUD operations with Supabase.
- * Modified to ensure Balance updates are propagated back to the UI.
+ * Modified to support Referral Codes and Instant Balance Updates.
  */
 
 import { supabase } from './supabase-client.js';
@@ -25,25 +25,34 @@ export const DB = {
         }
     },
 
-    createProfile: async (userId, email, fullName) => {
+    // [MODIFIED] Added refCode support
+    createProfile: async (userId, email, fullName, refCode = null) => {
         try {
+            // Generate a random referral code for this new user
+            const ownCode = Math.random().toString(36).substring(2, 10);
+
             const { error } = await supabase
                 .from('profiles')
-                .insert([{ id: userId, email, full_name: fullName, referral_code: Math.random().toString(36).substring(2, 10) }]);
+                .insert([{ 
+                    id: userId, 
+                    email: email, 
+                    full_name: fullName, 
+                    referral_code: ownCode,
+                    referred_by: refCode // Saves the upline code if it exists
+                }]);
             
-            if (error) console.log("Profile auto-creation skipped (likely trigger handled it).");
+            if (error) console.log("Profile auto-creation skipped (likely trigger handled it or duplicate).");
         } catch (error) {
-            // Ignore duplicate key errors if trigger worked
+            // Ignore duplicate key errors if logic handled elsewhere
         }
     },
 
     updateBalance: async (userId, amount) => {
-        // WARNING: In production, use RPC (Remote Procedure Call) for atomic updates
-        // to prevent race conditions. For now, we do read-modify-write.
+        // WARNING: In production, use RPC (Remote Procedure Call) for atomic updates.
         try {
             const { data: profile } = await supabase.from('profiles').select('balance').eq('id', userId).single();
             
-            // Ensure we handle strings/numbers correctly
+            // Ensure safe math
             const currentBal = parseFloat(profile.balance) || 0;
             const change = parseFloat(amount);
             const newBalance = currentBal + change;
@@ -55,7 +64,7 @@ export const DB = {
                 
             if(error) throw error;
             
-            return newBalance; // Returns the exact value in DB
+            return newBalance; // Returns the exact new value
         } catch (error) {
             console.error("DB: Update Balance Error", error);
             return null;
@@ -171,7 +180,7 @@ export const DB = {
 
             if(error) throw error;
             
-            // [FIX] Capture the new balance and return it
+            // [MODIFIED] Capture and return the new balance
             const newBalance = await DB.updateBalance(userId, -amount);
             
             return { success: true, trade: data, newBalance: newBalance };
@@ -189,7 +198,7 @@ export const DB = {
             
             if(error) throw error;
 
-            // [FIX] Capture the new balance
+            // [MODIFIED] Capture and return the new balance
             const newBalance = await DB.updateBalance(userId, profitAmount);
             
             await DB.createTransaction(userId, 'trade_profit', profitAmount, 'System');
@@ -229,7 +238,7 @@ export const DB = {
             
             if(error) throw error;
 
-            // [FIX] Capture the new balance
+            // [MODIFIED] Capture and return the new balance
             const newBalance = await DB.updateBalance(userId, reward);
             
             return { success: true, newBalance: newBalance };
