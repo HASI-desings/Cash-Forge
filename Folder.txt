@@ -1,0 +1,60 @@
+CashForge_Project/
+│
+├── index.html                  # Splash Screen / Landing Logic
+├── login.html                  # User Login Page
+├── register.html               # Registration with Referral Logic
+├── forgot-password.html        # Account Recovery
+├── set-pin.html                # Security PIN Setup
+│
+├── dashboard.html              # Main Home / Hero / Live Balance
+├── notifications.html          # System Announcements
+│
+├── wallet.html                 # Asset Overview (USDT/PKR)
+├── deposit.html                # Deposit Calculator & Upload
+├── deposit-history.html        # Log of Deposits
+├── withdraw.html               # Withdrawal Form
+├── withdraw-history.html       # Log of Withdrawals
+├── bank-bind.html              # Bind Wallet/Bank Details
+│
+├── packages.html               # Investment Tier Shop
+├── my-investments.html         # Active Plans Tracker
+├── trade-pro.html              # Time-Locked Investment Page
+│
+├── tasks-dashboard.html        # Daily Tasks List
+├── task-execution.html         # Task Timer & Validation Page
+│
+├── team-overview.html          # Referral Stats Summary
+├── team-tier-1.html            # Level A Member List
+├── team-tier-2.html            # Level B Member List
+├── team-tier-3.html            # Level C Member List
+├── vip-salary.html             # VIP Monthly Salary Tracker
+│
+├── profile.html                # User Profile Settings
+├── security.html               # Change Password / PIN
+├── support.html                # Help Center
+│
+└── assets/
+    ├── css/
+    │   ├── core.css            # Global Variables, Reset, Fonts
+    │   ├── theme.css           # Glassmorphism, Colors, Animations
+    │   ├── components.css      # Buttons, Cards, Inputs, Navbars
+    │   └── layout.css          # Grids, Flexbox, Responsive wrappers
+    │
+    ├── js/
+    │   ├── core/
+    │   │   ├── config.js       # MASTER CONFIG (Rates, Rules, VIP)
+    │   │   ├── db.js           # Supabase Connection
+    │   │   ├── auth.js         # Session Handling
+    │   │   └── state.js        # Global State & Event Bus
+    │   │
+    │   └── modules/
+    │       ├── dashboard.js    # Home Page Logic
+    │       ├── finance.js      # Deposit/Withdrawal Math
+    │       ├── investment.js   # Package & Profit Logic
+    │       ├── tasks.js        # Anti-Cheat Timer Logic
+    │       └── team.js         # Referral Tree Logic
+    │
+    └── images/
+        ├── logo.svg            # The Vector Logo
+        ├── hero-bg.png         # Main Background
+        └── icons/              # Folder for UI icons

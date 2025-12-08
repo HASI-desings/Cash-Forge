@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daily Tasks | CashForge</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' },
+                        cyan: { 50: '#ecfeff', 100: '#cffafe', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Poppins', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/css/core.css">
+    
+    <style>
+        /* Light Theme Background */
+        body {
+            background-color: #f0fdfa;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Ambient Glow */
+        .ambient-strip {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(180deg, rgba(34, 211, 238, 0.15) 0%, rgba(34, 211, 238, 0.0) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* White Card */
+        .white-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f1f5f9;
+            transition: all 0.2s;
+        }
+
+        /* Task Card States */
+        .task-card.locked {
+            opacity: 0.6;
+            background-color: #f8fafc;
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+        .task-card.completed {
+            border: 1px solid #bbf7d0; /* Green-200 */
+            background-color: #f0fdf4; /* Green-50 */
+        }
+
+        /* Header */
+        .app-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            background: #f0fdfa;
+            border-top: 1px solid #e2e8f0;
+        }
+        .nav-home-active {
+            background: #22d3ee;
+            border: 4px solid #ffffff;
+            box-shadow: 0 4px 10px rgba(34, 211, 238, 0.3);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: -25px; 
+            color: white;
+        }
+
+        /* Circular Progress */
+        .circular-chart {
+            display: block;
+            margin: 0 auto;
+            max-width: 80%;
+            max-height: 250px;
+        }
+        .circle-bg {
+            fill: none;
+            stroke: #e2e8f0; /* Slate-200 */
+            stroke-width: 3.8;
+        }
+        .circle {
+            fill: none;
+            stroke-width: 2.8;
+            stroke-linecap: round;
+            animation: progress 1s ease-out forwards;
+        }
+        @keyframes progress {
+            0% { stroke-dasharray: 0 100; }
+        }
+        .percentage {
+            fill: #1e293b; /* Slate-800 */
+            font-family: 'Poppins', sans-serif;
+            font-weight: bold;
+            font-size: 0.5em;
+            text-anchor: middle;
+        }
+
+        .pb-safe { padding-bottom: 100px; }
+    </style>
+</head>
+<body class="text-slate-800 font-sans min-h-screen pb-safe relative">
+
+    <div class="ambient-strip"></div>
+
+    <header class="app-header fixed top-0 left-0 w-full z-50 px-4 py-3 flex justify-between items-center">
+        <h1 class="font-display font-bold text-lg text-slate-900 tracking-wide">Work Center</h1>
+        <div class="bg-amber-50 px-3 py-1 rounded-full border border-amber-100 flex items-center gap-1">
+            <span class="text-[10px] text-amber-600 font-bold uppercase">VIP Level:</span>
+            <span class="text-xs font-black text-amber-500">Advanced</span>
+        </div>
+    </header>
+
+    <main class="relative z-10 pt-20 px-4 space-y-6">
+
+        <div class="white-card p-5 flex items-center gap-6">
+            <div class="w-20 h-20 relative shrink-0">
+                <svg viewBox="0 0 36 36" class="circular-chart text-cyan-500">
+                    <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="circle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke="#06b6d4" id="progress-ring" />
+                    <text x="18" y="20.35" class="percentage" id="progress-text">0/3</text>
+                </svg>
+            </div>
+            
+            <div class="flex-1">
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Today's Earnings</p>
+                <h2 class="text-2xl font-bold text-slate-800 mt-0.5">
+                    <span id="earned-display">0</span> <span class="text-sm font-medium text-slate-400">/ <span id="total-display">300</span> PKR</span>
+                </h2>
+                <div class="mt-2 text-[10px] bg-slate-50 text-slate-500 px-2 py-1 rounded-lg inline-block border border-slate-100">
+                    Complete all tasks to credit wallet.
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-3 pl-1">Daily Tasks</h2>
+            <div class="space-y-4" id="task-container">
+                </div>
+        </div>
+
+        <button id="claimBtn" disabled class="w-full bg-slate-200 text-slate-400 font-bold py-4 rounded-xl shadow-none transition-all disabled:cursor-not-allowed">
+            TASKS INCOMPLETE
+        </button>
+
+    </main>
+
+    <nav class="bottom-nav fixed bottom-0 left-0 w-full pb-6 z-50">
+        <div class="flex justify-around items-end pt-2 pb-2 h-16">
+            
+            <div class="relative w-1/5 flex justify-center">
+                 <a href="dashboard.html" class="nav-home-active flex flex-col items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                </a>
+                <span class="absolute -bottom-5 text-[10px] font-bold text-cyan-600">Home</span>
+            </div>
+
+            <a href="tasks-dashboard.html" class="flex flex-col items-center gap-1 w-1/5 text-cyan-600 font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                <span class="text-[10px]">Tasks</span>
+            </a>
+
+            <a href="trade-pro.html" class="flex flex-col items-center gap-1 w-1/5 text-slate-400 hover:text-cyan-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                <span class="text-[10px] font-medium">Trade</span>
+            </a>
+
+            <a href="team-overview.html" class="flex flex-col items-center gap-1 w-1/5 text-slate-400 hover:text-cyan-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                <span class="text-[10px] font-medium">Team</span>
+            </a>
+
+            <a href="profile.html" class="flex flex-col items-center gap-1 w-1/5 text-slate-400 hover:text-cyan-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                <span class="text-[10px] font-medium">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        const TOTAL_DAILY_INCOME = 300; 
+        const TASK_DATA = [
+            { id: 1, title: "Watch Sponsor Ad", reward: 80, completed: true },
+            { id: 2, title: "Visit Partner Site", reward: 100, completed: false }, 
+            { id: 3, title: "Market Analysis", reward: 120, completed: false }
+        ];
+
+        const container = document.getElementById('task-container');
+        const claimBtn = document.getElementById('claimBtn');
+        const progressRing = document.getElementById('progress-ring');
+        const progressText = document.getElementById('progress-text');
+        const earnedDisplay = document.getElementById('earned-display');
+        const totalDisplay = document.getElementById('total-display');
+
+        function renderTasks() {
+            let html = '';
+            let earned = 0;
+            let completedCount = 0;
+            let previousTaskDone = true;
+
+            TASK_DATA.forEach((task) => {
+                let statusClass = 'white-card';
+                let btnHtml = '';
+                let iconColor = 'bg-cyan-50 text-cyan-600 border-cyan-100';
+                let titleColor = 'text-slate-800';
+
+                if (task.completed) {
+                    statusClass += ' completed';
+                    iconColor = 'bg-green-50 text-green-600 border-green-100';
+                    btnHtml = `<span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100">DONE</span>`;
+                    earned += task.reward;
+                    completedCount++;
+                    previousTaskDone = true;
+                } 
+                else if (previousTaskDone) {
+                    // Active
+                    btnHtml = `<button onclick="startTask(${task.id})" class="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-4 py-2 rounded-lg font-bold shadow-md transition-transform active:scale-95">START</button>`;
+                    previousTaskDone = false;
+                } 
+                else {
+                    // Locked
+                    statusClass += ' locked';
+                    iconColor = 'bg-slate-100 text-slate-400 border-slate-200';
+                    titleColor = 'text-slate-400';
+                    btnHtml = `<svg class="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>`;
+                }
+
+                html += `
+                <div class="${statusClass} p-4 flex items-center justify-between rounded-xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 flex items-center justify-center rounded-full border ${iconColor}">
+                            <span class="font-bold text-lg">${task.id}</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-sm ${titleColor}">${task.title}</h3>
+                            <p class="text-[10px] font-bold text-cyan-600 mt-0.5">+Rs ${task.reward}</p>
+                        </div>
+                    </div>
+                    <div>
+                        ${btnHtml}
+                    </div>
+                </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // Stats
+            earnedDisplay.innerText = earned;
+            totalDisplay.innerText = TOTAL_DAILY_INCOME;
+            progressText.innerText = `${completedCount}/3`;
+            
+            const percent = (completedCount / 3) * 100;
+            progressRing.setAttribute('stroke-dasharray', `${percent}, 100`);
+
+            // Button State
+            if (completedCount === 3) {
+                claimBtn.innerText = "CLAIM INCOME";
+                claimBtn.disabled = false;
+                claimBtn.classList.remove('bg-slate-200', 'text-slate-400');
+                claimBtn.classList.add('bg-gradient-to-r', 'from-cyan-500', 'to-blue-600', 'text-white', 'shadow-lg', 'shadow-cyan-200');
+                claimBtn.onclick = claimIncome;
+            }
+        }
+
+        window.startTask = function(taskId) {
+            window.location.href = `task-execution.html?id=${taskId}`;
+        };
+
+        function claimIncome() {
+            claimBtn.innerText = "CREDITING...";
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1500);
+        }
+
+        renderTasks();
+    </script>
+</body>
+</html>

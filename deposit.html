@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Deposit | CashForge</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' },
+                        cyan: { 50: '#ecfeff', 100: '#cffafe', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/css/core.css">
+    
+    <style>
+        /* Light Theme Background - Dotted Grid */
+        body {
+            background-color: #f0fdfa;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Ambient Glow */
+        .ambient-strip {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(180deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.05) 100%);
+            filter: blur(60px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* White Card */
+        .white-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f1f5f9;
+        }
+
+        /* Header */
+        .app-header {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        /* Input Styles */
+        .input-light {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            transition: all 0.2s;
+        }
+        .input-light:focus {
+            background-color: #ffffff;
+            border-color: #22d3ee;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+        }
+
+        /* Upload Box */
+        .upload-box {
+            border: 2px dashed #cbd5e1;
+            background-color: #f8fafc;
+            transition: all 0.2s;
+        }
+        .upload-box:hover {
+            border-color: #22d3ee;
+            background-color: #ecfeff;
+        }
+    </style>
+</head>
+<body class="text-slate-800 font-sans min-h-screen pb-10 relative">
+
+    <div class="ambient-strip"></div>
+
+    <header class="app-header px-4 py-4 flex items-center gap-3 sticky top-0 z-50">
+        <button onclick="window.history.back()" class="p-1 -ml-1 text-slate-400 hover:text-slate-600 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <h1 class="font-display font-bold text-lg text-slate-800 tracking-wide">Deposit Funds</h1>
+    </header>
+
+    <main class="relative z-10 pt-6 px-4 space-y-6">
+
+        <div class="white-card p-6 space-y-5">
+            <div class="flex justify-between items-center mb-1">
+                <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Amount Calculator</h2>
+                <div class="bg-cyan-50 px-2 py-1 rounded text-[10px] font-bold text-cyan-600 border border-cyan-100">
+                    1 USDT = <span id="rateDisplay">285</span> PKR
+                </div>
+            </div>
+            
+            <div class="relative">
+                <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">Enter Amount (PKR)</label>
+                <input type="number" id="amountPKR" class="input-light w-full rounded-2xl px-5 py-4 text-xl font-bold placeholder-slate-300" placeholder="5000">
+                <span class="absolute right-5 top-[2.8rem] text-slate-400 text-sm font-bold pointer-events-none">PKR</span>
+            </div>
+
+            <div class="flex justify-center -my-3 relative z-10">
+                <div class="bg-white p-1.5 rounded-full border border-slate-200 shadow-sm text-cyan-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                </div>
+            </div>
+
+            <div class="relative">
+                <label class="block text-xs font-semibold text-slate-500 mb-1.5 ml-1">You Send (USDT)</label>
+                <input type="text" id="amountUSDT" readonly class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-xl font-bold text-cyan-600" placeholder="0.00">
+                <span class="absolute right-5 top-[2.8rem] text-slate-400 text-sm font-bold pointer-events-none">USDT</span>
+            </div>
+        </div>
+
+        <div class="white-card p-6 text-center space-y-6">
+            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Scan to Pay</h2>
+
+            <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm inline-block mx-auto">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TRC20_WALLET_ADDRESS_HERE" alt="QR Code" class="w-32 h-32 opacity-90">
+            </div>
+
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex items-center justify-between gap-3 text-left">
+                <div class="overflow-hidden">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">TRC20 Address</p>
+                    <p class="text-xs font-mono font-medium text-slate-800 truncate w-48" id="walletAddress">TJxxxxxxxxx...xxxxxxxxx</p>
+                </div>
+                <button id="copyBtn" class="p-2 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 text-cyan-500 shadow-sm transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                </button>
+            </div>
+            
+            <div class="bg-yellow-50 border border-yellow-100 rounded-xl p-3 flex gap-2 text-left">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <p class="text-xs text-yellow-700 leading-relaxed">
+                    <b>Warning:</b> Only send TRC20 USDT. Other assets will be permanently lost.
+                </p>
+            </div>
+        </div>
+
+        <div class="white-card p-6 space-y-4">
+            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Upload Screenshot</h2>
+            
+            <label for="fileUpload" class="upload-box rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer group">
+                <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-cyan-50 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-400 group-hover:text-cyan-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                </div>
+                <span class="text-xs font-medium text-slate-500" id="fileName">Tap to upload proof</span>
+                <input type="file" id="fileUpload" class="hidden" accept="image/*">
+            </label>
+
+            <button id="submitBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-slate-200 transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                Submit for Review
+            </button>
+        </div>
+
+    </main>
+
+    <div id="successModal" class="hidden fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6">
+        <div class="white-card p-8 text-center w-full max-w-sm">
+            <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Request Submitted</h3>
+            <p class="text-sm text-slate-500 mb-6">Your deposit is under review. Please wait 10-30 minutes for approval.</p>
+            <button onclick="window.location.href='wallet.html'" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition">
+                Return to Wallet
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const EXCHANGE_RATE = 285;
+        const WALLET_ADDRESS = "TX8c3Gq9... (Replace)"; 
+
+        const pkrInput = document.getElementById('amountPKR');
+        const usdtInput = document.getElementById('amountUSDT');
+        const copyBtn = document.getElementById('copyBtn');
+        const fileInput = document.getElementById('fileUpload');
+        const fileNameLabel = document.getElementById('fileName');
+        const submitBtn = document.getElementById('submitBtn');
+        const successModal = document.getElementById('successModal');
+
+        // Calculator
+        pkrInput.addEventListener('input', (e) => {
+            const pkr = parseFloat(e.target.value);
+            if(pkr > 0) {
+                usdtInput.value = (pkr / EXCHANGE_RATE).toFixed(2);
+            } else {
+                usdtInput.value = '';
+            }
+        });
+
+        // Copy
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(WALLET_ADDRESS).then(() => {
+                const originalHTML = copyBtn.innerHTML;
+                copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+                setTimeout(() => { copyBtn.innerHTML = originalHTML; }, 2000);
+            });
+        });
+
+        // File
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                fileNameLabel.innerText = e.target.files[0].name;
+                fileNameLabel.classList.add('text-cyan-600', 'font-medium');
+            }
+        });
+
+        // Submit
+        submitBtn.addEventListener('click', () => {
+            const amount = pkrInput.value;
+            const file = fileInput.files[0];
+
+            if(!amount || !file) {
+                alert("Please enter amount and upload proof.");
+                return;
+            }
+
+            submitBtn.innerText = "Uploading...";
+            submitBtn.disabled = true;
+
+            setTimeout(() => {
+                successModal.classList.remove('hidden');
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+/* =========================================
+   1. MAIN CONTAINER & RESPONSIVENESS
+   ========================================= */
+
+/* Enforces a mobile-app look on desktop screens.
+   Keeps the app centered with a max-width.
+*/
+body {
+    display: flex;
+    justify-content: center;
+    background-color: #e2e8f0; /* Darker backdrop for desktop view */
+}
+
+/* The actual app container */
+.app-container {
+    width: 100%;
+    max-width: 480px; /* Standard mobile width limit */
+    min-height: 100vh;
+    background-color: var(--bg-color); /* Light Cyan from core.css */
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 24px 24px;
+    position: relative;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.1);
+    overflow-x: hidden;
+}
+
+/* Adjust fixed elements to match the container width on desktop */
+@media (min-width: 480px) {
+    .app-header, 
+    .bottom-nav, 
+    .ambient-strip,
+    .modal-overlay {
+        max-width: 480px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .toast {
+        /* Override toast centering logic for fixed width */
+        left: 50%;
+        transform: translateX(-50%) translateY(-100%);
+        width: auto;
+        white-space: nowrap;
+    }
+}
+
+/* =========================================
+   2. GRID SYSTEMS
+   ========================================= */
+
+/* Standard 2-Column Grid (Stats, Action Buttons) */
+.layout-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem; /* 16px */
+    width: 100%;
+}
+
+/* 3-Column Grid (Presets, Keypad) */
+.layout-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem; /* 12px */
+    width: 100%;
+}
+
+/* 4-Column Grid (Dashboard Quick Actions) */
+.layout-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+}
+
+/* =========================================
+   3. FLEX UTILITIES
+   ========================================= */
+
+/* Common Header/Row Alignment */
+.row-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* Icon + Text Alignment */
+.row-start {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* 12px */
+}
+
+/* Centered Content */
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Column Stacking */
+.col-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* =========================================
+   4. SPACING & SECTIONS
+   ========================================= */
+
+/* Standard Page Padding */
+.content-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* Section Spacing */
+.section-gap {
+    margin-bottom: 1.5rem; /* 24px */
+}
+
+/* Card Internal Spacing */
+.card-padding {
+    padding: 1.25rem; /* 20px */
+}
+
+/* =========================================
+   5. Z-INDEX LAYERING
+   ========================================= */
+
+:root {
+    --z-background: 0;
+    --z-content: 10;
+    --z-header: 50;
+    --z-nav: 50;
+    --z-modal-backdrop: 90;
+    --z-modal: 100;
+    --z-toast: 150;
+}
+
+.ambient-strip { z-index: var(--z-background); }
+.white-card    { z-index: var(--z-content); position: relative; }
+.app-header    { z-index: var(--z-header); }
+.bottom-nav    { z-index: var(--z-nav); }
+.modal-overlay { z-index: var(--z-modal-backdrop); }
+.toast         { z-index: var(--z-toast); }/* =========================================
+   1. MAIN CONTAINER & RESPONSIVENESS
+   ========================================= */
+
+/* Enforces a mobile-app look on desktop screens.
+   Keeps the app centered with a max-width.
+*/
+body {
+    display: flex;
+    justify-content: center;
+    background-color: #e2e8f0; /* Darker backdrop for desktop view */
+}
+
+/* The actual app container */
+.app-container {
+    width: 100%;
+    max-width: 480px; /* Standard mobile width limit */
+    min-height: 100vh;
+    background-color: var(--bg-color); /* Light Cyan from core.css */
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+    background-size: 24px 24px;
+    position: relative;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.1);
+    overflow-x: hidden;
+}
+
+/* Adjust fixed elements to match the container width on desktop */
+@media (min-width: 480px) {
+    .app-header, 
+    .bottom-nav, 
+    .ambient-strip,
+    .modal-overlay {
+        max-width: 480px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .toast {
+        /* Override toast centering logic for fixed width */
+        left: 50%;
+        transform: translateX(-50%) translateY(-100%);
+        width: auto;
+        white-space: nowrap;
+    }
+}
+
+/* =========================================
+   2. GRID SYSTEMS
+   ========================================= */
+
+/* Standard 2-Column Grid (Stats, Action Buttons) */
+.layout-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem; /* 16px */
+    width: 100%;
+}
+
+/* 3-Column Grid (Presets, Keypad) */
+.layout-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem; /* 12px */
+    width: 100%;
+}
+
+/* 4-Column Grid (Dashboard Quick Actions) */
+.layout-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+}
+
+/* =========================================
+   3. FLEX UTILITIES
+   ========================================= */
+
+/* Common Header/Row Alignment */
+.row-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* Icon + Text Alignment */
+.row-start {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* 12px */
+}
+
+/* Centered Content */
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Column Stacking */
+.col-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* =========================================
+   4. SPACING & SECTIONS
+   ========================================= */
+
+/* Standard Page Padding */
+.content-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* Section Spacing */
+.section-gap {
+    margin-bottom: 1.5rem; /* 24px */
+}
+
+/* Card Internal Spacing */
+.card-padding {
+    padding: 1.25rem; /* 20px */
+}
+
+/* =========================================
+   5. Z-INDEX LAYERING
+   ========================================= */
+
+:root {
+    --z-background: 0;
+    --z-content: 10;
+    --z-header: 50;
+    --z-nav: 50;
+    --z-modal-backdrop: 90;
+    --z-modal: 100;
+    --z-toast: 150;
+}
+
+.ambient-strip { z-index: var(--z-background); }
+.white-card    { z-index: var(--z-content); position: relative; }
+.app-header    { z-index: var(--z-header); }
+.bottom-nav    { z-index: var(--z-nav); }
+.modal-overlay { z-index: var(--z-modal-backdrop); }
+.toast         { z-index: var(--z-toast); }

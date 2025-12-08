@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Deposit History | CashForge</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' },
+                        cyan: { 50: '#ecfeff', 100: '#cffafe', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/css/core.css">
+    
+    <style>
+        /* Light Theme Background */
+        body {
+            background-color: #f0fdfa;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Ambient Glow */
+        .ambient-strip {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(180deg, rgba(34, 211, 238, 0.1) 0%, rgba(34, 211, 238, 0.05) 100%);
+            filter: blur(60px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* White Card Styling */
+        .white-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f1f5f9;
+        }
+
+        /* Header */
+        .app-header {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body class="text-slate-800 font-sans min-h-screen pb-10 relative">
+
+    <div class="ambient-strip"></div>
+
+    <header class="app-header px-4 py-4 flex items-center gap-3 sticky top-0 z-50">
+        <button onclick="window.history.back()" class="p-1 -ml-1 text-slate-400 hover:text-slate-600 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <h1 class="font-display font-bold text-lg text-slate-800 tracking-wide">Deposit Log</h1>
+    </header>
+
+    <main class="relative z-10 pt-6 px-4 space-y-4" id="history-list">
+        
+        <div class="animate-pulse space-y-4">
+            <div class="h-24 bg-white rounded-2xl w-full border border-slate-100"></div>
+            <div class="h-24 bg-white rounded-2xl w-full border border-slate-100"></div>
+            <div class="h-24 bg-white rounded-2xl w-full border border-slate-100"></div>
+        </div>
+
+    </main>
+
+    <div id="empty-state" class="hidden flex flex-col items-center justify-center pt-32 text-center opacity-60">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+        </div>
+        <p class="text-slate-500 text-sm font-medium">No deposits found.</p>
+    </div>
+
+    <script>
+        // MOCK DATA
+        const depositHistory = [
+            {
+                id: 'TXN882910',
+                amount_pkr: 50000,
+                amount_usdt: 175.43,
+                date: '2023-10-24 14:30',
+                status: 'approved' 
+            },
+            {
+                id: 'TXN882112',
+                amount_pkr: 15000,
+                amount_usdt: 52.63,
+                date: '2023-10-22 09:15',
+                status: 'pending'
+            },
+            {
+                id: 'TXN881005',
+                amount_pkr: 5000,
+                amount_usdt: 17.54,
+                date: '2023-10-20 18:45',
+                status: 'rejected',
+                reason: 'Blurry Screenshot'
+            }
+        ];
+
+        const listContainer = document.getElementById('history-list');
+        const emptyState = document.getElementById('empty-state');
+
+        // Helper: Status Badges (Light Theme)
+        function getStatusBadge(status) {
+            if(status === 'approved') {
+                return `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-green-50 text-green-600 border border-green-100 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> SUCCESS</span>`;
+            } else if (status === 'pending') {
+                return `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-yellow-50 text-yellow-600 border border-yellow-100 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span> PENDING</span>`;
+            } else {
+                return `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-red-50 text-red-600 border border-red-100 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> FAILED</span>`;
+            }
+        }
+
+        // Render Function
+        function renderHistory() {
+            if(depositHistory.length === 0) {
+                listContainer.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            let html = '';
+            depositHistory.forEach(txn => {
+                html += `
+                <div class="white-card p-5 flex flex-col gap-3">
+                    <div class="flex justify-between items-center border-b border-slate-50 pb-3">
+                        <span class="text-xs text-slate-400 font-mono font-medium tracking-wide">#${txn.id}</span>
+                        ${getStatusBadge(txn.status)}
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Amount</p>
+                            <h3 class="text-slate-800 font-bold text-lg">
+                                ${txn.amount_pkr.toLocaleString()} <span class="text-xs text-slate-500 font-normal">PKR</span>
+                            </h3>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">USDT Value</p>
+                            <div class="font-mono text-sm font-semibold text-cyan-600">${txn.amount_usdt}</div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-end pt-1">
+                        <p class="text-[10px] text-slate-400 font-medium">${txn.date}</p>
+                        ${txn.status === 'rejected' ? `<div class="text-[10px] text-red-500 font-bold bg-red-50 px-2 py-0.5 rounded border border-red-100">Reason: ${txn.reason}</div>` : ''}
+                    </div>
+                </div>
+                `;
+            });
+            
+            listContainer.innerHTML = html;
+        }
+
+        // Init
+        setTimeout(renderHistory, 300);
+    </script>
+</body>
+</html>

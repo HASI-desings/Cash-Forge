@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Login | CashForge</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' },
+                        cyan: { 50: '#ecfeff', 100: '#cffafe', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/css/core.css">
+    
+    <style>
+        /* Light Theme Background */
+        body {
+            background-color: #f0fdfa;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Ambient Glow */
+        .ambient-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120%;
+            height: 120%;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* White Card */
+        .white-card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border: 1px solid #f1f5f9;
+        }
+
+        /* Input Styling */
+        .input-light {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            transition: all 0.2s;
+        }
+        .input-light:focus {
+            background-color: #ffffff;
+            border-color: #22d3ee;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+        }
+    </style>
+</head>
+<body class="text-slate-800 font-sans h-screen flex items-center justify-center relative px-4">
+
+    <div class="ambient-glow"></div>
+
+    <div class="white-card w-full max-w-md p-8 relative z-10">
+        
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-cyan-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-display font-bold text-slate-900 tracking-tight">Welcome Back</h2>
+            <p class="text-slate-500 text-sm mt-1">Sign in to manage your portfolio</p>
+        </div>
+
+        <form id="loginForm" class="space-y-5">
+            
+            <div>
+                <label for="email" class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Email Address</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <input type="email" id="email" required 
+                        class="input-light w-full pl-10 pr-4 py-3.5 rounded-xl text-sm placeholder-slate-400"
+                        placeholder="name@example.com">
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-1.5">
+                    <label for="password" class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Password</label>
+                    <a href="forgot-password.html" class="text-xs font-medium text-cyan-600 hover:text-cyan-700 transition-colors">Forgot Password?</a>
+                </div>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                    <input type="password" id="password" required 
+                        class="input-light w-full pl-10 pr-4 py-3.5 rounded-xl text-sm placeholder-slate-400"
+                        placeholder="••••••••">
+                </div>
+            </div>
+
+            <div id="error-msg" class="hidden bg-red-50 text-red-500 text-xs text-center py-2.5 rounded-lg border border-red-100 font-medium"></div>
+
+            <button type="submit" id="submitBtn" 
+                class="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-cyan-200 transition-all active:scale-95">
+                ACCESS ACCOUNT
+            </button>
+        </form>
+
+        <div class="mt-8 text-center border-t border-slate-100 pt-6">
+            <p class="text-slate-500 text-sm">
+                New to CashForge? 
+                <a href="register.html" class="text-cyan-600 font-bold hover:text-cyan-700 ml-1 transition-colors">Create Account</a>
+            </p>
+        </div>
+    </div>
+
+    <script type="module">
+        const loginForm = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMsg = document.getElementById('error-msg');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // UI Loading
+            const originalBtnText = submitBtn.innerText;
+            submitBtn.innerText = "Authenticating...";
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-75');
+            errorMsg.classList.add('hidden');
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Simulated Delay
+            setTimeout(() => {
+                // Mock Success
+                if(email && password) {
+                    localStorage.setItem('sb-session-token', 'mock-token');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    // Mock Error
+                    errorMsg.innerText = "Invalid credentials. Please try again.";
+                    errorMsg.classList.remove('hidden');
+                    submitBtn.innerText = originalBtnText;
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-75');
+                }
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

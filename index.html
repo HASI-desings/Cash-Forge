@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CashForge | Future Finance</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' },
+                        cyan: { 50: '#ecfeff', 100: '#cffafe', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Poppins', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 3s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/css/core.css">
+
+    <style>
+        /* Light Theme Background */
+        body {
+            background-color: #f0fdfa;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+            overflow: hidden; /* Prevent scroll on splash */
+        }
+
+        /* Ambient Glow */
+        .ambient-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Splash Card */
+        .splash-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 30px;
+            box-shadow: 0 20px 40px -10px rgba(6, 182, 212, 0.1);
+            border: 1px solid #ffffff;
+        }
+
+        /* Loader */
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #06b6d4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="font-sans h-screen flex items-center justify-center relative">
+
+    <div class="ambient-glow"></div>
+
+    <div class="relative z-10 flex flex-col items-center justify-center p-8 w-full max-w-sm">
+        
+        <div class="splash-card p-8 mb-8 animate-pulse-slow">
+            <div class="w-24 h-24 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+        </div>
+
+        <h1 class="text-3xl font-display font-bold text-slate-800 mb-2 tracking-tight">
+            CashForge
+        </h1>
+        
+        <p class="text-slate-500 text-sm font-medium tracking-wide uppercase mb-12">
+            Future Wealth Simulation
+        </p>
+
+        <div class="loader mb-4"></div>
+
+        <p id="loading-text" class="text-slate-400 text-xs font-medium animate-pulse">
+            Establishing Secure Connection...
+        </p>
+
+        <div class="absolute bottom-8 text-slate-300 text-[10px]">
+            v1.0.0 Gold Edition
+        </div>
+    </div>
+
+    <script type="module">
+        const loadingText = document.getElementById('loading-text');
+        
+        // Sequence
+        setTimeout(() => {
+            loadingText.innerText = "Verifying Integrity...";
+            loadingText.className = "text-cyan-600 text-xs font-medium";
+        }, 1500);
+
+        setTimeout(() => {
+            // Check Session (Mock)
+            // const session = localStorage.getItem('sb-session-token'); 
+            
+            loadingText.innerText = "Redirecting...";
+            
+            // Redirect to Login Page
+            window.location.href = 'login.html';
+            
+        }, 3000); 
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Register | CashForge</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' },
+                        cyan: { 50: '#ecfeff', 100: '#cffafe', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/css/core.css">
+    
+    <style>
+        /* Light Theme Background */
+        body {
+            background-color: #f0fdfa;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Ambient Glow */
+        .ambient-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120%;
+            height: 120%;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* White Card */
+        .white-card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border: 1px solid #f1f5f9;
+        }
+
+        /* Input Styling */
+        .input-light {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            transition: all 0.2s;
+        }
+        .input-light:focus {
+            background-color: #ffffff;
+            border-color: #22d3ee;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+        }
+        
+        /* Locked Input Style */
+        .input-locked {
+            background-color: #f1f5f9;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="text-slate-800 font-sans min-h-screen flex items-center justify-center relative px-4 py-8">
+
+    <div class="ambient-glow"></div>
+
+    <div class="white-card w-full max-w-md p-8 relative z-10">
+        
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-display font-bold text-slate-900 tracking-tight">Create Account</h2>
+            <p class="text-slate-500 text-sm mt-1">Join the future of wealth simulation</p>
+        </div>
+
+        <form id="registerForm" class="space-y-4">
+            
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Full Name</label>
+                <input type="text" id="fullName" required 
+                    class="input-light w-full px-4 py-3 rounded-xl text-sm placeholder-slate-400"
+                    placeholder="John Doe">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Email Address</label>
+                <input type="email" id="email" required 
+                    class="input-light w-full px-4 py-3 rounded-xl text-sm placeholder-slate-400"
+                    placeholder="name@example.com">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Password</label>
+                    <input type="password" id="password" required minlength="6"
+                        class="input-light w-full px-4 py-3 rounded-xl text-sm placeholder-slate-400"
+                        placeholder="••••••">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Confirm</label>
+                    <input type="password" id="confirmPassword" required 
+                        class="input-light w-full px-4 py-3 rounded-xl text-sm placeholder-slate-400"
+                        placeholder="••••••">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide flex justify-between">
+                    Referral Code 
+                    <span class="text-cyan-600 font-medium normal-case" id="ref-status">(Optional)</span>
+                </label>
+                <div class="relative">
+                    <input type="text" id="referralCode" 
+                        class="input-light w-full px-4 py-3 rounded-xl text-sm font-mono tracking-wider placeholder-slate-400 uppercase"
+                        placeholder="ENTER CODE">
+                    
+                    <div id="lockIcon" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-2">
+                <input type="checkbox" id="terms" required class="accent-cyan-500 h-4 w-4 rounded border-slate-300">
+                <label for="terms" class="text-xs text-slate-500">I agree to the <a href="#" class="text-cyan-600 hover:underline">Terms of Service</a></label>
+            </div>
+
+            <div id="error-msg" class="hidden bg-red-50 text-red-500 text-xs text-center py-2.5 rounded-lg border border-red-100 font-medium"></div>
+
+            <button type="submit" id="submitBtn" 
+                class="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-cyan-200 transition-all active:scale-95 mt-2">
+                CREATE ACCOUNT
+            </button>
+        </form>
+
+        <div class="mt-6 text-center border-t border-slate-100 pt-6">
+            <p class="text-slate-500 text-sm">
+                Already have an account? 
+                <a href="login.html" class="text-cyan-600 font-bold hover:text-cyan-700 ml-1 transition-colors">Login</a>
+            </p>
+        </div>
+    </div>
+
+    <script type="module">
+        const registerForm = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMsg = document.getElementById('error-msg');
+        const referralInput = document.getElementById('referralCode');
+        const lockIcon = document.getElementById('lockIcon');
+        const refStatus = document.getElementById('ref-status');
+
+        // 1. AUTO-FILL REFERRAL
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const refCode = urlParams.get('ref');
+
+            if (refCode) {
+                referralInput.value = refCode;
+                referralInput.readOnly = true; 
+                referralInput.classList.add('input-locked');
+                lockIcon.classList.remove('hidden');
+                refStatus.innerText = "(Applied)";
+                refStatus.classList.add('text-green-600');
+                refStatus.classList.remove('text-cyan-600');
+            }
+        });
+
+        // 2. SUBMIT LOGIC
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.classList.add('hidden');
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validation
+            if(password !== confirmPassword) {
+                errorMsg.innerText = "Passwords do not match.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            // UI Loading
+            const originalBtnText = submitBtn.innerText;
+            submitBtn.innerText = "Creating Profile...";
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-75');
+
+            // Mock Success
+            setTimeout(() => {
+                localStorage.setItem('sb-session-token', 'mock-new-user-token');
+                window.location.href = 'dashboard.html';
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
