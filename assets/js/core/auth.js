@@ -11,40 +11,42 @@ const Auth = {
     // =================================
     register: async function(name, email, password, confirmPass, refCode) {
         // 1. Basic Validation
-        if (!name || !email || !password || password !== confirmPass) {
-            return { success: false, msg: "Please fill all required fields and ensure passwords match." };
+        if (!name || !email || !password || password.length < 6 || password !== confirmPass) {
+            return { success: false, msg: "Please ensure all fields are filled and passwords match (min 6 characters)." };
         }
 
         // 2. Register with Supabase Auth
-        // Supabase automatically creates the user record in auth.users
         const { data, error } = await supabase.auth.signUp({
             email: email,
             password: password,
             options: {
-                data: { full_name: name } // Optional metadata
+                data: { full_name: name } // Store name metadata
             }
         });
         
         if (error) {
             return { success: false, msg: error.message };
         }
+        
+        const userId = data.user.id;
 
-        // 3. Insert initial user profile into the 'users' table (required for balance/team)
-        // This is necessary because Supabase Auth handles email/pass, but a custom 'users' table holds profile data.
+        // 3. Insert initial user profile into the 'users' table 
+        // This links the new auth user to our custom profile data (balance, VIP status).
         const { error: profileError } = await supabase
             .from(TABLE_USERS)
             .insert({
-                id: data.user.id,
+                id: userId,
                 name: name,
                 email: email,
-                balance: 0, // Initial balance
+                balance: 0,
                 vip_level: 0,
-                referrer_uid: refCode || null, // Stores the referral code/UID
+                uid: userId.substring(0, 8), // Unique ID for referral link (first 8 chars of UUID)
+                referrer_uid: refCode || null,
             });
 
         if (profileError) {
-            // Log this error but proceed, as the user can still log in (auth succeeded).
-            console.error("Profile creation failed:", profileError.message);
+            // Important: Log this profile error, but authentication succeeded.
+            console.error("Profile creation failed, check RLS/Table structure:", profileError.message);
         }
 
         return { success: true, msg: "Account created successfully! Redirecting..." };
@@ -70,7 +72,7 @@ const Auth = {
     },
 
     // =================================
-    // 3. SESSION MANAGEMENT
+    // 3. SESSION MANAGEMENT & ROUTE PROTECTION
     // =================================
     
     /** Checks if a session token exists and is valid. */
@@ -81,14 +83,13 @@ const Auth = {
 
     /** Clears the current session and redirects to login. */
     logout: async function() {
+        // Clear any local caches before signout
+        localStorage.removeItem(CONFIG.STORAGE.USER_DATA);
+        
         await supabase.auth.signOut();
         window.location.href = 'login.html';
     },
 
-    // =================================
-    // 4. ROUTE PROTECTION
-    // =================================
-    
     /** Guards internal pages, redirecting unauthenticated users to login. */
     checkProtection: async function() {
         const path = window.location.pathname;
