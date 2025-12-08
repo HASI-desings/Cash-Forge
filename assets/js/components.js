@@ -1,7 +1,7 @@
 /**
  * 🧩 REUSABLE COMPONENTS
  * Injects the Header and Bottom Navigation into pages automatically.
- * Ensures the Balance Display is always connected to the State.
+ * Modified to ensure Balance updates catch both initial load and dynamic changes.
  */
 
 import { State } from './state.js';
@@ -17,7 +17,6 @@ export const Components = {
         header.innerHTML = `
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-br from-cyan-300 to-cyan-500 shadow-lg shadow-cyan-200/50">
-                    <!-- Logo Icon (Simplified for code) -->
                     <i class="ph-bold ph-lightning text-white text-xl"></i>
                 </div>
                 <div>
@@ -25,8 +24,7 @@ export const Components = {
                 </div>
             </div>
             
-            <!-- LIVE BALANCE DISPLAY -->
-            <div class="glass-panel px-4 py-1.5 rounded-full flex items-center gap-2 border border-cyan-100 shadow-sm">
+            <div class="glass-panel px-4 py-1.5 rounded-full flex items-center gap-2 border border-cyan-100 shadow-sm transition-all duration-300" id="balance-container">
                 <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span class="heading-font font-bold text-slate-800" id="global-header-balance">
                     ${Utils.formatCurrency(State.getBalance())}
@@ -72,37 +70,47 @@ export const Components = {
         document.body.appendChild(nav);
     },
 
-    // --- 3. BALANCE LISTENER (The Logic You Asked For) ---
+    // --- 3. BALANCE LISTENER [MODIFIED] ---
     setupBalanceListener: () => {
-        // Listen for the custom event dispatched by state.js
-        document.addEventListener('balance-updated', (event) => {
+        // Internal helper to update UI and trigger pulse
+        const updateDisplay = (newBalance) => {
             const el = document.getElementById('global-header-balance');
-            if (el) {
-                // Update text
-                el.innerText = Utils.formatCurrency(event.detail.balance);
+            const container = document.getElementById('balance-container');
+            
+            if (el && container) {
+                el.innerText = Utils.formatCurrency(newBalance);
                 
-                // Add a green pulse effect to show update
-                el.parentElement.classList.add('ring-2', 'ring-green-400');
-                setTimeout(() => el.parentElement.classList.remove('ring-2', 'ring-green-400'), 500);
+                // Add visual pulse effect
+                container.classList.add('ring-2', 'ring-green-400', 'bg-green-50');
+                setTimeout(() => {
+                    container.classList.remove('ring-2', 'ring-green-400', 'bg-green-50');
+                }, 500);
             }
+        };
+
+        // 1. Listen for DYNAMIC updates (Tasks, Trades completed)
+        document.addEventListener('balance-updated', (event) => {
+            updateDisplay(event.detail.balance);
+        });
+
+        // 2. [NEW] Listen for INITIAL LOAD (When DB fetch completes)
+        // This ensures the 0 changes to the real balance on page load
+        document.addEventListener('state-ready', () => {
+            updateDisplay(State.getBalance());
         });
     },
 
     // --- 4. INIT ---
-    // Automatically detects which page is open based on URL
     init: () => {
-        // Don't render on Auth or Intro pages
         const path = window.location.pathname;
         if (path.includes('auth.html') || path.includes('intro.html') || path.includes('index.html')) return;
 
-        // Determine active page for Nav highlight
         let active = 'home';
         if (path.includes('tasks')) active = 'tasks';
         if (path.includes('trade')) active = 'trade';
         if (path.includes('teams')) active = 'teams';
         if (path.includes('profile') || path.includes('settings') || path.includes('history')) active = 'profile';
 
-        // Render
         Components.renderHeader();
         Components.renderNav(active);
     }
