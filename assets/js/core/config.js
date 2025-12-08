@@ -1,6 +1,6 @@
 /**
- * CashForge Configuration File (Supabase Ready)
- * Central source of truth for app settings, constants, and business logic tables.
+ * CashForge Configuration File (Supabase Final)
+ * Central source of truth for app settings, financial thresholds, and business logic tables.
  */
 
 const CONFIG = {
@@ -10,17 +10,20 @@ const CONFIG = {
     APP_NAME: "CashForge",
     VERSION: "1.0.0",
     
+    // Logo Path (Required for fixing UI across all pages)
+    LOGO_PATH: "/assets/img/logo.svg", // Assuming logo is placed in assets/img/
+
     // Financial Identity
     CURRENCY_CODE: "PKR",
     CURRENCY_SYMBOL: "Rs",
 
     // ============================
-    // 2. FINANCIAL THRESHOLDS (Section 1)
+    // 2. FINANCIAL THRESHOLDS (Business Rules)
     // ============================
     // Exchange Rate: 1 USDT = 285 PKR
     EXCHANGE_RATE: 285, 
     
-    // Minimum/Maximums
+    // Minimums/Maximums
     MIN_DEPOSIT: 500,
     MIN_WITHDRAWAL: 1000,
     
@@ -30,52 +33,45 @@ const CONFIG = {
     // Withdrawal Presets
     WITHDRAWAL_PRESETS: [1000, 2500, 10000, 27000, 45000, 72000, 112000, 250000],
 
-    // Daily Tasks
+    // Daily Tasks (Fixed total count)
     TOTAL_DAILY_TASKS: 3,
 
     // ============================
-    // 3. STORAGE & SYSTEM SETTINGS
+    // 3. SYSTEM & STORAGE SETTINGS
     // ============================
     
-    // LocalStorage Keys (Prevents typos)
+    // LocalStorage Keys (Used for state management/caching)
     STORAGE: {
-        TOKEN: "cf_session_token",
-        USER_DATA: "cf_user_data",
+        USER_DATA: "cf_user_data_cache",
         PIN_SET: "cf_pin_set",
     },
 
-    // Referral Link Base (Requires User's UID/Referral Code appended)
+    // Referral Link Base (User's UID is appended)
     REF_LINK_BASE: "https://cashforge.app/register.html?ref=",
     
     // Admin Wallet for Deposits (TRC20) - MOCK
     ADMIN_WALLET: "TVJ5... (Update with Real Address)", 
 
     // ============================
-    // 4. BUSINESS LOGIC TABLES
-    // Note: These arrays will serve as client-side fallback/context.
-    // The *live* data will be fetched from Supabase tables by DB.js.
+    // 4. BUSINESS LOGIC TABLES (Section 3 & 4)
+    // NOTE: Data is fetched live from Supabase; these are client-side structures for context/logic.
     // ============================
-    
-    // Investment Packages (Section 2)
-    PLANS: [
-        { id: 1, name: "Basic",     price: 900,     daily: 35,    days: 365, vip: 1 },
-        { id: 2, name: "Standard",  price: 3900,    daily: 135,   days: 365, vip: 2 },
-        { id: 3, name: "Advanced",  price: 8900,    daily: 300,   days: 365, vip: 3 },
-        { id: 4, name: "Pro",       price: 18500,   daily: 620,   days: 365, vip: 4 },
-        { id: 5, name: "Premium",   price: 32500,   daily: 1100,  days: 365, vip: 5 },
-        { id: 6, name: "Supreme",   price: 54900,   daily: 2000,  days: 365, vip: 6 },
-        { id: 7, name: "Elite",     price: 112000,  daily: 3900,  days: 365, vip: 7 },
-        { id: 8, name: "Ultimate",  price: 250000,  daily: 8500,  days: 365, vip: 8 }
-    ],
-    
-    // PRO TRADING Tiers (Section 3)
+
+    // PRO TRADING Tiers (Total ROI is used for calculations in finance.js)
     PRO_TRADES: [
         { name: "Day Trading",     min: 3000,   max: 80000,    duration: '24 Hours', roi: 0.030 }, // 3.0%
         { name: "Weekly Booster",  min: 15000,  max: 250000,   duration: '7 Days',   roi: 0.250 }, // 25.0%
         { name: "Monthly Mega",    min: 250000, max: 1000000,  duration: '30 Days',  roi: 3.500 }  // 350.0%
     ],
 
-    // VIP SALARY Tiers (Section 5)
+    // COMMISSION RATES (Used in team.js)
+    COMMISSION_RATES: [
+        { range: 'Basic - Advanced',  A: 0.15, B: 0.05, C: 0.02 },
+        { range: 'Pro - Supreme',     A: 0.20, B: 0.07, C: 0.05 },
+        { range: 'Elite - Ultimate',  A: 0.25, B: 0.10, C: 0.05 }
+    ],
+
+    // VIP SALARY Tiers
     SALARY_TIERS: [
         { level: 6, req: 6,    count_logic: 'A Only',  amount: 8000  },
         { level: 5, req: 15,   count_logic: 'A Only',  amount: 25000 },
@@ -84,34 +80,21 @@ const CONFIG = {
         { level: 2, req: 1000, count_logic: 'A+B+C',   amount: 800000},
         { level: 1, req: 2000, count_logic: 'A+B+C',   amount: 2000000},
     ],
-    
-    // RECURRING COMMISSION RATES (Section 4B)
-    COMMISSION_RATES: [
-        { range: 'Basic - Advanced',  A: 0.15, B: 0.05, C: 0.02 },
-        { range: 'Pro - Supreme',     A: 0.20, B: 0.07, C: 0.05 },
-        { range: 'Elite - Ultimate',  A: 0.25, B: 0.10, C: 0.05 }
-    ],
 
     // ============================
     // 5. UTILITY FUNCTIONS
     // ============================
     
-    // Format numbers with commas (e.g., 1,000)
+    // Format numbers with commas (e.g., 1,000.00)
     formatCurrency: function(amount) {
-        if (amount === undefined || amount === null) return '0';
+        if (amount === undefined || amount === null) return '0.00';
         return parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     },
 
-    // Format numbers without decimals
+    // Format numbers without decimals (for counts)
     formatCount: function(amount) {
          if (amount === undefined || amount === null) return 0;
         return parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-    },
-    
-    // Checks if today is Saturday (6) or Sunday (0)
-    isWeekend: function() {
-        const today = new Date().getDay(); 
-        return today === 0 || today === 6;
     }
 };
 
