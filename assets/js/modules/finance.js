@@ -1,6 +1,6 @@
 /**
  * CashForge Finance Manager
- * Handles all core business logic, financial calculations, and simulations.
+ * Handles all core business logic, financial calculations, and profit simulations.
  * Dependencies: config.js, db.js, state.js
  */
 
@@ -17,18 +17,20 @@ const FinanceManager = {
      */
     calculateDeposit: function(pkrAmount) {
         if (pkrAmount <= 0) return 0;
+        // Apply exchange rate from CONFIG
         const usdt = pkrAmount / CONFIG.EXCHANGE_RATE;
         return parseFloat(usdt.toFixed(2));
     },
 
     /**
-     * Calculates the withdrawal fee and the final amount received.
+     * Calculates the withdrawal fee and the final net amount received.
      * @param {number} pkrAmount - Requested amount in PKR.
      * @returns {object} - { fee: number, netReceived: number }
      */
     calculateWithdrawal: function(pkrAmount) {
         if (pkrAmount <= 0) return { fee: 0, netReceived: 0 };
         
+        // Apply fee percentage from CONFIG (7%)
         const fee = Math.floor(pkrAmount * CONFIG.WITHDRAWAL_FEE);
         const netReceived = pkrAmount - fee;
         
@@ -57,13 +59,12 @@ const FinanceManager = {
     },
 
     /**
-     * Attempts to purchase an investment plan.
-     * This function orchestrates the transaction (deduction, logging, and investment record creation).
+     * Attempts to purchase an investment plan, handling deduction and record creation.
      * @param {number} planId - The ID of the static plan being purchased.
      * @returns {object} - { success: boolean, msg: string }
      */
     purchaseInvestment: async function(planId) {
-        // 1. Fetch live plans data (or cache, handled by DB)
+        // 1. Fetch live plan details
         const allPlans = await DB.getPlansData(); 
         const planDetails = allPlans.find(p => p.id === planId);
         const user = await DB.getUser();
@@ -71,32 +72,38 @@ const FinanceManager = {
         if (!planDetails) return { success: false, msg: "Invalid Plan." };
         if (user.balance < planDetails.price) return { success: false, msg: "Insufficient Balance." };
 
-        // 2. Deduct Balance (Negative amount for deduction)
-        const deductionResult = await DB.updateBalance(-planDetails.price, 'investment'); 
+        // 2. Deduct Balance and Log Transaction (Negative amount for deduction)
+        const deductionResult = await DB.updateBalance(
+            -planDetails.price, 
+            'investment', 
+            { plan_name: planDetails.name, investment_id: planId }
+        ); 
         
         if (!deductionResult.success) {
-            return { success: false, msg: "Transaction failed. Please try again." };
+            return { success: false, msg: "Transaction failed during deduction." };
         }
 
         // 3. Add Investment Record
         const investmentData = {
             plan_id: planDetails.id,
+            plan_name: planDetails.name,
             invested_amount: planDetails.price,
             daily_income: planDetails.daily_income,
+            duration_days: planDetails.duration_days,
             start_date: new Date().toISOString().split('T')[0],
             active: true
         };
         
         await DB.addInvestment(investmentData);
         
-        // 4. Update state globally after successful transaction
+        // 4. Update state globally
         State.refresh();
 
         return { success: true, msg: "Plan Activated Successfully." };
     },
 
     // =================================
-    // 3. DAILY PROFIT SIMULATION & CLAIM
+    // 3. DAILY PROFIT CLAIM LOGIC
     // =================================
 
     /**
@@ -105,13 +112,20 @@ const FinanceManager = {
      */
     claimDailyReward: async function() {
         const totalYield = State.get('dailyYield');
-        
+        const taskProgress = await DB.getTaskProgress();
+
         if (totalYield <= 0) {
             return { success: false, msg: "No active investments for profit generation." };
         }
+        if ((taskProgress.tasks_completed || 0) < CONFIG.TOTAL_DAILY_TASKS) {
+            return { success: false, msg: "Complete all daily tasks before claiming." };
+        }
+        if (taskProgress.claimed) {
+            return { success: false, msg: "Daily profit has already been claimed." };
+        }
 
         // 1. Add profit to user balance
-        const result = await DB.updateBalance(totalYield, 'profit');
+        const result = await DB.updateBalance(totalYield, 'profit', { source: 'daily_task_claim' });
         
         if (result.success) {
             // 2. Mark the daily task status as claimed in the DB
