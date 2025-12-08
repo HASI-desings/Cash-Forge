@@ -1,6 +1,7 @@
 /**
  * CashForge Dashboard Logic
- * Initializes user data display, renders investment plans, and controls the promo slider.
+ * Initializes user data display, renders investment plans using DB data, 
+ * and controls the promo slider.
  * Dependencies: config.js, state.js, db.js, finance.js
  */
 
@@ -8,32 +9,38 @@ document.addEventListener('DOMContentLoaded', initDashboard);
 
 // --- 1. Initialization and Data Load ---
 async function initDashboard() {
-    // Auth.checkProtection() is run by auth.js globally, ensuring user is logged in.
+    // 1. Ensure State has initialized and fetched data
+    await State.init();
     
-    // 1. Render Investment Plans using live data from the DB (or cached CONFIG data)
+    // 2. Render Investment Plans using live data
     await renderPlans();
 
-    // 2. Start Promo Slider
+    // 3. Start Promo Slider
     initSlider();
-
-    // 3. Update the UI balance (Ensures initial render matches live data)
-    // Note: State.bind handles automatic updates, this just forces the initial value.
+    
+    // 4. Update the UI globally (Ensures all elements reflect the data loaded during init)
+    // Note: State.bind handles future updates, State.refresh ensures current value is correct.
     State.refresh();
 }
 
 
-// --- 2. Render Investment Plans ---
+// --- 2. Render Investment Plans (Live Data) ---
 async function renderPlans() {
     const container = document.getElementById('plans-container');
     if (!container) return;
     
-    // Fetch plans from the database (or cache, handled by DB.getPlansData)
+    // Fetch plans from the database (or cache, handled by DB)
     const allPlans = await DB.getPlansData();
     
     let html = '';
     
     // Only display the first 3 plans on the dashboard view
     const plansToShow = allPlans.slice(0, 3); 
+
+    if (plansToShow.length === 0) {
+        container.innerHTML = '<div class="text-center text-slate-400 py-10">No investment packages currently available.</div>';
+        return;
+    }
 
     plansToShow.forEach(plan => {
         const dailyIncomeFormatted = CONFIG.formatCurrency(plan.daily_income);
@@ -75,6 +82,7 @@ function initSlider() {
     function updateSlider() {
         track.style.transform = `translateX(-${currentSlide * 100}%)`;
         
+        // Update navigation dots
         dots.forEach((dot, index) => {
             dot.classList.toggle('active', index === currentSlide);
         });
