@@ -1,15 +1,18 @@
-/* History Controller - CashForge
-   Fetches transactions from Supabase and renders them using
-   the Formatters utility.
-*/
+/* js/controllers/history.js */
+import { supabase } from '../config/supabase.js';
+import { getCurrentUser } from '../services/auth.js'; // Assumed function name
+import { formatCurrency, formatDate, getStatusBadge } from '../utils/formatters.js';
 
 const HistoryController = {
     
     // --- 1. INITIALIZE ---
     async init() {
         // Check if user is logged in
-        const sessionUser = await AuthService.checkSession();
-        if (!sessionUser) return;
+        const sessionUser = await getCurrentUser();
+        if (!sessionUser) {
+            window.location.href = 'login.html';
+            return;
+        }
 
         // Load Data for current user
         this.loadTransactions(sessionUser.id);
@@ -21,12 +24,14 @@ const HistoryController = {
     // --- 2. FETCH DATA FROM SUPABASE ---
     async loadTransactions(userId) {
         const container = document.getElementById('history-container');
+        if(!container) return; // Guard clause
+
         // Show loading state
         container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">Loading history...</div>';
 
         try {
             // Select all columns from 'transactions' table
-            const { data, error } = await window.sb
+            const { data, error } = await supabase
                 .from('transactions')
                 .select('*')
                 .eq('user_id', userId)
@@ -45,15 +50,16 @@ const HistoryController = {
     // --- 3. RENDER LIST ---
     renderList(transactions) {
         const container = document.getElementById('history-container');
+        const emptyState = document.getElementById('empty-state');
         container.innerHTML = '';
 
         // Handle Empty State
         if (transactions.length === 0) {
-            document.getElementById('empty-state').style.display = 'block';
+            if(emptyState) emptyState.style.display = 'block';
             return;
         }
 
-        document.getElementById('empty-state').style.display = 'none';
+        if(emptyState) emptyState.style.display = 'none';
 
         // Loop through transactions
         transactions.forEach(txn => {
@@ -83,14 +89,14 @@ const HistoryController = {
                     <div class="txn-icon"><i data-lucide="${icon}"></i></div>
                     <div class="txn-meta">
                         <h4 style="text-transform: capitalize;">${txn.type}</h4>
-                        <span>${Formatters.dateTime(txn.created_at)}</span>
+                        <span>${formatDate(txn.created_at)}</span>
                     </div>
                 </div>
                 <div class="txn-right">
                     <span class="txn-amount ${amountClass}">
-                        ${amountPrefix} ${Formatters.currency(txn.amount)}
+                        ${amountPrefix} ${formatCurrency(txn.amount)}
                     </span>
-                    ${Formatters.statusBadge(txn.status)}
+                    ${getStatusBadge(txn.status)}
                 </div>
             `;
             container.appendChild(div);
