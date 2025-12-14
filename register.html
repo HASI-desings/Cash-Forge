@@ -10,6 +10,12 @@
     
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Router for protection (Executes immediately) -->
+    <script type="module" src="js/utils/router.js"></script>
+
+    <!-- Controller Script -->
+    <script type="module" src="js/controllers/register.js"></script>
+
     <style>
         /* Reusing Login Layout */
         body {
@@ -24,6 +30,9 @@
             width: 100%;
             max-width: 400px;
             padding: 30px 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -34,10 +43,23 @@
             margin-bottom: 5px;
         }
 
-        .auth-logo {
+        /* Logo Styling based on core.css rules */
+        .auth-logo-wrapper {
             width: 70px;
             height: 70px;
-            margin-bottom: 10px;
+            margin: 0 auto 10px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 3px solid var(--primary-cyan);
+            box-shadow: 0 0 15px var(--primary-cyan);
+        }
+        .auth-logo-wrapper i {
+            color: var(--text-dark);
+            width: 60%;
+            height: 60%;
         }
 
         .auth-links {
@@ -47,18 +69,59 @@
         }
         
         .auth-links a {
-            color: var(--primary-dark);
+            color: var(--text-dark);
             font-weight: 700;
+        }
+
+        /* Input specific styling */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            width: 18px;
+            height: 18px;
+            color: #ccc;
+        }
+        .form-input {
+            width: 100%;
+            padding: 15px 15px 15px 45px; /* Added padding-left for icon */
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+        .form-input:focus {
+            border-color: var(--primary-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.2);
         }
     </style>
 </head>
 <body class="app-body">
 
-    <div class="glass-panel auth-container">
+    <div class="auth-container">
         
         <div class="auth-header">
-            <img src="assets/images/logo.svg" alt="Logo" class="auth-logo">
-            <h2 style="color: var(--primary-dark);">Create Account</h2>
+            <!-- Replaced <img> tag with styled wrapper using Lucide icon -->
+            <div class="auth-logo-wrapper">
+                <i data-lucide="user-plus"></i>
+            </div>
+            <h2 style="color: var(--text-dark);">Create Account</h2>
             <p style="font-size: 12px; color: #666;">Start your investment journey</p>
         </div>
 
@@ -96,7 +159,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-primary w-full" id="btn-submit">
+            <button type="submit" class="btn-primary" style="width: 100%;" id="btn-submit">
                 CREATE ACCOUNT
             </button>
 
@@ -111,68 +174,7 @@
 
     <script>
         // Init Icons
-        lucide.createIcons();
+        window.onload = lucide.createIcons;
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    <script src="js/services/auth.js"></script>
-    <script src="js/utils/ui.js"></script>
-
-    <script>
-        // 1. Auto-fill Referral Code from URL (e.g., ?ref=CODE)
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const refCode = urlParams.get('ref');
-            if (refCode) {
-                const input = document.getElementById('referral-code');
-                input.value = refCode;
-                input.readOnly = true; // Lock it if it came from a link
-                input.style.background = "#f0fdf4"; // Light green hint
-            }
-        });
-
-        // 2. Handle Form Submit
-        async function handleRegister(e) {
-            e.preventDefault();
-
-            const fullName = document.getElementById('full-name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const referralCode = document.getElementById('referral-code').value;
-            const btn = document.getElementById('btn-submit');
-
-            // UI Loading
-            btn.innerHTML = 'Creating Account...';
-            btn.disabled = true;
-
-            // Call Auth Service
-            // Note: register(email, password, fullName, referralCode)
-            const response = await AuthService.register(email, password, fullName, referralCode);
-
-            if (response.success) {
-                UI.toast("Registration Successful!", "success");
-                
-                // If Supabase requires email confirmation, show message.
-                // Otherwise, redirect to Login.
-                setTimeout(() => {
-                    // Check if session exists (auto-login) or redirect to login
-                    if (response.session) {
-                         window.location.href = 'home.html';
-                    } else {
-                         // Usually means email confirmation is ON
-                         alert("Please check your email to confirm your account.");
-                         window.location.href = 'login.html';
-                    }
-                }, 1500);
-
-            } else {
-                UI.toast(response.message, "error");
-                btn.innerHTML = 'CREATE ACCOUNT';
-                btn.disabled = false;
-            }
-        }
-    </script>
-
 </body>
 </html>
