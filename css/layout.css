@@ -30,6 +30,7 @@
     
     /* Glassmorphism touch */
     backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .header-title {
@@ -66,7 +67,7 @@
     flex: 1;
     width: 100%;
     max-width: 600px; /* Constrain width on desktop */
-    margin: 0 auto;   /* Center on desktop */
+    margin: 0 auto;    /* Center on desktop */
     
     /* Spacing to clear fixed Header and Bottom Nav */
     padding-top: calc(var(--header-height) + 20px);
@@ -147,7 +148,7 @@
     right: 15px;
     width: 6px;
     height: 6px;
-    background: var(--primary);
+    background: var(--primary-cyan);
     border-radius: 50%;
-    box-shadow: 0 0 5px var(--primary);
+    box-shadow: 0 0 5px var(--primary-cyan);
 }
