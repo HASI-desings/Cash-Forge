@@ -1,10 +1,7 @@
-/* Router Utility - CashForge
-   Automatically protects private pages from unauthorized access.
-   
-   Usage: Include this script in the <head> of your protected pages 
-   AFTER auth.js.
-*/
+/* js/utils/router.js */
+import { supabase } from '../config/supabase.js';
 
+// Automatically execute when imported
 (async function() {
     // 1. Define Public Pages (No Login Required)
     const publicPages = [
@@ -19,42 +16,24 @@
     const page = path.split("/").pop() || 'index.html';
 
     // 3. Check if we are on a Public Page
-    const isPublic = publicPages.includes(page);
+    // We also treat the root path '/' as public
+    const isPublic = publicPages.includes(page) || path === '/' || path.endsWith('/');
 
     // 4. Session Check
-    // We wait for Supabase to initialize
-    const checkAuth = async () => {
-        // Wait up to 2 seconds for window.sb to be ready
-        let attempts = 0;
-        while (!window.sb && attempts < 20) {
-            await new Promise(r => setTimeout(r, 100));
-            attempts++;
+    // We use the imported supabase client directly (no waiting needed)
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!isPublic) {
+        // PRIVATE PAGE: If no session, Redirect to Intro
+        if (!session) {
+            console.warn("Unauthorized access. Redirecting...");
+            window.location.href = 'intro.html';
         }
-
-        if (!window.sb) {
-            console.error("Router: Supabase not initialized.");
-            return;
+    } else {
+        // PUBLIC PAGE: If session exists, Redirect to Dashboard
+        // Only apply this auto-redirect on Login/Register pages to prevent looping on Intro
+        if (session && (page === 'login.html' || page === 'register.html')) {
+            window.location.href = 'home.html';
         }
-
-        const { data: { session } } = await window.sb.auth.getSession();
-
-        if (!isPublic) {
-            // PRIVATE PAGE: If no session, Redirect to Intro
-            if (!session) {
-                console.warn("Unauthorized access. Redirecting...");
-                window.location.href = 'intro.html';
-            }
-        } else {
-            // PUBLIC PAGE: If session exists, Redirect to Dashboard (Optional UX)
-            // We usually don't force this on 'index.html' to allow loading animation,
-            // but for Login/Register it's nice to auto-forward.
-            if (session && (page === 'login.html' || page === 'register.html')) {
-                window.location.href = 'home.html';
-            }
-        }
-    };
-
-    // Execute
-    checkAuth();
-
+    }
 })();
