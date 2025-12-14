@@ -3,243 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CashForge - Dashboard</title>
-
-    <link rel="stylesheet" href="css/core.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/pages.css">
-    
+    <title>CashForge - Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
-        /* Quick Action Grid specific to Home */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-            background: #fff;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        /* --- 1. Global Design & Theme --- */
+        :root {
+            --cyan: #00FFFF;
+            --white: #FFFFFF;
+            --cyan-dark: #00cccc;
         }
 
-        .action-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 10px;
-            color: #555;
-            text-align: center;
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            /* Vertical gradient: White flows downward, mixing with Cyan */
+            background: linear-gradient(180deg, #FFFFFF 0%, #E0FFFF 40%, #00FFFF 100%);
+            color: #333;
+            padding-bottom: 80px; /* Space for footer */
         }
 
-        .action-icon-box {
-            width: 45px;
-            height: 45px;
-            background: var(--primary-light);
-            border-radius: 12px;
+        /* --- Logo Styling --- */
+        .logo-container {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 5px;
-            color: var(--primary-dark);
+            background: white;
+            /* Circumference glowing cyan lining */
+            box-shadow: 0 0 10px #00FFFF, 0 0 15px #00FFFF, inset 0 0 5px #00FFFF;
+            border: 2px solid #00FFFF;
+        }
+        
+        .logo-container img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+
+        /* --- Header/Footer Gradient --- */
+        header, footer {
+            /* Horizontal blending effect */
+            background: linear-gradient(90deg, #FFFFFF 0%, #00FFFF 50%, #FFFFFF 100%);
+        }
+
+        /* --- MASTER PROMPT BUTTON STYLING --- */
+        /* Exact CSS provided in prompt */
+        button.primary-btn {
+            padding: 1.3em 3em;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            font-weight: 500;
+            color: #000;
+            background-color: #fff;
+            border: none;
+            border-radius: 45px;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease 0s;
+            cursor: pointer;
+            outline: none;
+        }
+
+        button.primary-btn:hover {
+            background-color: #23c483;
+            box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
+            color: #fff;
+            transform: translateY(-7px);
+        }
+
+        button.primary-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* --- Package Banner Styling --- */
+        .package-banner {
+            background: rgba(255, 255, 255, 0.9);
+            border-left: 6px solid var(--cyan-dark);
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             transition: transform 0.2s;
+            cursor: pointer;
         }
 
-        .action-item:active .action-icon-box {
-            transform: scale(0.9);
+        .package-banner:hover {
+            transform: scale(1.01);
         }
 
-        /* Section Title */
-        .section-header {
+        .banner-header {
+            padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            padding: 0 5px;
+            font-weight: 700;
+            font-size: 1.1rem;
         }
-        .section-header h3 {
-            font-size: 16px;
-            color: var(--text-main);
-            margin: 0;
+
+        /* Sliding Envelope Animation */
+        .banner-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease;
+            background: #f8ffff;
         }
+
+        .banner-details.open {
+            /* Height will be set via JS or a large max-height */
+            max-height: 500px; 
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 20px;
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        .purchase-area {
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* --- Slider --- */
+        .slider-container {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            background: rgba(0,255,255,0.1);
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+
+        .slider-track {
+            display: inline-block;
+            animation: slide 15s linear infinite;
+        }
+
+        .slider-track:hover {
+            animation-play-state: paused;
+        }
+
+        .slide-item {
+            display: inline-block;
+            width: 300px;
+            height: 120px;
+            background: var(--cyan);
+            margin: 0 10px;
+            border-radius: 10px;
+            vertical-align: middle;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slide {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
     </style>
 </head>
-<body class="app-body">
+<body>
 
-    <header class="app-header">
-        <div class="user-welcome">
-            <small>Welcome back,</small>
-            <h4 id="user-name">Loading...</h4>
+    <header class="flex justify-between items-center px-6 py-4 sticky top-0 z-50 shadow-sm">
+        <div class="logo-container">
+            <img src="logo.svg" alt="CF" onerror="this.src='https://lucide.dev/logo-light.svg'"> 
         </div>
-        
-        <div class="header-actions">
-            <div class="balance-badge">
-                <span style="font-size: 9px; color: #888;">Balance</span>
-                <span id="user-balance" style="font-weight: 800; color: var(--primary-dark);">0.00</span>
-            </div>
-            <span id="vip-badge" class="badge badge-primary">VIP 0</span>
-        </div>
+        <div class="text-xl font-bold tracking-widest text-cyan-800">CASHFORGE</div>
+        <button class="p-2 rounded-full bg-cyan-100 text-cyan-800">
+            <i data-lucide="bell"></i>
+        </button>
     </header>
 
-    <div class="app-content">
-
-        <div class="banner-slider">
-            <div class="slider-track">
-                <div class="slide" style="background-image: url('assets/images/banner-1.png');"></div>
-                <div class="slide" style="background-image: url('assets/images/banner-2.png');"></div>
-                <div class="slide" style="background-image: url('assets/images/banner-3.png');"></div>
-            </div>
+    <div class="slider-container">
+        <div class="slider-track">
+            <div class="slide-item">Welcome to CashForge</div>
+            <div class="slide-item">New Elite Package Available</div>
+            <div class="slide-item">Instant Withdrawals 24/7</div>
+            <div class="slide-item">Welcome to CashForge</div>
+            <div class="slide-item">New Elite Package Available</div>
+            <div class="slide-item">Instant Withdrawals 24/7</div>
         </div>
-
-        <div class="quick-actions">
-            <a href="deposit.html" class="action-item">
-                <div class="action-icon-box"><i data-lucide="wallet"></i></div>
-                <span>Deposit</span>
-            </a>
-            <a href="withdraw.html" class="action-item">
-                <div class="action-icon-box"><i data-lucide="arrow-up-circle"></i></div>
-                <span>Withdraw</span>
-            </a>
-            <a href="https://t.me/YOUR_TELEGRAM_LINK" target="_blank" class="action-item">
-                <div class="action-icon-box"><i data-lucide="send"></i></div>
-                <span>Channel</span>
-            </a>
-            <a href="#" class="action-item" onclick="alert('App coming soon!')">
-                <div class="action-icon-box"><i data-lucide="smartphone"></i></div>
-                <span>App</span>
-            </a>
-        </div>
-
-        <div class="section-header">
-            <h3>Investment Plans</h3>
-            <span style="font-size:11px; color:var(--primary-dark);">High Return</span>
-        </div>
-
-        <div class="packages-container">
-
-            <div class="package-item" onclick="togglePackage(this)">
-                <div class="pkg-banner-face">
-                    <div class="pkg-info">
-                        <h3>Weekly Booster</h3>
-                        <span>7 Days Cycle</span>
-                    </div>
-                    <div class="pkg-price">1.5% <small style="font-size:10px; font-weight:400;">/day</small></div>
-                </div>
-                <div class="pkg-details">
-                    <div class="details-grid">
-                        <div class="stat-box">
-                            <span style="font-size:10px; color:#888;">Min Invest</span>
-                            <strong style="display:block;">10 USDT</strong>
-                        </div>
-                        <div class="stat-box">
-                            <span style="font-size:10px; color:#888;">Total ROI</span>
-                            <strong style="display:block;">10.5%</strong>
-                        </div>
-                    </div>
-                    <div style="padding: 0 20px 20px 20px;">
-                        <button class="btn-primary w-full" onclick="goToTrade('Weekly Booster', 1.5, 7); event.stopPropagation();">
-                            Invest Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="package-item" onclick="togglePackage(this)">
-                <div class="pkg-banner-face" style="border-left-color: #f1c40f;">
-                    <div class="pkg-info">
-                        <h3>Monthly Yield</h3>
-                        <span>30 Days Cycle</span>
-                    </div>
-                    <div class="pkg-price">2.2% <small style="font-size:10px; font-weight:400;">/day</small></div>
-                </div>
-                <div class="pkg-details">
-                    <div class="details-grid">
-                        <div class="stat-box">
-                            <span style="font-size:10px; color:#888;">Min Invest</span>
-                            <strong style="display:block;">50 USDT</strong>
-                        </div>
-                        <div class="stat-box">
-                            <span style="font-size:10px; color:#888;">Total ROI</span>
-                            <strong style="display:block;">66%</strong>
-                        </div>
-                    </div>
-                    <div style="padding: 0 20px 20px 20px;">
-                        <button class="btn-primary w-full" onclick="goToTrade('Monthly Yield', 2.2, 30); event.stopPropagation();">
-                            Invest Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="package-item" onclick="togglePackage(this)">
-                <div class="pkg-banner-face" style="border-left-color: #9b59b6;">
-                    <div class="pkg-info">
-                        <h3>Pro Trader</h3>
-                        <span>15 Days Cycle</span>
-                    </div>
-                    <div class="pkg-price">3.0% <small style="font-size:10px; font-weight:400;">/day</small></div>
-                </div>
-                <div class="pkg-details">
-                    <div class="details-grid">
-                        <div class="stat-box">
-                            <span style="font-size:10px; color:#888;">Min Invest</span>
-                            <strong style="display:block;">200 USDT</strong>
-                        </div>
-                        <div class="stat-box">
-                            <span style="font-size:10px; color:#888;">Total ROI</span>
-                            <strong style="display:block;">45%</strong>
-                        </div>
-                    </div>
-                    <div style="padding: 0 20px 20px 20px;">
-                        <button class="btn-primary w-full" onclick="goToTrade('Pro Trader', 3.0, 15); event.stopPropagation();">
-                            Invest Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-        </div> <div style="height: 20px;"></div>
-
     </div>
 
-    <nav class="bottom-nav">
-        <a href="home.html" class="nav-item active">
+    <main class="container mx-auto px-4 max-w-2xl">
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800 flex items-center justify-center gap-2">
+            <i data-lucide="gem" class="text-cyan-500"></i> Investment Plans
+        </h2>
+
+        <div id="package-list">
+            </div>
+
+    </main>
+
+    <footer class="fixed bottom-0 w-full shadow-inner flex justify-around py-3 z-50">
+        <a href="#" class="flex flex-col items-center text-cyan-700">
             <i data-lucide="home"></i>
-            <span>Home</span>
+            <span class="text-xs mt-1">Home</span>
         </a>
-        <a href="tasks.html" class="nav-item">
-            <i data-lucide="zap"></i>
-            <span>Tasks</span>
+        <a href="tasks.html" class="flex flex-col items-center text-gray-500 hover:text-cyan-600">
+            <i data-lucide="check-square"></i>
+            <span class="text-xs mt-1">Tasks</span>
         </a>
-        <a href="trade.html" class="nav-item">
-            <i data-lucide="bar-chart-2"></i>
-            <span>Trade</span>
+        <a href="trade.html" class="flex flex-col items-center text-gray-500 hover:text-cyan-600">
+            <i data-lucide="trending-up"></i>
+            <span class="text-xs mt-1">Trade</span>
         </a>
-        <a href="team.html" class="nav-item">
+        <a href="team.html" class="flex flex-col items-center text-gray-500 hover:text-cyan-600">
             <i data-lucide="users"></i>
-            <span>Team</span>
+            <span class="text-xs mt-1">Team</span>
         </a>
-        <a href="profile.html" class="nav-item">
+        <a href="profile.html" class="flex flex-col items-center text-gray-500 hover:text-cyan-600">
             <i data-lucide="user"></i>
-            <span>Profile</span>
+            <span class="text-xs mt-1">Profile</span>
         </a>
-    </nav>
+    </footer>
 
     <script>
-        // Init Icons
+        // Initialize Lucide Icons
         lucide.createIcons();
+
+        // Package Data from Master Prompt
+        const packages = [
+            { name: "Basic", price: 900, daily: 35, tasks: 3, monthly: 1050 },
+            { name: "Standard", price: 3900, daily: 135, tasks: 3, monthly: 4050 },
+            { name: "Advanced", price: 8900, daily: 300, tasks: 3, monthly: 9000 },
+            { name: "Pro", price: 18500, daily: 620, tasks: 3, monthly: 18600 },
+            { name: "Premium", price: 32500, daily: 1100, tasks: 5, monthly: 33000 },
+            { name: "Supreme", price: 54900, daily: 2000, tasks: 5, monthly: 60000 },
+            { name: "Elite", price: 112000, daily: 3900, tasks: 5, monthly: 117000 },
+            { name: "Ultimate", price: 250000, daily: 8500, tasks: 8, monthly: 255000 }
+        ];
+
+        const container = document.getElementById('package-list');
+
+        // Render Packages
+        packages.forEach((pkg, index) => {
+            const html = `
+                <div class="package-banner" onclick="toggleDetails(this)">
+                    <div class="banner-header">
+                        <span class="text-lg uppercase tracking-wider">${pkg.name}</span>
+                        <span class="text-cyan-600 font-bold">${pkg.price.toLocaleString()} PKR</span>
+                        <i data-lucide="chevron-down" class="transition-transform duration-300"></i>
+                    </div>
+                    <div class="banner-details">
+                        <div class="bg-gray-50 pt-2">
+                            <div class="detail-row">
+                                <span><i data-lucide="calendar" class="inline w-4 h-4 mr-2"></i>Daily Income</span>
+                                <span class="font-semibold text-green-600">+${pkg.daily}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span><i data-lucide="check-circle" class="inline w-4 h-4 mr-2"></i>Daily Tasks</span>
+                                <span class="font-semibold">${pkg.tasks}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span><i data-lucide="bar-chart-3" class="inline w-4 h-4 mr-2"></i>Monthly Profit</span>
+                                <span class="font-semibold text-cyan-600">${pkg.monthly.toLocaleString()}</span>
+                            </div>
+                            <div class="purchase-area">
+                                <button class="primary-btn" onclick="handlePurchase('${pkg.name}', ${pkg.price}, event)">
+                                    Invest Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += html;
+        });
+
+        // Re-init icons for the new HTML
+        lucide.createIcons();
+
+        // Toggle "Sliding Envelope" Animation
+        function toggleDetails(element) {
+            const details = element.querySelector('.banner-details');
+            const icon = element.querySelector('.banner-header i');
+            
+            // Close all others (Accordion style - optional, remove if you want multiple open)
+            document.querySelectorAll('.package-banner').forEach(banner => {
+                if(banner !== element) {
+                    banner.querySelector('.banner-details').classList.remove('open');
+                    banner.querySelector('.banner-header i').style.transform = 'rotate(0deg)';
+                }
+            });
+
+            if (details.classList.contains('open')) {
+                details.classList.remove('open');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                details.classList.add('open');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // Mock Purchase Logic
+        function handlePurchase(name, price, event) {
+            event.stopPropagation(); // Prevent closing the accordion
+            
+            // Logic: Deduct Balance -> Activate Package -> Unlock Tasks
+            // Since this is UI demo, we show an alert imitating a Toast
+            
+            const confirmBuy = confirm(`Confirm purchase of ${name} package for ${price} PKR?`);
+            
+            if(confirmBuy) {
+                // Here you would integrate Supabase logic
+                alert(`Success! ${name} Activated. Tasks Unlocked.`);
+            }
+        }
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    <script src="js/services/auth.js"></script>
-    <script src="js/utils/formatters.js"></script>
-    <script src="js/utils/ui.js"></script>
-    <script src="js/utils/router.js"></script>
-
-    <script src="js/controllers/home.js"></script>
-
 </body>
 </html>
