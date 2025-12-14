@@ -10,7 +10,7 @@
 
     <style>
         /* Note: We assume core.css defines --primary-dark as a dark shade, 
-                 but using --text-dark is safer based on core.css defined earlier. */
+                 using var(--text-dark) is safer based on core.css defined earlier. */
         :root {
             --primary-dark: #008b8b; /* Using a darker cyan for the spinner/text */
         }
@@ -87,7 +87,7 @@
     
     <!-- Routing Logic in HEAD -->
     <script type="module">
-        // FIX: Added ./ to the module path
+        // FIX: Explicitly using "./" to resolve the module path from the current file location
         import { supabase } from './js/config/supabase.js';
 
         // Check Session logic
