@@ -5,10 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CashForge - Loading...</title>
     
+    <!-- Link to core CSS for gradient/variables -->
     <link rel="stylesheet" href="css/core.css">
 
     <style>
+        /* Note: We assume core.css defines --primary-dark as a dark shade, 
+                 but using --text-dark is safer based on core.css defined earlier. */
+        :root {
+            --primary-dark: #008b8b; /* Using a darker cyan for the spinner/text */
+        }
+        
         body {
+            /* Inherits background gradient from core.css */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -23,20 +31,32 @@
             animation: fadeIn 1s ease-out;
         }
 
-        /* LOGO STYLING - Uses your .svg */
-        .splash-logo {
+        /* LOGO STYLING - Using Lucide placeholder for logo.svg */
+        .splash-logo-wrapper {
             width: 120px;
             height: 120px;
-            margin-bottom: 20px;
-            /* Optional: Add a subtle drop shadow to pop against the gradient */
+            margin: 0 auto 20px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 3px solid var(--primary-dark);
+            box-shadow: 0 0 15px rgba(0, 139, 139, 0.5); /* Subtle glow */
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        .splash-logo-wrapper i {
+            color: var(--text-dark);
+            width: 60%;
+            height: 60%;
         }
 
         /* Loading Spinner */
         .spinner {
             width: 30px;
             height: 30px;
-            border: 3px solid rgba(255, 255, 255, 0.5);
+            border: 3px solid rgba(0, 139, 139, 0.2);
             border-top: 3px solid var(--primary-dark);
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -62,31 +82,35 @@
             100% { transform: rotate(360deg); }
         }
     </style>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    <script src="js/services/auth.js"></script>
+    <!-- Lucide Icon Import -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
     <div class="splash-container">
-        <img src="assets/images/logo.svg" alt="CashForge Logo" class="splash-logo">
+        <!-- Replaced <img> with a wrapper using Lucide for consistency -->
+        <div class="splash-logo-wrapper">
+            <i data-lucide="zap"></i>
+        </div>
         
         <div class="spinner"></div>
         <div class="loading-text">Initializing Secure App...</div>
     </div>
 
-    <script>
+    <script type="module">
+        // Import Supabase dependency directly
+        import { supabase } from 'js/config/supabase.js';
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
         document.addEventListener('DOMContentLoaded', async () => {
             // Wait strictly 2 seconds for branding effect
             const minWait = new Promise(resolve => setTimeout(resolve, 2000));
             
-            // Check Session
-            // We use the AuthService directly to see if user is cached
+            // Check Session using modular supabase client
             const checkSession = async () => {
-                // Ensure Supabase is ready
-                if (!window.sb) return null;
-                const { data: { session } } = await window.sb.auth.getSession();
+                const { data: { session } } = await supabase.auth.getSession();
                 return session;
             };
 
