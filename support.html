@@ -10,8 +10,15 @@
     <link rel="stylesheet" href="css/components.css">
     
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Router for protection (Executes immediately) -->
+    <script type="module" src="js/utils/router.js"></script>
 
     <style>
+        .app-content {
+            padding: 20px;
+        }
+        
         /* Contact Cards */
         .contact-grid {
             display: grid;
@@ -27,7 +34,7 @@
             text-align: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             text-decoration: none;
-            color: var(--text-main);
+            color: var(--text-dark);
             transition: transform 0.2s;
             border: 1px solid #eee;
         }
@@ -39,13 +46,17 @@
         .contact-icon {
             width: 40px;
             height: 40px;
-            background: var(--primary-light);
-            color: var(--primary-dark);
+            background: #f0ffff; /* Light Cyan background */
+            color: #008b8b; /* Dark Cyan color */
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 10px auto;
+        }
+        .contact-icon i {
+            width: 20px;
+            height: 20px;
         }
 
         /* FAQ Accordion */
@@ -90,7 +101,8 @@
         }
 
         .faq-item.open .faq-body {
-            max-height: 150px; /* Approximate height for text */
+            max-height: 300px; /* Use a larger value to ensure content fits */
+            transition: max-height 0.5s ease-in;
         }
 
         .faq-item.open .faq-header i {
@@ -142,7 +154,7 @@
                     <i data-lucide="chevron-down" style="width:16px;"></i>
                 </div>
                 <div class="faq-body">
-                    <p>Go to the Home page and click "Deposit". Send USDT (TRC20) to the displayed address and upload your transaction screenshot. Funds will appear after admin approval.</p>
+                    <p>Go to the Deposit page. Enter the PKR amount you wish to pay, and the system will calculate the equivalent USDT. Send USDT (TRC20 or BEP20) to the displayed address and upload your transaction screenshot. Funds will appear after admin approval.</p>
                 </div>
             </div>
 
@@ -152,7 +164,7 @@
                     <i data-lucide="chevron-down" style="width:16px;"></i>
                 </div>
                 <div class="faq-body">
-                    <p>Withdrawals adhere to a specific schedule based on your VIP level. Generally, withdrawals are processed within 24 hours. Check the "Wallet" section for your specific limits.</p>
+                    <p>Withdrawals are limited to once every 7 days and adhere to a strict schedule based on your active package. Withdrawals are closed every Sunday. You must also have a configured USDT wallet in the Settings section.</p>
                 </div>
             </div>
 
@@ -162,7 +174,7 @@
                     <i data-lucide="chevron-down" style="width:16px;"></i>
                 </div>
                 <div class="faq-body">
-                    <p>You earn commissions from 3 levels of referrals (Level 1, 2, and 3). Share your invite link found in the "Team" or "Profile" tab to start building your network.</p>
+                    <p>You earn commissions from 3 levels of referrals (Level A: 5%, Level B: 2%, Level C: 1%) when they complete daily tasks. You also receive a one-time bonus when a downline member purchases an investment package.</p>
                 </div>
             </div>
 
@@ -172,7 +184,7 @@
                     <i data-lucide="chevron-down" style="width:16px;"></i>
                 </div>
                 <div class="faq-body">
-                    <p>For security reasons, PIN resets must be handled manually. Please contact our Telegram support with your registered email and ID for assistance.</p>
+                    <p>For security reasons, transaction PIN resets must be handled manually by the administration. Please contact our Telegram support with your registered email and ID for assistance.</p>
                 </div>
             </div>
 
@@ -182,11 +194,11 @@
 
     <script>
         // Init Icons
-        lucide.createIcons();
+        window.onload = lucide.createIcons;
 
         // FAQ Toggle Logic
         function toggleFaq(element) {
-            // Close others (Accordion style) - Optional, remove if you want multiple open
+            // Close others (Accordion style)
             document.querySelectorAll('.faq-item').forEach(item => {
                 if (item !== element) {
                     item.classList.remove('open');
