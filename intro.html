@@ -99,6 +99,29 @@
             100% { transform: translateY(0px); }
         }
     </style>
+    
+    <!-- SCRIPT FOR AUTO-REDIRECT -->
+    <script type="module">
+        import { supabase } from 'js/config/supabase.js';
+
+        const checkSessionAndRoute = async () => {
+            try {
+                // Optional: Auto-redirect if already logged in
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    window.location.href = 'home.html';
+                }
+            } catch (e) {
+                console.error("Intro Supabase check failed:", e);
+            }
+        };
+
+        // Execute immediately after module load
+        checkSessionAndRoute();
+        
+        // Init Icons when DOM is ready
+        document.addEventListener('DOMContentLoaded', lucide.createIcons);
+    </script>
 </head>
 <body>
 
@@ -126,22 +149,6 @@
             I have an account
         </a>
     </div>
-
-    <!-- SCRIPT FOR AUTO-REDIRECT -->
-    <script type="module">
-        import { supabase } from 'js/config/supabase.js';
-
-        // Initialize Lucide icons
-        lucide.createIcons();
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Optional: Auto-redirect if already logged in
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                window.location.href = 'home.html';
-            }
-        });
-    </script>
 
 </body>
 </html>
