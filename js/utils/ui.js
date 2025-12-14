@@ -1,70 +1,39 @@
-/**
- * CashForge Notification System
- * Handles the display of clean, "built-in" toast notifications.
- * Dependency: Ensure 'toast' classes are defined in your css/core.css
- */
+/* js/utils/router.js */
+import { supabase } from '../config/supabase.js';
 
-/**
- * Displays a toast notification on the screen.
- * @param {string} message - The text to display.
- * @param {string} type - 'success', 'error', 'info', or 'warning'.
- */
-function showNotification(message, type = 'info') {
-    // 1. Get the notification container
-    let container = document.getElementById('toast-container');
-    
-    // 2. If container doesn't exist, create it dynamically
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        // Append to body
-        document.body.appendChild(container);
-    }
+// Automatically execute when imported
+(async function() {
+    // 1. Define Public Pages (No Login Required)
+    const publicPages = [
+        'index.html',
+        'intro.html', 
+        'login.html', 
+        'register.html'
+    ];
 
-    // 3. Create the toast element
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`; // e.g., "toast success"
-    
-    // 4. Determine the icon based on type
-    let icon = 'ℹ️'; // Default Info
-    if (type === 'success') icon = '✅';
-    if (type === 'error') icon = '⛔';
-    if (type === 'warning') icon = '⚠️';
+    // 2. Get Current Filename
+    const path = window.location.pathname;
+    const page = path.split("/").pop() || 'index.html';
 
-    // 5. Construct the HTML structure
-    toast.innerHTML = `
-        <div class="toast-content">
-            <span class="toast-icon">${icon}</span>
-            <span class="toast-message">${message}</span>
-        </div>
-        <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
-    `;
+    // 3. Check if we are on a Public Page
+    // We also treat the root path '/' as public
+    const isPublic = publicPages.includes(page) || path === '/' || path.endsWith('/');
 
-    // 6. Add to the container (Visible on screen)
-    container.appendChild(toast);
+    // 4. Session Check
+    // We use the imported supabase client directly (no waiting needed)
+    const { data: { session } } = await supabase.auth.getSession();
 
-    // 7. Auto-remove logic (4 Seconds)
-    // We set a timer to trigger the fade-out animation
-    setTimeout(() => {
-        removeToast(toast);
-    }, 4000);
-}
-
-/**
- * Helper function to remove a toast with animation.
- * @param {HTMLElement} toastElement 
- */
-function removeToast(toastElement) {
-    // Check if already removed to prevent errors
-    if (!toastElement || !toastElement.parentElement) return;
-
-    // Add fade-out animation class (must be defined in CSS)
-    toastElement.style.animation = 'fadeOutRight 0.5s ease forwards';
-    
-    // Wait for animation to finish, then remove from DOM
-    setTimeout(() => {
-        if (toastElement.parentElement) {
-            toastElement.remove();
+    if (!isPublic) {
+        // PRIVATE PAGE: If no session, Redirect to Intro
+        if (!session) {
+            console.warn("Unauthorized access. Redirecting...");
+            window.location.href = 'intro.html';
         }
-    }, 500); // Matches animation duration
-}
+    } else {
+        // PUBLIC PAGE: If session exists, Redirect to Dashboard
+        // Only apply this auto-redirect on Login/Register pages to prevent looping on Intro
+        if (session && (page === 'login.html' || page === 'register.html')) {
+            window.location.href = 'home.html';
+        }
+    }
+})();
