@@ -3,19 +3,27 @@
    ========================================= */
 :root {
     /* Brand Colors */
-    --primary: #00FFFF;       /* Cyan */
-    --primary-dark: #008b8b;  /* Dark Cyan (Text/Borders) */
-    --primary-light: #e0ffff; /* Light Cyan (Backgrounds) */
+    --primary-cyan: #00FFFF;    /* Main Cyan */
+    --primary-dark: #008b8b;   /* Dark Cyan (Text/Borders) */
+    --primary-light: #e0ffff;  /* Light Cyan (Backgrounds) */
     
+    /* SUCCESS/FAILURE Colors (Used in buttons/toasts) */
+    --success-green: #23c483;
+    --error-red: #e74c3c;
+
     /* Neutral Colors */
     --white: #ffffff;
     --black: #000000;
+    --text-dark: #1a1a1a;      /* Used as general dark text color */
     --text-main: #333333;
     --text-muted: #888888;
     --border-color: #eeeeee;
 
     /* The Master Gradient (Vertical: White -> Mix -> Cyan) */
     --bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #ccffff 55%, #00FFFF 100%);
+    
+    /* Header Gradient (Horizontal, for compatibility) */
+    --header-gradient: linear-gradient(90deg, #FFFFFF 0%, #E0FFFF 50%, #00FFFF 100%);
     
     /* Dimensions */
     --header-height: 60px;
@@ -32,6 +40,7 @@
     -webkit-tap-highlight-color: transparent; /* Remove blue tap highlight on mobile */
 }
 
+/* Note: Ensure the 'Inter' font is linked in the HTML head */
 html, body {
     margin: 0;
     padding: 0;
@@ -88,10 +97,11 @@ a {
     border-radius: 10px;
 
 }
-/* css/core.css - Add this to the bottom */
 
-/* --- TOAST NOTIFICATION SYSTEM --- */
-#toast-container {
+/* =========================================
+   5. TOAST NOTIFICATION SYSTEM STYLES
+   ========================================= */
+#notification-container {
     position: fixed;
     top: 20px;
     right: 20px; /* Top Right corner */
@@ -99,13 +109,15 @@ a {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    width: 90%;
+    max-width: 320px;
 }
 
 .toast {
-    min-width: 320px;
+    min-width: 300px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    border-left: 5px solid #00FFFF; /* Default Cyan */
+    border-left: 5px solid var(--primary-cyan); 
     padding: 16px 20px;
     border-radius: 8px;
     box-shadow: 0 8px 30px rgba(0,0,0,0.12);
@@ -119,9 +131,11 @@ a {
 }
 
 /* Toast Types */
-.toast.success { border-left-color: #00C851; } /* Green */
-.toast.error   { border-left-color: #ff4444; } /* Red */
-.toast.info    { border-left-color: #00FFFF; } /* Cyan */
+.toast.success { border-left-color: var(--success-green); } 
+.toast.error   { border-left-color: var(--error-red); } 
+.toast.info    { border-left-color: var(--primary-cyan); } 
+.toast.warning { border-left-color: #f39c12; } /* Orange for warning */
+
 
 /* Toast Content */
 .toast-content {
@@ -133,8 +147,6 @@ a {
     font-weight: 500;
     font-size: 0.95rem;
 }
-
-.toast-icon { font-size: 1.2rem; }
 
 /* Animations */
 @keyframes slideInRight {
