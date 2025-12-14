@@ -1,4 +1,6 @@
 /* js/controllers/history.js */
+/* js/controllers/history.js */
+import { supabase } from '../config/supabase.js'; // CORRECT PATH: from js/controllers up to js/config
 import { supabase } from '../config/supabase.js';
 import { getCurrentUser } from '../services/auth.js'; // Assumed function name
 import { formatCurrency, formatDate, getStatusBadge } from '../utils/formatters.js';
@@ -149,3 +151,4 @@ const HistoryController = {
 document.addEventListener('DOMContentLoaded', () => {
     HistoryController.init();
 });
+
