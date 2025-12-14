@@ -1,7 +1,7 @@
-/* Team Controller - CashForge
-   Handles fetching the MLM hierarchy (Levels 1, 2, 3), 
-   calculating team stats, and UI rendering.
-*/
+/**
+ * Team Controller - CashForge
+ * Handles Referral Code Generation, 3-Level Hierarchy Fetching, and UI Updates.
+ */
 
 const TeamController = {
     // State to hold loaded members
@@ -14,50 +14,94 @@ const TeamController = {
 
     // --- 1. INITIALIZE ---
     async init() {
-        // A. Check Session
-        const sessionUser = await AuthService.checkSession();
-        if (!sessionUser) return;
+        try {
+            // A. Check Session
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
 
-        // B. Get Full Profile (We need the referral_code and ID)
-        this.currentUser = await AuthService.getProfile();
-        
-        if (this.currentUser) {
-            this.renderReferralCode();
+            // B. Get Full Profile
+            let { data: profile, error } = await supabase
+                .from('users')
+                .select('id, full_name, referral_code, team_size, total_commission, vip_level')
+                .eq('id', user.id)
+                .single();
+
+            if (error) throw error;
+
+            // C. Auto-Generate Referral Code if Missing
+            if (!profile.referral_code) {
+                const newCode = 'CF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                
+                await supabase
+                    .from('users')
+                    .update({ referral_code: newCode })
+                    .eq('id', user.id);
+                
+                profile.referral_code = newCode; // Update local profile
+            }
+
+            this.currentUser = profile;
+
+            // D. Render Initial UI
+            this.renderReferralInfo();
+            
+            // E. Load Hierarchy
             this.loadTeamData();
+
+        } catch (err) {
+            console.error("Init Error:", err);
+            if(typeof showNotification === 'function') showNotification("Failed to load profile", "error");
         }
     },
 
     // --- 2. RENDER REFERRAL INFO ---
-    renderReferralCode() {
-        // Update the footer text with actual code
-        const footerCode = document.querySelector('.action-row strong');
-        if (footerCode) footerCode.innerText = this.currentUser.referral_code;
+    renderReferralInfo() {
+        if (!this.currentUser) return;
+
+        // 1. Construct Link
+        const baseUrl = window.location.origin;
+        // Adjust path if your register file is inside a folder, otherwise assume root
+        const refLink = `${baseUrl}/register.html?ref=${this.currentUser.referral_code}`;
+
+        // 2. Update UI Elements (IDs from team.html)
+        const linkDisplay = document.getElementById('ref-link-display');
+        const hiddenInput = document.getElementById('ref-input-hidden');
+        const codeDisplay = document.getElementById('ref-code-display');
+        const commDisplay = document.getElementById('total-comm');
+
+        if(linkDisplay) linkDisplay.innerText = refLink;
+        if(hiddenInput) hiddenInput.value = refLink;
+        if(codeDisplay) codeDisplay.innerText = this.currentUser.referral_code;
+        
+        // 3. Render Commission (formatted)
+        if(commDisplay) {
+            commDisplay.innerText = 'PKR ' + (this.currentUser.total_commission || 0).toLocaleString();
+        }
     },
 
-    // --- 3. FETCH TEAM DATA (The Waterfall Method) ---
+    // --- 3. FETCH TEAM DATA (Waterfall) ---
     async loadTeamData() {
         const userId = this.currentUser.id;
-        const loader = document.getElementById('team-list');
-        loader.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">Loading Team Data...</div>';
 
         try {
             // STEP A: Fetch Level 1 (Direct Referrals)
-            // Query: Users who have MY ID as their upline_id
-            const { data: level1, error: err1 } = await window.sb
+            const { data: level1, error: err1 } = await supabase
                 .from('users')
-                .select('id, full_name, created_at, vip_level, balance')
+                .select('id, full_name, created_at, vip_level')
                 .eq('upline_id', userId);
 
             if (err1) throw err1;
             this.data.lvl1 = level1 || [];
 
             // STEP B: Fetch Level 2 (Referrals of Level 1)
-            // We need an array of all L1 IDs to query L2
             const l1Ids = this.data.lvl1.map(u => u.id);
             let level2 = [];
             
             if (l1Ids.length > 0) {
-                const { data: l2Data, error: err2 } = await window.sb
+                const { data: l2Data, error: err2 } = await supabase
                     .from('users')
                     .select('id, full_name, created_at, vip_level, upline_id')
                     .in('upline_id', l1Ids);
@@ -71,7 +115,7 @@ const TeamController = {
             let level3 = [];
             
             if (l2Ids.length > 0) {
-                const { data: l3Data, error: err3 } = await window.sb
+                const { data: l3Data, error: err3 } = await supabase
                     .from('users')
                     .select('id, full_name, created_at, vip_level, upline_id')
                     .in('upline_id', l2Ids);
@@ -80,115 +124,69 @@ const TeamController = {
             }
             this.data.lvl3 = level3;
 
-            // STEP D: Update Dashboard Stats (Total members, etc)
+            // STEP D: Update Stats UI
             this.updateStats();
-
-            // STEP E: Render Level 1 by default
-            this.switchTab(1);
 
         } catch (error) {
             console.error("Team Load Error:", error);
-            loader.innerHTML = '<div style="text-align:center; color:red;">Failed to load team data.</div>';
+            showNotification("Failed to refresh team data", "error");
         }
     },
 
-    // --- 4. UPDATE STATS UI ---
+    // --- 4. UPDATE STATS & COUNTS ---
     updateStats() {
         // 1. Calculate Total Team Size
-        const totalMembers = this.data.lvl1.length + this.data.lvl2.length + this.data.lvl3.length;
+        const totalSize = this.data.lvl1.length + this.data.lvl2.length + this.data.lvl3.length;
         
-        // 2. Calculate Active Investors (VIP Level > 0)
-        const activeL1 = this.data.lvl1.filter(u => u.vip_level > 0).length;
-        const activeL2 = this.data.lvl2.filter(u => u.vip_level > 0).length;
-        const activeL3 = this.data.lvl3.filter(u => u.vip_level > 0).length;
-        const totalActive = activeL1 + activeL2 + activeL3;
+        // 2. Update "Team Size" Card
+        const sizeEl = document.getElementById('team-size');
+        if(sizeEl) sizeEl.innerText = totalSize;
 
-        // 3. Update DOM Elements
-        // We find the specific mini-cards by content or structure
-        const statValues = document.querySelectorAll('.mini-card div[style*="font-size: 18px"]');
-        if (statValues.length >= 2) {
-            statValues[0].innerText = totalMembers;
-            statValues[1].innerText = totalActive;
-        }
-        
-        // 4. Update Commission Display
-        // Note: For a real app, you would sum up 'commission' type transactions from the transactions table.
-        // For MVP, let's try to fetch actual commissions or show a placeholder based on activity.
-        // Here we just update the total commission UI if we have that data in the user profile or calc it.
-        // For now, let's assuming "balance" reflects it, or we leave the static number if no commission logic exists yet.
+        // 3. Update Level Badges (Counts)
+        const l1Badge = document.getElementById('lvl-1-count');
+        const l2Badge = document.getElementById('lvl-2-count');
+        const l3Badge = document.getElementById('lvl-3-count');
+
+        if(l1Badge) l1Badge.innerText = this.data.lvl1.length;
+        if(l2Badge) l2Badge.innerText = this.data.lvl2.length;
+        if(l3Badge) l3Badge.innerText = this.data.lvl3.length;
     },
 
-    // --- 5. SWITCH TAB LOGIC ---
-    switchTab(level) {
-        // Update Tabs UI
-        document.querySelectorAll('.tab-btn').forEach((btn, index) => {
-            if (index + 1 === level) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-
-        // Determine which data to show
-        const users = level === 1 ? this.data.lvl1 : (level === 2 ? this.data.lvl2 : this.data.lvl3);
-        const listContainer = document.getElementById('team-list');
-        listContainer.innerHTML = '';
-
-        if (users.length === 0) {
-            listContainer.innerHTML = `
-                <div style="text-align:center; padding:30px; color:#aaa;">
-                    <i data-lucide="users" style="width:30px; height:30px; opacity:0.3; margin-bottom:10px;"></i>
-                    <p style="font-size:12px;">No members in Level ${level} yet.</p>
-                </div>`;
-            lucide.createIcons();
-            return;
-        }
-
-        // Render List
-        users.forEach(u => {
-            // Privacy Masking (e.g., Rud...123)
-            const maskedName = u.full_name.length > 3 
-                ? u.full_name.substring(0, 3) + "***" 
-                : u.full_name;
-
-            const isVip = u.vip_level > 0;
-            const joinDate = Formatters.date(u.created_at); // Use our Formatter!
-
-            const item = document.createElement('div');
-            item.className = `member-item ${isVip ? 'active-investor' : ''}`;
-            
-            item.innerHTML = `
-                <div class="mem-info">
-                    <h4>${maskedName} <span style="font-size:9px; background:#eee; padding:2px 4px; border-radius:4px;">L${level}</span></h4>
-                    <span>Joined: ${joinDate}</span>
-                </div>
-                <div class="mem-profit">
-                    ${isVip ? '<span style="color:#2ecc71">Active</span>' : '<span style="color:#999">Inactive</span>'}
-                </div>
-            `;
-            listContainer.appendChild(item);
-        });
-    },
-
-    // --- 6. COPY REFERRAL LINK ---
+    // --- 5. ACTIONS (Copy & Share) ---
     copyReferral() {
-        if (!this.currentUser) return;
-        
-        // Build link based on current domain
-        const link = `${window.location.origin}/register.html?ref=${this.currentUser.referral_code}`;
-        
+        const link = document.getElementById('ref-input-hidden')?.value;
+        if (!link) return;
+
         navigator.clipboard.writeText(link).then(() => {
-            UI.toast("Referral Link Copied!", "success");
+            showNotification("Referral Link Copied!", "success");
         }).catch(err => {
-            console.error('Copy failed', err);
-            UI.toast("Failed to copy link.", "error");
+            console.error(err);
+            showNotification("Failed to copy link", "error");
         });
+    },
+
+    shareNative() {
+        const link = document.getElementById('ref-input-hidden')?.value;
+        const code = this.currentUser?.referral_code || '';
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'Join CashForge',
+                text: `Use my code ${code} to start earning!`,
+                url: link
+            }).catch(console.error);
+        } else {
+            // Fallback for desktop/unsupported
+            this.copyReferral();
+        }
     }
 };
 
-// Start
+// --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     TeamController.init();
-    
-    // Attach Global Functions for HTML onClick attributes
-    window.switchTab = (lvl) => TeamController.switchTab(lvl);
+
+    // Expose functions to global scope for HTML onclick="" events
     window.copyReferral = () => TeamController.copyReferral();
-    window.openChartModal = () => document.getElementById('chart-modal').style.display = 'flex';
+    window.shareNative = () => TeamController.shareNative();
 });
