@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CashForge</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -14,299 +12,228 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* --- 1. CORE VISUALS & RESET --- */
+        /* --- 1. STRICT COLOR PALETTE & THEME --- */
         :root {
-            --primary-cyan: #06b6d4; /* A more readable, professional cyan (Cyan-500) */
-            --primary-dark: #155e75; /* Deep Cyan/Teal for text */
-            --accent-green: #10b981;
-            --bg-gradient-start: #ffffff;
-            --bg-gradient-mid: #e0faff;
-            --bg-gradient-end: #06b6d4;
+            --brand-cyan: #00FFFF;  /* The specific Cyan you requested */
+            --brand-white: #FFFFFF;
+            --text-main: #000000;
+            --text-muted: #555555;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 60%, var(--bg-gradient-end) 100%);
-            background-attachment: fixed; /* Parallax effect */
             min-height: 100vh;
-            color: #1e293b; /* Slate-800 for better readability than pure black */
-            -webkit-font-smoothing: antialiased;
-            padding-bottom: 90px; /* Space for fixed footer */
+            color: var(--text-main);
+            padding-bottom: 90px;
+            
+            /* MASTER PROMPT BACKGROUND: 
+               White flows downward, mixing with Cyan at center, 
+               Cyan gets brighter at bottom (#00FFFF) */
+            background: linear-gradient(180deg, #FFFFFF 0%, #E0FFFF 50%, #00FFFF 100%);
+            background-attachment: fixed;
         }
 
-        /* --- 2. HEADER (Glassmorphism) --- */
+        /* --- 2. HEADER & FOOTER (Horizontal Blend) --- */
+        header, footer {
+            /* MASTER PROMPT: Same blending effect, but horizontal */
+            background: linear-gradient(90deg, #FFFFFF 0%, #ccffff 50%, #FFFFFF 100%);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
         header {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             position: sticky;
             top: 0;
             z-index: 50;
-            transition: all 0.3s ease;
+            backdrop-filter: blur(5px); /* subtle glass effect over the gradient */
         }
 
-        /* Logo Effect: Glowing Circle */
-        .logo-wrapper {
-            width: 42px;
-            height: 42px;
+        /* --- 3. LOGO STYLING (Glowing Border) --- */
+        .logo-circle {
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
-            background: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid #22d3ee;
-            box-shadow: 0 0 12px rgba(34, 211, 238, 0.6);
-            position: relative;
+            background: #fff;
+            
+            /* MASTER PROMPT: Circumference glowing cyan lining/border */
+            border: 2px solid var(--brand-cyan);
+            box-shadow: 0 0 15px var(--brand-cyan), inset 0 0 5px var(--brand-cyan);
             overflow: hidden;
         }
         
-        .logo-wrapper img {
-            width: 85%;
-            height: 85%;
+        .logo-circle img {
+            width: 80%;
+            height: 80%;
             object-fit: contain;
         }
 
-        /* --- 3. CUSTOM BUTTON CSS (STRICTLY FROM PROMPT) --- */
+        /* --- 4. BUTTON STYLING (EXACT COPY FROM PROMPT) --- */
         button.action-btn {
-            padding: 1.1em 2.5em; /* Slightly adjusted for mobile fit */
-            font-size: 11px;
+            padding: 1.3em 3em;
+            font-size: 11px; /* Scaled slightly for mobile */
             text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 700;
-            color: #0f172a;
+            letter-spacing: 2.5px;
+            font-weight: 600;
+            color: #000;
             background-color: #fff;
             border: none;
             border-radius: 45px;
-            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease 0s;
             cursor: pointer;
             outline: none;
-            width: 100%; /* Full width inside card context */
+            width: 100%; /* Full width in mobile view */
         }
-
+        
         button.action-btn:hover {
             background-color: #23c483;
-            box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.3);
+            box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
             color: #fff;
-            transform: translateY(-3px);
+            transform: translateY(-7px);
         }
-
+        
         button.action-btn:active {
             transform: translateY(-1px);
         }
 
-        /* --- 4. PACKAGE BANNERS (The "Human" Touch) --- */
-        .pkg-card {
-            background: white;
-            border-radius: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 20px rgba(148, 163, 184, 0.1);
-            border: 1px solid rgba(255,255,255,0.8);
-            overflow: hidden;
-            position: relative;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        /* --- 5. PACKAGE BANNERS (Clean, Wide Horizontal) --- */
+        .banner-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        /* The colored left strip */
-        .pkg-card::before {
+        .package-banner {
+            background: rgba(255, 255, 255, 0.95); /* High opacity white for contrast against Cyan bg */
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+
+        .package-banner:hover {
+            transform: scale(1.01);
+        }
+
+        /* Colored Strip on Left */
+        .package-banner::before {
             content: '';
             position: absolute;
             left: 0;
             top: 0;
             bottom: 0;
-            width: 6px;
-            background: linear-gradient(180deg, #22d3ee, #0e7490);
+            width: 5px;
+            background: var(--brand-cyan);
+            box-shadow: 0 0 8px var(--brand-cyan);
         }
 
-        .pkg-header {
-            padding: 18px 24px 18px 20px;
+        .banner-head {
+            padding: 20px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            background: white;
-            z-index: 10;
-            position: relative;
         }
 
-        .pkg-name {
-            font-weight: 800;
-            font-size: 0.95rem;
-            color: #334155;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .pkg-price {
-            font-weight: 700;
-            color: #0891b2; /* Cyan-600 */
-            font-size: 1rem;
-        }
-
-        /* Animated Body */
-        .pkg-body {
+        .banner-details {
             max-height: 0;
-            opacity: 0;
             overflow: hidden;
-            background: #f8fafc; /* Very light slate bg */
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            background: #fcfcfc;
+            transition: max-height 0.4s ease-out;
+            border-top: 1px solid #eee;
         }
 
-        .pkg-body.open {
-            max-height: 400px; /* Arbitrary large height */
-            opacity: 1;
-            border-top: 1px solid #e2e8f0;
+        .banner-details.open {
+            max-height: 500px; /* Arbitrary large height for animation */
         }
 
-        /* Grid inside the card details */
-        .stat-grid {
+        /* Grid for stats */
+        .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 15px;
             padding: 20px;
         }
 
-        .stat-item {
+        .stat-box {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-        }
-
-        .stat-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: #64748b;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #1e293b;
-        }
-
-        /* --- 5. SLIDER & FOOTER --- */
-        .marquee-wrapper {
-            background: rgba(255,255,255,0.4);
-            backdrop-filter: blur(4px);
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            padding: 10px 0;
-            overflow: hidden;
-            white-space: nowrap;
-            margin-bottom: 24px;
-        }
-
-        .marquee-content {
-            display: inline-block;
-            animation: marquee 20s linear infinite;
         }
         
-        .promo-pill {
-            display: inline-block;
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin: 0 12px;
-            box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
-        }
-
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        footer {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(0,0,0,0.05);
-            padding-bottom: env(safe-area-inset-bottom); /* iPhone X safe area */
-        }
-
-        .nav-item.active {
-            color: #0891b2;
-        }
-        
-        .nav-item.active i {
-            fill: rgba(8, 145, 178, 0.1);
-            stroke-width: 2.5px;
-        }
+        .stat-label { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-val { font-size: 1rem; font-weight: 700; color: #000; }
+        .stat-val.profit { color: #008f8f; } /* Darker Cyan for readable text */
 
     </style>
 </head>
 <body>
 
-    <header class="flex justify-between items-center px-5 py-3 shadow-sm">
+    <header class="flex justify-between items-center px-5 py-4 shadow-sm">
         <div class="flex items-center gap-3">
-            <div class="logo-wrapper">
-                 <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <div class="logo-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" class="w-6 h-6"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             </div>
-            <span class="text-xl font-extrabold tracking-tight text-slate-800">CASH<span class="text-cyan-500">FORGE</span></span>
+            <span class="text-xl font-bold tracking-wide uppercase">CashForge</span>
         </div>
         
-        <button class="relative p-2 rounded-full hover:bg-slate-100 transition-colors">
-            <i data-lucide="bell" class="w-6 h-6 text-slate-600"></i>
-            <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+        <button class="relative p-2 rounded-full bg-white/50 hover:bg-white transition-colors">
+            <i data-lucide="bell" class="w-6 h-6 text-black"></i>
+            <span class="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>
     </header>
 
-    <div class="marquee-wrapper">
-        <div class="marquee-content">
-            <span class="promo-pill">🚀 New Elite Package Live</span>
-            <span class="promo-pill">💎 5% Referral Bonus Active</span>
-            <span class="promo-pill">⚡ Instant USDT Withdrawals</span>
-            <span class="promo-pill">🚀 New Elite Package Live</span>
-            <span class="promo-pill">💎 5% Referral Bonus Active</span>
-            <span class="promo-pill">⚡ Instant USDT Withdrawals</span>
+    <div class="w-full overflow-hidden bg-white/30 backdrop-blur-sm border-b border-cyan-100 py-2 mb-6">
+        <div class="whitespace-nowrap animate-[marquee_20s_linear_infinite] flex items-center">
+            <span class="mx-4 text-sm font-medium">🚀 Instant Withdrawals Live</span>
+            <span class="mx-4 text-sm font-medium">💎 Elite Package Open for Investment</span>
+            <span class="mx-4 text-sm font-medium">⚡ Join the Official Telegram Group</span>
+            <span class="mx-4 text-sm font-medium">🚀 Instant Withdrawals Live</span>
+            <span class="mx-4 text-sm font-medium">💎 Elite Package Open for Investment</span>
         </div>
     </div>
 
+    <style>
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+    </style>
+
     <main class="container mx-auto px-4 max-w-lg">
+        <h1 class="text-2xl font-extrabold mb-6 text-center">Investment Plans</h1>
         
-        <div class="mb-6 flex justify-between items-end">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-800">Investment Plans</h1>
-                <p class="text-sm text-slate-500 mt-1">Grow your portfolio daily</p>
+        <div id="banner-list" class="banner-container">
             </div>
-            </div>
-
-        <div id="packages-container" class="flex flex-col gap-1">
-            </div>
-
     </main>
 
-    <footer class="fixed bottom-0 w-full flex justify-between items-center px-6 py-3 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
-        <a href="#" class="nav-item active flex flex-col items-center gap-1 text-slate-400 hover:text-cyan-600 transition-colors">
-            <i data-lucide="home" class="w-5 h-5"></i>
-            <span class="text-[10px] font-medium">Home</span>
+    <footer class="fixed bottom-0 w-full flex justify-around items-center py-3 z-50 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
+        <a href="#" class="flex flex-col items-center gap-1 text-black">
+            <i data-lucide="home" class="w-5 h-5 fill-cyan-100"></i>
+            <span class="text-[10px] font-bold">Home</span>
         </a>
-        <a href="tasks.html" class="nav-item flex flex-col items-center gap-1 text-slate-400 hover:text-cyan-600 transition-colors">
+        <a href="tasks.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-black transition">
             <i data-lucide="check-square" class="w-5 h-5"></i>
             <span class="text-[10px] font-medium">Tasks</span>
         </a>
-        <div class="relative -top-5">
-            <a href="trade.html" class="flex items-center justify-center w-14 h-14 rounded-full bg-cyan-500 text-white shadow-lg shadow-cyan-500/40 hover:scale-105 transition-transform">
+        <div class="relative -top-6">
+            <a href="trade.html" class="flex items-center justify-center w-14 h-14 rounded-full bg-black text-[#00FFFF] shadow-lg shadow-black/30 border-2 border-[#00FFFF]">
                 <i data-lucide="trending-up" class="w-6 h-6"></i>
             </a>
         </div>
-        <a href="team.html" class="nav-item flex flex-col items-center gap-1 text-slate-400 hover:text-cyan-600 transition-colors">
+        <a href="team.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-black transition">
             <i data-lucide="users" class="w-5 h-5"></i>
             <span class="text-[10px] font-medium">Team</span>
         </a>
-        <a href="profile.html" class="nav-item flex flex-col items-center gap-1 text-slate-400 hover:text-cyan-600 transition-colors">
+        <a href="profile.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-black transition">
             <i data-lucide="user" class="w-5 h-5"></i>
             <span class="text-[10px] font-medium">Profile</span>
         </a>
     </footer>
 
     <script>
-        // --- 1. CONFIGURATION ---
         lucide.createIcons();
 
+        // Data from Master Prompt
         const packages = [
             { name: "Basic", price: 900, daily: 35, tasks: 3, monthly: 1050 },
             { name: "Standard", price: 3900, daily: 135, tasks: 3, monthly: 4050 },
@@ -318,97 +245,79 @@
             { name: "Ultimate", price: 250000, daily: 8500, tasks: 8, monthly: 255000 }
         ];
 
-        const container = document.getElementById('packages-container');
+        const container = document.getElementById('banner-list');
 
-        // --- 2. RENDER LOGIC ---
-        packages.forEach((pkg, index) => {
-            // Helper to format currency
-            const fmtPrice = pkg.price.toLocaleString();
-            const fmtMonthly = pkg.monthly.toLocaleString();
-
-            const card = document.createElement('div');
-            card.className = 'pkg-card';
-            card.innerHTML = `
-                <div class="pkg-header" onclick="toggleCard(this)">
-                    <div class="flex flex-col">
-                        <span class="pkg-name">${pkg.name} Plan</span>
-                        <div class="flex items-center gap-2 mt-1">
-                            <i data-lucide="shield-check" class="w-3 h-3 text-cyan-500"></i>
-                            <span class="text-xs text-slate-400 font-medium">Verified</span>
-                        </div>
+        packages.forEach(pkg => {
+            const el = document.createElement('div');
+            el.className = 'package-banner';
+            el.innerHTML = `
+                <div class="banner-head" onclick="toggleDetails(this)">
+                    <div>
+                        <div class="text-sm font-extrabold uppercase tracking-widest text-gray-800">${pkg.name}</div>
+                        <div class="text-[10px] text-gray-500 font-medium mt-1">Daily ROI + Tasks</div>
                     </div>
                     <div class="text-right">
-                        <div class="pkg-price">PKR ${fmtPrice}</div>
-                        <i data-lucide="chevron-down" class="w-4 h-4 text-slate-300 ml-auto mt-1 transition-transform duration-300 icon-arrow"></i>
+                        <div class="text-lg font-bold text-[#008f8f]">PKR ${pkg.price.toLocaleString()}</div>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 ml-auto mt-1 transition-transform duration-300 icon-arrow"></i>
                     </div>
                 </div>
-                
-                <div class="pkg-body">
-                    <div class="stat-grid">
-                        <div class="stat-item">
+                <div class="banner-details">
+                    <div class="stats-grid">
+                        <div class="stat-box">
                             <span class="stat-label">Daily Income</span>
-                            <span class="stat-value text-emerald-600">+PKR ${pkg.daily}</span>
+                            <span class="stat-val text-green-600">+PKR ${pkg.daily}</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Daily Tasks</span>
-                            <span class="stat-value">${pkg.tasks} Tasks</span>
+                        <div class="stat-box">
+                            <span class="stat-label">Monthly</span>
+                            <span class="stat-val profit">PKR ${pkg.monthly.toLocaleString()}</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Monthly Profit</span>
-                            <span class="stat-value text-cyan-600">PKR ${fmtMonthly}</span>
+                        <div class="stat-box">
+                            <span class="stat-label">Tasks Limit</span>
+                            <span class="stat-val">${pkg.tasks} / Day</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Contract</span>
-                            <span class="stat-value">365 Days</span>
+                        <div class="stat-box">
+                            <span class="stat-label">Duration</span>
+                            <span class="stat-val">Lifetime</span>
                         </div>
                     </div>
-                    
-                    <div class="px-5 pb-6">
-                        <button class="action-btn" onclick="buyPackage('${pkg.name}', ${pkg.price})">
-                            Activate Plan
+                    <div class="px-6 pb-6 pt-2">
+                        <button class="action-btn" onclick="purchase('${pkg.name}', ${pkg.price})">
+                            Invest Now
                         </button>
                     </div>
                 </div>
             `;
-            container.appendChild(card);
+            container.appendChild(el);
         });
-        
-        // Re-initialize icons for dynamic content
+
         lucide.createIcons();
 
-        // --- 3. INTERACTION LOGIC ---
-        function toggleCard(header) {
-            const card = header.parentElement;
-            const body = card.querySelector('.pkg-body');
-            const arrow = card.querySelector('.icon-arrow');
+        function toggleDetails(header) {
+            const banner = header.parentElement;
+            const details = banner.querySelector('.banner-details');
+            const arrow = banner.querySelector('.icon-arrow');
 
-            // Close all other cards (Accordion Style)
-            document.querySelectorAll('.pkg-card').forEach(c => {
-                if(c !== card) {
-                    c.querySelector('.pkg-body').classList.remove('open');
-                    c.querySelector('.icon-arrow').style.transform = 'rotate(0deg)';
+            // Close others
+            document.querySelectorAll('.package-banner').forEach(b => {
+                if(b !== banner) {
+                    b.querySelector('.banner-details').classList.remove('open');
+                    b.querySelector('.icon-arrow').style.transform = 'rotate(0deg)';
                 }
             });
 
             // Toggle current
-            const isOpen = body.classList.contains('open');
-            if(isOpen) {
-                body.classList.remove('open');
+            if(details.classList.contains('open')) {
+                details.classList.remove('open');
                 arrow.style.transform = 'rotate(0deg)';
             } else {
-                body.classList.add('open');
+                details.classList.add('open');
                 arrow.style.transform = 'rotate(180deg)';
             }
         }
 
-        function buyPackage(name, price) {
-            // Add haptic feedback if available (mobile feel)
-            if (window.navigator && window.navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-            alert(`Initiating purchase for ${name} Plan (PKR ${price})... \n(Redirecting to Supabase payment gateway)`);
+        function purchase(name, price) {
+            alert(`Initiating purchase for ${name} Package (PKR ${price})`);
         }
-
     </script>
 </body>
 </html>
