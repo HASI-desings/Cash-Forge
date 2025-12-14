@@ -1,17 +1,18 @@
-/* Home Controller - CashForge
-   Handles Dashboard logic:
-   1. Fetches User Profile (Balance/Name).
-   2. Runs the Banner Slider.
-   3. Manages Package List (Expand/Collapse).
-*/
+/* js/controllers/home.js */
+import { supabase } from '../config/supabase.js';
+import { getCurrentUser } from '../services/auth.js'; 
+import { formatCurrency } from '../utils/formatters.js';
 
 const HomeController = {
     
     // --- 1. INITIALIZE ---
     async init() {
         // A. Security Check
-        const sessionUser = await AuthService.checkSession();
-        if (!sessionUser) return;
+        const sessionUser = await getCurrentUser();
+        if (!sessionUser) {
+            window.location.href = 'login.html';
+            return;
+        }
 
         // B. Load User Data
         this.loadUserProfile(sessionUser.id);
@@ -24,8 +25,14 @@ const HomeController = {
     // --- 2. LOAD USER PROFILE ---
     async loadUserProfile(userId) {
         try {
-            // We use the helper from AuthService (or fetch direct)
-            const profile = await AuthService.getProfile();
+            // Fetch profile directly from Supabase 'users' table
+            const { data: profile, error } = await supabase
+                .from('users')
+                .select('full_name, balance, vip_level')
+                .eq('id', userId)
+                .single();
+
+            if (error) throw error;
             
             if (profile) {
                 // Update Name
@@ -34,7 +41,7 @@ const HomeController = {
 
                 // Update Balance
                 const balEl = document.getElementById('user-balance');
-                if(balEl) balEl.innerText = Formatters.currency(profile.balance);
+                if(balEl) balEl.innerText = formatCurrency(profile.balance);
 
                 // Update VIP Badge
                 const vipEl = document.getElementById('vip-badge');
@@ -69,21 +76,23 @@ const HomeController = {
         // Expose the toggle function to window so HTML can call it
         window.togglePackage = (element) => {
             // 1. Close all other packages
-            document.querySelectorAll('.package-item').forEach(item => {
-                if (item !== element) {
-                    item.classList.remove('open');
+            document.querySelectorAll('.pkg-header').forEach(header => {
+                const details = header.nextElementSibling;
+                if (header !== element && details) {
+                    details.classList.remove('open');
                 }
             });
 
             // 2. Toggle clicked package
-            element.classList.toggle('open');
+            const details = element.nextElementSibling;
+            if(details) details.classList.toggle('open');
         };
 
         // Handle "Invest Now" button clicks inside packages
-        window.goToTrade = (packageName, rate, days) => {
-            // Save selection to URL or LocalStorage to pre-fill Trade page
-            // For now, we simply redirect
-            window.location.href = `trade.html?plan=${encodeURIComponent(packageName)}`;
+        window.goToTrade = (packageName) => {
+            // Save selection to LocalStorage to pre-fill Trade page
+            localStorage.setItem('selected_plan', packageName);
+            window.location.href = 'trade.html';
         };
     }
 };
