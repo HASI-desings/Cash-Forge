@@ -84,11 +84,46 @@
     </style>
     <!-- Lucide Icon Import -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Routing Logic in HEAD -->
+    <script type="module">
+        import { supabase } from 'js/config/supabase.js';
+
+        // Check Session logic
+        const checkSessionAndRoute = async () => {
+            const minWait = new Promise(resolve => setTimeout(resolve, 2000));
+            
+            const sessionCheck = async () => {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    return session;
+                } catch (e) {
+                    console.error("Supabase session check failed:", e);
+                    return null; // Treat error as no session
+                }
+            };
+
+            // Wait for both the minimum time and the session check result
+            const [_, session] = await Promise.all([minWait, sessionCheck()]);
+
+            // Route user
+            if (session) {
+                window.location.href = 'home.html';
+            } else {
+                window.location.href = 'intro.html';
+            }
+        };
+
+        // Execute immediately after module load
+        checkSessionAndRoute();
+        
+        // Init Icons when DOM is ready
+        document.addEventListener('DOMContentLoaded', lucide.createIcons);
+    </script>
 </head>
 <body>
 
     <div class="splash-container">
-        <!-- Replaced <img> with a wrapper using Lucide for consistency -->
         <div class="splash-logo-wrapper">
             <i data-lucide="zap"></i>
         </div>
@@ -97,33 +132,5 @@
         <div class="loading-text">Initializing Secure App...</div>
     </div>
 
-    <script type="module">
-        // Import Supabase dependency directly
-        import { supabase } from 'js/config/supabase.js';
-
-        // Initialize Lucide icons
-        lucide.createIcons();
-        
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Wait strictly 2 seconds for branding effect
-            const minWait = new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Check Session using modular supabase client
-            const checkSession = async () => {
-                const { data: { session } } = await supabase.auth.getSession();
-                return session;
-            };
-
-            // Run both in parallel
-            const [_, session] = await Promise.all([minWait, checkSession()]);
-
-            // Route user
-            if (session) {
-                window.location.href = 'home.html';
-            } else {
-                window.location.href = 'intro.html';
-            }
-        });
-    </script>
 </body>
 </html>
