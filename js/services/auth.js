@@ -1,133 +1,102 @@
-/* Auth Service - CashForge
-   Handles Login, Register, Logout, and Session Management.
-*/
+/* js/services/auth.js */
+import { supabase } from '../config/supabase.js';
 
-const AuthService = {
-    
-    // --- 1. REGISTER ---
-    async register(email, password, fullName, referralCode) {
-        try {
-            console.log("Starting registration for:", email); // Debugging
+// --- 1. REGISTER ---
+export async function register(email, password, fullName, referralCode) {
+    try {
+        console.log("Starting registration for:", email);
 
-            // CRITICAL: We pass 'options.data' containing full_name.
-            // This is what the SQL Trigger looks for to create the user profile.
-            const { data, error } = await window.sb.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: {
-                        full_name: fullName,      // Must match SQL: new.raw_user_meta_data->>'full_name'
-                        ref_code_used: referralCode // Saved in metadata for reference
-                    }
+        // Sign Up with Metadata
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: fullName,       // Saved to raw_user_meta_data
+                    ref_code_used: referralCode 
                 }
-            });
-
-            if (error) throw error;
-
-            console.log("Auth User Created:", data.user?.id);
-
-            // OPTIONAL: If the trigger didn't handle the referral link (upline_id),
-            // we can try to do it manually here as a backup.
-            if (referralCode && data.user) {
-                await this.processReferral(data.user.id, referralCode);
             }
+        });
 
-            return { success: true, session: data.session };
+        if (error) throw error;
 
-        } catch (err) {
-            console.error("Registration Error:", err);
-            // Return readable error messages
-            return { success: false, message: err.message };
+        // Manual Referral Processing (Backup for SQL Triggers)
+        if (referralCode && data.user) {
+            await processReferral(data.user.id, referralCode);
         }
-    },
 
-    // --- 2. LOGIN ---
-    async login(email, password) {
-        try {
-            const { data, error } = await window.sb.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
+        return { success: true, session: data.session };
 
-            if (error) throw error;
-            return { success: true, session: data.session };
-
-        } catch (err) {
-            console.error("Login Error:", err);
-            return { success: false, message: "Invalid email or password." };
-        }
-    },
-
-    // --- 3. LOGOUT ---
-    async logout() {
-        await window.sb.auth.signOut();
-        window.location.href = 'intro.html';
-    },
-
-    // --- 4. CHECK SESSION (Returns User or Null) ---
-    async checkSession() {
-        // We get the session directly from Supabase to see if user is logged in
-        const { data: { session } } = await window.sb.auth.getSession();
-        
-        if (!session) {
-            // If user is not logged in, redirect them to Intro (unless they are already on a public page)
-            const path = window.location.pathname;
-            const publicPages = ['login.html', 'register.html', 'intro.html', 'index.html'];
-            
-            // If current page is NOT public, kick them out
-            let isPublic = false;
-            publicPages.forEach(page => {
-                if (path.includes(page)) isPublic = true;
-            });
-
-            if (!isPublic && path !== '/' && path !== '') {
-                window.location.href = 'intro.html';
-            }
-            return null;
-        }
-        return session.user;
-    },
-
-    // --- 5. GET FULL PROFILE (Fetch from 'users' table) ---
-    async getProfile() {
-        const { data: { user } } = await window.sb.auth.getUser();
-        if (!user) return null;
-
-        const { data, error } = await window.sb
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-            
-        if (error) {
-            console.error("Profile Load Error:", error);
-            return null;
-        }
-        return data;
-    },
-
-    // --- HELPER: Process Referral ---
-    async processReferral(newUserId, code) {
-        try {
-            // 1. Find the owner of the referral code
-            const { data: upline } = await window.sb
-                .from('users')
-                .select('id')
-                .eq('referral_code', code) // Ensure your DB column is 'referral_code'
-                .single();
-
-            if (upline) {
-                // 2. Link the new user to this upline
-                await window.sb
-                    .from('users')
-                    .update({ upline_id: upline.id })
-                    .eq('id', newUserId);
-            }
-        } catch (err) {
-            console.warn("Referral processing failed (non-critical):", err);
-        }
+    } catch (err) {
+        console.error("Registration Error:", err);
+        return { success: false, message: err.message };
     }
-};
+}
 
-// Expose globally so HTML pages can use 'AuthService.register()'
-window.AuthService = AuthService;
+// --- 2. LOGIN ---
+export async function login(email, password) {
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) throw error;
+        return { success: true, session: data.session };
+
+    } catch (err) {
+        console.error("Login Error:", err);
+        return { success: false, message: "Invalid email or password." };
+    }
+}
+
+// --- 3. LOGOUT ---
+export async function logout() {
+    await supabase.auth.signOut();
+    window.location.href = 'intro.html';
+}
+
+// --- 4. GET CURRENT USER (Session Check & Protection) ---
+export async function getCurrentUser() {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+        // Page Protection Logic
+        const path = window.location.pathname;
+        const publicPages = ['login.html', 'register.html', 'intro.html', 'index.html', '/'];
+        
+        let isPublic = false;
+        publicPages.forEach(page => {
+            if (path.endsWith(page) || path === '/') isPublic = true;
+        });
+
+        // If not public, redirect to start
+        if (!isPublic) {
+            window.location.href = 'intro.html';
+        }
+        return null;
+    }
+    return session.user;
+}
+
+// --- HELPER: Process Referral ---
+async function processReferral(newUserId, code) {
+    try {
+        // 1. Find the owner of the referral code
+        const { data: upline } = await supabase
+            .from('users')
+            .select('id')
+            .eq('referral_code', code)
+            .single();
+
+        if (upline) {
+            // 2. Link the new user to this upline
+            await supabase
+                .from('users')
+                .update({ upline_id: upline.id })
+                .eq('id', newUserId);
+        }
+    } catch (err) {
+        console.warn("Referral processing failed (non-critical):", err);
+    }
+}
