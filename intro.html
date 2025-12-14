@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="css/core.css">
     <link rel="stylesheet" href="css/components.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
         /* Specific Styles for Intro Page centering */
@@ -19,23 +20,38 @@
             padding: 30px;
             height: 100vh;
         }
+        
+        /* Note: core.css defines the logo glow (.logo-wrapper or similar). 
+                 We'll use Lucide here and apply core styling. */
 
         .brand-container {
             margin-bottom: 40px;
             animation: float 3s ease-in-out infinite;
         }
 
-        .brand-logo {
+        .brand-logo-wrapper {
+            /* Inherits logo glow/border from core.css or uses custom styling here */
             width: 140px;
             height: 140px;
-            margin-bottom: 15px;
-            /* Subtle shadow to make white logo pop on light bg */
-            filter: drop-shadow(0 10px 15px rgba(0, 255, 255, 0.4));
+            margin: 0 auto 15px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 3px solid var(--primary-cyan);
+            box-shadow: 0 0 15px var(--primary-cyan);
+        }
+
+        .brand-logo-wrapper i {
+            color: var(--text-dark);
+            width: 60%;
+            height: 60%;
         }
 
         .intro-title {
             font-size: 28px;
-            color: var(--primary-dark);
+            color: var(--text-dark); /* Use text-dark from core.css */
             margin-bottom: 10px;
             letter-spacing: -1px;
         }
@@ -58,8 +74,8 @@
         /* Secondary Ghost Button */
         .btn-outline {
             background: transparent;
-            border: 2px solid var(--primary-dark);
-            color: var(--primary-dark);
+            border: 2px solid var(--text-dark); /* Use text-dark for outline */
+            color: var(--text-dark);
             padding: 1.2em 3em;
             font-size: 12px;
             text-transform: uppercase;
@@ -68,10 +84,12 @@
             border-radius: 45px;
             cursor: pointer;
             transition: all 0.3s ease;
+            text-align: center; /* Ensure text centers inside <a> */
+            text-decoration: none;
         }
 
         .btn-outline:hover {
-            background: var(--primary-dark);
+            background: var(--text-dark);
             color: #fff;
         }
 
@@ -85,7 +103,10 @@
 <body>
 
     <div class="brand-container">
-        <img src="assets/images/logo.svg" alt="CashForge" class="brand-logo">
+        <!-- Replaced <img> with a wrapper using Lucide placeholder -->
+        <div class="brand-logo-wrapper">
+            <i data-lucide="zap"></i>
+        </div>
     </div>
 
     <div>
@@ -96,6 +117,7 @@
     </div>
 
     <div class="btn-container">
+        <!-- Primary button uses .btn-primary class defined in components.css -->
         <a href="register.html" class="btn-primary" style="text-decoration: none; line-height: 1.2;">
             Get Started
         </a>
@@ -105,17 +127,18 @@
         </a>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    
-    <script>
-        // Optional: Auto-redirect if already logged in
+    <!-- SCRIPT FOR AUTO-REDIRECT -->
+    <script type="module">
+        import { supabase } from 'js/config/supabase.js';
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
         document.addEventListener('DOMContentLoaded', async () => {
-            if(window.sb) {
-                const { data: { session } } = await window.sb.auth.getSession();
-                if (session) {
-                    window.location.href = 'home.html';
-                }
+            // Optional: Auto-redirect if already logged in
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                window.location.href = 'home.html';
             }
         });
     </script>
