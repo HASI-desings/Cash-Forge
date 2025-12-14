@@ -102,7 +102,7 @@
     
     <!-- SCRIPT FOR AUTO-REDIRECT -->
     <script type="module">
-        // FIX: Added ./ to the module path
+        // FIX: Explicitly using "./" to resolve the module path
         import { supabase } from './js/config/supabase.js';
 
         const checkSessionAndRoute = async () => {
