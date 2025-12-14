@@ -1,5 +1,6 @@
 /* js/services/auth.js */
-import { supabase } from '../config/supabase.js';
+// FIX: Ensure path is relative from js/services to js/config
+import { supabase } from '../config/supabase.js'; 
 
 // --- 1. REGISTER ---
 export async function register(email, password, fullName, referralCode) {
