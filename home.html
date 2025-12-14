@@ -13,67 +13,66 @@
     <link rel="stylesheet" href="css/layout.css">
 
     <style>
-        /* --- CRITICAL VISUALS (Per Prompt) --- */
+        /* --- PAGE SPECIFIC OVERRIDES --- */
         
-        /* 1. Global Gradient Theme */
-        :root {
-            --cyan: #00FFFF;
-            --white: #FFFFFF;
-            --text-dark: #0f172a;
-            --glass-border: rgba(0, 255, 255, 0.3);
-        }
-
+        /* Ensure the White -> Cyan Gradient matches the prompt exactly */
         body {
-            font-family: 'Inter', sans-serif;
-            color: var(--text-dark);
-            margin: 0; padding: 0;
-            /* Vertical Gradient: White -> Cyan Mix -> Bright Cyan */
             background: linear-gradient(180deg, #FFFFFF 0%, #E0FFFF 45%, #00FFFF 100%);
             min-height: 100vh;
-            padding-bottom: 80px; /* Space for scrolling */
+            padding-bottom: 80px; /* Space for bottom scrolling */
         }
 
-        /* 2. Header & Logo Styling */
+        /* Header Specifics */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 15px 20px;
-            /* Horizontal Gradient for Header */
-            background: linear-gradient(90deg, rgba(255,255,255,0.95) 0%, rgba(224,255,255,0.9) 100%);
+            background: rgba(255, 255, 255, 0.95); /* Nearly solid white for clarity */
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.15);
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.15);
             backdrop-filter: blur(8px);
         }
 
         .logo-wrapper {
-            width: 55px;
-            height: 55px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             background: white;
-            /* Glowing Cyan Border Effect */
-            border: 2px solid var(--cyan);
-            box-shadow: 0 0 15px var(--cyan);
+            /* Glowing Cyan Border */
+            border: 2px solid #00FFFF;
+            box-shadow: 0 0 15px #00FFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             overflow: hidden;
         }
 
         .logo-wrapper img {
-            width: 80%; /* Adjust to fit logo inside circle comfortably */
+            width: 80%;
             height: auto;
         }
 
         .header-balance {
             text-align: right;
         }
-        .balance-label { font-size: 0.75rem; color: #64748b; font-weight: 500; }
-        .balance-value { font-size: 1.1rem; font-weight: 800; color: #008b8b; }
 
-        /* 3. Slider Section */
+        .balance-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .balance-value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #008b8b; /* Teal/Dark Cyan for readability */
+        }
+
+        /* Slider Section */
         .slider-container {
             width: 100%;
             height: 220px;
@@ -93,7 +92,7 @@
         .slide.active { opacity: 1; }
         .slide img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* 4. Horizontal Package Banners (No Cards) */
+        /* Package List Container */
         .content-container {
             max-width: 900px;
             margin: 0 auto;
@@ -107,66 +106,63 @@
             color: #0f172a;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border-left: 5px solid var(--cyan);
+            border-left: 5px solid #00FFFF;
             padding-left: 15px;
         }
 
+        /* Horizontal Package Banners */
         .pkg-banner {
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 255, 255, 0.3);
             margin-bottom: 15px;
-            border-radius: 15px; /* Smooth corners */
+            border-radius: 12px;
             overflow: hidden;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
 
         .pkg-banner:hover {
             transform: scale(1.01);
-            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
         }
 
-        /* Visible Strip */
         .pkg-header {
-            padding: 25px 30px;
+            padding: 20px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: linear-gradient(90deg, #ffffff 0%, #f0fdff 100%);
         }
 
-        .pkg-name { font-size: 1.3rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .pkg-price { font-size: 1.2rem; font-weight: 700; color: #008b8b; }
+        .pkg-name { font-size: 1.2rem; font-weight: 800; text-transform: uppercase; }
+        .pkg-price { font-size: 1.1rem; font-weight: 700; color: #008b8b; }
 
-        /* Sliding Envelope (Hidden Details) */
+        /* Sliding Details Panel */
         .pkg-details {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: max-height 0.5s ease-in-out;
             background: #ffffff;
         }
 
         .pkg-details.open {
-            max-height: 400px; /* Expand to fit content */
-            border-top: 1px solid #e2e8f0;
+            max-height: 400px; /* Expands to fit content */
+            border-top: 1px solid #f1f5f9;
         }
 
         .details-grid {
-            padding: 20px 30px;
+            padding: 20px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
 
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-        }
-        .detail-label { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; }
-        .detail-val { font-size: 1rem; font-weight: 600; color: #334155; }
+        .detail-item { display: flex; flex-direction: column; }
+        .d-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; }
+        .d-value { font-size: 1rem; font-weight: 600; color: #334155; }
 
-        /* 5. BUTTON STYLING (EXACT COPY FROM PROMPT) */
+        /* --- BUTTON STYLING (EXACTLY AS REQUESTED) --- */
         button.action-btn {
             padding: 1.3em 3em;
             font-size: 12px;
@@ -182,9 +178,9 @@
             cursor: pointer;
             outline: none;
             
-            /* Positioning for the banner layout */
+            /* Layout positioning */
             grid-column: span 2; 
-            margin: 20px auto 0 auto;
+            margin: 15px auto 0 auto;
             display: block;
         }
 
@@ -205,17 +201,15 @@
 
     <header>
         <div class="logo-wrapper">
-            <img src="assets/images/logo.svg" alt="CashForge">
+            <img src="assets/images/logo.svg" alt="Logo">
         </div>
         
         <div class="header-balance">
             <div class="balance-label">Available Balance</div>
-            <div class="balance-value" id="nav-balance">PKR 0.00</div>
+            <div class="balance-value" id="display-balance">PKR 0.00</div>
         </div>
 
-        <div class="menu-btn">
-            <i data-lucide="menu" color="#0f172a"></i>
-        </div>
+        <i data-lucide="menu" style="color: #0f172a; cursor: pointer;"></i>
     </header>
 
     <div class="slider-container" id="home-slider">
@@ -233,11 +227,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script src="js/config/supabase.js"></script>
-    <script src="js/utils/ui.js"></script>     <script src="js/utils/router.js"></script> <script>
+    <script src="js/utils/ui.js"></script> <script>
         // Initialize Icons
         lucide.createIcons();
 
-        /* --- DATA CONFIG --- */
+        /* --- 1. PACKAGE DATA CONFIGURATION --- */
         const packages = [
             { name: 'Basic', price: 900, daily: 35, profit: 1050 },
             { name: 'Standard', price: 3900, daily: 135, profit: 4050 },
@@ -249,13 +243,14 @@
             { name: 'Ultimate', price: 250000, daily: 8500, profit: 255000 }
         ];
 
-        /* --- RENDER PACKAGES --- */
+        /* --- 2. RENDER PACKAGES --- */
         const wrapper = document.getElementById('packages-wrapper');
 
         packages.forEach(pkg => {
             const el = document.createElement('div');
             el.className = 'pkg-banner';
-            // Click to toggle details
+            
+            // Toggle Logic
             el.onclick = function() { togglePackage(this); };
 
             el.innerHTML = `
@@ -266,20 +261,20 @@
                 <div class="pkg-details">
                     <div class="details-grid">
                         <div class="detail-item">
-                            <span class="detail-label">Daily Income</span>
-                            <span class="detail-val">PKR ${pkg.daily}</span>
+                            <span class="d-label">Daily Income</span>
+                            <span class="d-value">PKR ${pkg.daily}</span>
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">Total Profit</span>
-                            <span class="detail-val">PKR ${pkg.profit.toLocaleString()}</span>
+                            <span class="d-label">Total Profit</span>
+                            <span class="d-value">PKR ${pkg.profit.toLocaleString()}</span>
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">Duration</span>
-                            <span class="detail-val">30 Days</span>
+                            <span class="d-label">Contract</span>
+                            <span class="d-value">30 Days</span>
                         </div>
                         <div class="detail-item">
-                            <span class="detail-label">Tasks</span>
-                            <span class="detail-val">3 / Day</span>
+                            <span class="d-label">Tasks</span>
+                            <span class="d-value">3 / Day</span>
                         </div>
                         
                         <button class="action-btn" onclick="handlePurchase('${pkg.name}', ${pkg.price}, event)">
@@ -291,36 +286,42 @@
             wrapper.appendChild(el);
         });
 
-        /* --- INTERACTION LOGIC --- */
+        /* --- 3. INTERACTION LOGIC --- */
+        
+        // Toggle Accordion
         function togglePackage(element) {
             const details = element.querySelector('.pkg-details');
             const isOpen = details.classList.contains('open');
             
-            // Close all others
+            // Close all others first
             document.querySelectorAll('.pkg-details').forEach(d => d.classList.remove('open'));
             
-            // Open this one if it wasn't open
-            if(!isOpen) details.classList.add('open');
-        }
-
-        function handlePurchase(name, price, event) {
-            event.stopPropagation(); // Stop banner from toggling when button is clicked
-            
-            // Notification (using js/utils/ui.js if available, else alert fallback)
-            if (typeof showNotification === 'function') {
-                showNotification(`Processing purchase for ${name}...`, 'info');
-            } else {
-                alert(`Purchasing ${name} for PKR ${price}`);
+            // Open clicked one if it wasn't open
+            if (!isOpen) {
+                details.classList.add('open');
             }
-            
-            // Add Supabase Logic Here
-            // Example: supabase.rpc('buy_package', { p_name: name, p_price: price })
         }
 
-        /* --- SLIDER LOGIC --- */
+        // Handle Purchase (Using Built-in Notifications)
+        async function handlePurchase(name, price, event) {
+            event.stopPropagation(); // Prevent accordion from toggling
+            
+            // 1. Show Processing Notification
+            showNotification(`Processing purchase for ${name}...`, 'info');
+
+            // 2. Placeholder for Supabase Logic
+            // await supabase.rpc('buy_package', { ... })
+            
+            // 3. Show Success Notification (Simulated delay)
+            setTimeout(() => {
+                showNotification(`Successfully purchased ${name} Package!`, 'success');
+            }, 1500);
+        }
+
+        /* --- 4. SLIDER LOGIC --- */
         let currentSlide = 0;
         const slides = document.querySelectorAll('.slide');
-        const slider = document.getElementById('home-slider');
+        const sliderContainer = document.getElementById('home-slider');
 
         function nextSlide() {
             slides[currentSlide].classList.remove('active');
@@ -331,8 +332,8 @@
         let slideInterval = setInterval(nextSlide, 3500);
 
         // Pause on hover
-        slider.addEventListener('mouseenter', () => clearInterval(slideInterval));
-        slider.addEventListener('mouseleave', () => slideInterval = setInterval(nextSlide, 3500));
+        sliderContainer.addEventListener('mouseenter', () => clearInterval(slideInterval));
+        sliderContainer.addEventListener('mouseleave', () => slideInterval = setInterval(nextSlide, 3500));
 
     </script>
 </body>
