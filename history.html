@@ -5,11 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CashForge - History</title>
 
+    <!-- Project Core Styles (Assuming these exist and contain the required CSS) -->
     <link rel="stylesheet" href="css/core.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
     
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Router for protection (Executes immediately) -->
+    <script type="module" src="js/utils/router.js"></script>
+    
+    <!-- CONTROLLER SCRIPTS - Loaded early to define global filterList -->
+    <script type="module" src="js/controllers/history.js"></script>
 
     <style>
         /* --- HISTORY SPECIFIC STYLES --- */
@@ -39,10 +46,11 @@
         }
 
         .filter-chip.active {
-            background: var(--primary-dark);
+            /* Note: Replaced primary-dark with our cyan/success theme colors for consistency */
+            background: var(--success-green); 
             color: #fff;
-            border-color: var(--primary-dark);
-            box-shadow: 0 4px 10px rgba(0, 139, 139, 0.3);
+            border-color: var(--success-green);
+            box-shadow: 0 4px 10px rgba(35, 196, 131, 0.3);
         }
 
         /* Transaction Item Card */
@@ -61,7 +69,7 @@
         /* Color Coding based on Type */
         .txn-deposit { border-left-color: #2ecc71; }
         .txn-withdraw { border-left-color: #e74c3c; }
-        .txn-earning { border-left-color: #f1c40f; }
+        .txn-earning { border-left-color: #f1c40f; } /* Yellow/Gold for earnings */
 
         .txn-left {
             display: flex;
@@ -83,13 +91,13 @@
         .txn-meta h4 {
             margin: 0;
             font-size: 13px;
-            color: var(--text-main);
+            color: var(--text-dark); /* Use defined variable */
             font-weight: 700;
         }
 
         .txn-meta span {
             font-size: 10px;
-            color: var(--text-muted);
+            color: var(--text-light); /* Use defined variable */
         }
 
         .txn-right {
@@ -127,7 +135,8 @@
 
     <header class="app-header">
         <div class="header-actions">
-            <a href="home.html" class="icon-btn">
+            <!-- Back button should go back to profile -->
+            <a href="profile.html" class="icon-btn">
                 <i data-lucide="arrow-left"></i>
             </a>
         </div>
@@ -137,8 +146,9 @@
         </div>
     </header>
 
-    <div class="app-content">
+    <div class="app-content" style="padding: 20px 20px 0;">
 
+        <!-- The filterList function is defined and exposed globally by history.js -->
         <div class="filter-scroller">
             <div class="filter-chip active" onclick="filterList('all')">All</div>
             <div class="filter-chip" onclick="filterList('deposit')">Deposit</div>
@@ -148,7 +158,8 @@
         </div>
 
         <div id="history-container">
-            </div>
+            <!-- Transaction items injected here by history.js -->
+        </div>
 
         <div id="empty-state">
             <i data-lucide="clipboard-x"></i>
@@ -157,6 +168,7 @@
 
     </div>
 
+    <!-- Bottom Nav uses anchor tags to keep it simple, pointing to correct files -->
     <nav class="bottom-nav">
         <a href="home.html" class="nav-item">
             <i data-lucide="home"></i>
@@ -181,17 +193,8 @@
     </nav>
 
     <script>
-        // Init Icons
-        lucide.createIcons();
+        // Init Icons on load
+        window.onload = lucide.createIcons;
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    <script src="js/services/auth.js"></script>
-    <script src="js/utils/formatters.js"></script>
-    <script src="js/utils/ui.js"></script>
-
-    <script src="js/controllers/history.js"></script>
-
 </body>
 </html>
