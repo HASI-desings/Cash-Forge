@@ -11,8 +11,17 @@
     
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Router for protection (Executes immediately) -->
+    <script type="module" src="js/utils/router.js"></script>
+
+    <!-- Controller Script -->
+    <script type="module" src="js/controllers/settings.js"></script>
+
     <style>
         /* Specific Settings Styles */
+        .app-content {
+            padding: 20px;
+        }
         .settings-section {
             margin-bottom: 25px;
         }
@@ -36,6 +45,13 @@
             margin-bottom: 15px;
             border-left: 4px solid #ffeeba;
             line-height: 1.4;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
     </style>
 </head>
@@ -64,6 +80,8 @@
                     <strong>Important:</strong> Ensure this address is correct. Withdrawals sent to the wrong address cannot be recovered.
                 </div>
 
+                <!-- Saved wallets will be rendered here by settings.js -->
+                
                 <form id="form-wallet">
                     
                     <div class="form-group">
@@ -82,7 +100,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-primary w-full">
+                    <button type="submit" class="btn-primary" style="width: 100%;">
                         Save Wallet
                     </button>
                 </form>
@@ -102,7 +120,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-primary w-full" style="background: #fff; color: var(--primary-dark); border: 1px solid var(--primary-dark);">
+                    <button type="submit" class="btn-primary" style="width: 100%; background: #fff; color: var(--text-dark); border: 1px solid #ccc;">
                         Update Password
                     </button>
                 </form>
@@ -112,16 +130,8 @@
     </div>
 
     <script>
-        // Init Icons
-        lucide.createIcons();
+        window.onload = lucide.createIcons;
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    <script src="js/services/auth.js"></script>
-    <script src="js/utils/ui.js"></script>
-
-    <script src="js/controllers/settings.js"></script>
 
 </body>
 </html>
