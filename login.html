@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="css/components.css">
     
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Router for protection (Executes immediately) -->
+    <script type="module" src="js/utils/router.js"></script>
+
+    <!-- Controller Script -->
+    <script type="module" src="js/controllers/login.js"></script>
 
     <style>
         /* Centered Layout for Auth Pages */
@@ -17,13 +23,16 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            min-height: 100vh;
         }
 
         .auth-container {
             width: 100%;
             max-width: 400px;
             padding: 30px 25px;
-            /* Using the Glassmorphism class from components.css, plus specific spacing */
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -34,10 +43,23 @@
             margin-bottom: 10px;
         }
 
-        .auth-logo {
+        /* Logo Styling based on core.css rules */
+        .auth-logo-wrapper {
             width: 80px;
             height: 80px;
-            margin-bottom: 15px;
+            margin: 0 auto 15px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 3px solid var(--primary-cyan);
+            box-shadow: 0 0 15px var(--primary-cyan);
+        }
+        .auth-logo-wrapper i {
+            color: var(--text-dark);
+            width: 60%;
+            height: 60%;
         }
 
         .auth-links {
@@ -47,21 +69,63 @@
         }
         
         .auth-links a {
-            color: var(--primary-dark);
+            color: var(--text-dark);
             font-weight: 700;
+        }
+
+        /* Input specific styling */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            width: 18px;
+            height: 18px;
+            color: #ccc;
+        }
+        .form-input {
+            width: 100%;
+            padding: 15px 15px 15px 45px; /* Added padding-left for icon */
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+        .form-input:focus {
+            border-color: var(--primary-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.2);
         }
     </style>
 </head>
 <body class="app-body">
 
-    <div class="glass-panel auth-container">
+    <div class="auth-container">
         
         <div class="auth-header">
-            <img src="assets/images/logo.svg" alt="Logo" class="auth-logo">
-            <h2 style="color: var(--primary-dark);">Welcome Back</h2>
+            <!-- Replaced <img> tag with styled wrapper using Lucide icon -->
+            <div class="auth-logo-wrapper">
+                <i data-lucide="user"></i>
+            </div>
+            <h2 style="color: var(--text-dark);">Welcome Back</h2>
             <p style="font-size: 12px; color: #666;">Enter your credentials to access your portfolio</p>
         </div>
 
+        <!-- Form calls handleLogin function exposed by login.js -->
         <form id="login-form" onsubmit="handleLogin(event)">
             
             <div class="form-group">
@@ -80,7 +144,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-primary w-full" id="btn-submit">
+            <button type="submit" class="btn-primary" style="width: 100%;" id="btn-submit">
                 LOGIN
             </button>
 
@@ -95,46 +159,7 @@
 
     <script>
         // Init Icons
-        lucide.createIcons();
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    <script src="js/services/auth.js"></script>
-    <script src="js/utils/ui.js"></script>
-    <script src="js/utils/router.js"></script>
-
-    <script>
-        async function handleLogin(e) {
-            e.preventDefault();
-
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('btn-submit');
-
-            // UI Loading State
-            btn.innerHTML = 'Verifying...';
-            btn.disabled = true;
-
-            // Call Auth Service
-            const response = await AuthService.login(email, password);
-
-            if (response.success) {
-                if(window.UI) UI.toast("Login Successful!", "success");
-                
-                // Slight delay for UX before redirecting
-                setTimeout(() => {
-                    window.location.href = 'home.html';
-                }, 1000);
-            } else {
-                if(window.UI) UI.toast(response.message, "error");
-                else alert(response.message);
-                
-                // Reset Button
-                btn.innerHTML = 'LOGIN';
-                btn.disabled = false;
-            }
-        }
+        window.onload = lucide.createIcons;
     </script>
 
 </body>
