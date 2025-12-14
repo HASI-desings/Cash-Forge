@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Support</title>
+
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Contact Cards */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .contact-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            text-decoration: none;
+            color: var(--text-main);
+            transition: transform 0.2s;
+            border: 1px solid #eee;
+        }
+
+        .contact-card:active {
+            transform: scale(0.98);
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px auto;
+        }
+
+        /* FAQ Accordion */
+        .faq-section h4 {
+            margin-bottom: 15px;
+            color: #555;
+            padding-left: 5px;
+        }
+
+        .faq-item {
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            border: 1px solid #f0f0f0;
+        }
+
+        .faq-header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .faq-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: #f9f9f9;
+            color: #666;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .faq-body p {
+            padding: 15px;
+            margin: 0;
+        }
+
+        .faq-item.open .faq-body {
+            max-height: 150px; /* Approximate height for text */
+        }
+
+        .faq-item.open .faq-header i {
+            transform: rotate(180deg);
+        }
+
+        .faq-header i {
+            transition: transform 0.3s;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body class="app-body">
+
+    <header class="app-header">
+        <div class="header-actions">
+            <a href="profile.html" class="icon-btn">
+                <i data-lucide="arrow-left"></i>
+            </a>
+        </div>
+        <div class="header-title">Help Center</div>
+        <div class="header-actions">
+            <div style="width: 32px;"></div>
+        </div>
+    </header>
+
+    <div class="app-content">
+
+        <div class="contact-grid">
+            <a href="https://t.me/YOUR_TELEGRAM_HANDLE" target="_blank" class="contact-card">
+                <div class="contact-icon"><i data-lucide="send"></i></div>
+                <strong>Live Chat</strong>
+                <div style="font-size: 10px; color: #888;">Telegram Support</div>
+            </a>
+
+            <a href="mailto:support@cashforge.com" class="contact-card">
+                <div class="contact-icon"><i data-lucide="mail"></i></div>
+                <strong>Email Us</strong>
+                <div style="font-size: 10px; color: #888;">Response in 24h</div>
+            </a>
+        </div>
+
+        <div class="faq-section">
+            <h4>Frequently Asked Questions</h4>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">
+                    <span>How do I deposit funds?</span>
+                    <i data-lucide="chevron-down" style="width:16px;"></i>
+                </div>
+                <div class="faq-body">
+                    <p>Go to the Home page and click "Deposit". Send USDT (TRC20) to the displayed address and upload your transaction screenshot. Funds will appear after admin approval.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">
+                    <span>When can I withdraw?</span>
+                    <i data-lucide="chevron-down" style="width:16px;"></i>
+                </div>
+                <div class="faq-body">
+                    <p>Withdrawals adhere to a specific schedule based on your VIP level. Generally, withdrawals are processed within 24 hours. Check the "Wallet" section for your specific limits.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">
+                    <span>How does the team bonus work?</span>
+                    <i data-lucide="chevron-down" style="width:16px;"></i>
+                </div>
+                <div class="faq-body">
+                    <p>You earn commissions from 3 levels of referrals (Level 1, 2, and 3). Share your invite link found in the "Team" or "Profile" tab to start building your network.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">
+                    <span>I forgot my PIN code.</span>
+                    <i data-lucide="chevron-down" style="width:16px;"></i>
+                </div>
+                <div class="faq-body">
+                    <p>For security reasons, PIN resets must be handled manually. Please contact our Telegram support with your registered email and ID for assistance.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+
+        // FAQ Toggle Logic
+        function toggleFaq(element) {
+            // Close others (Accordion style) - Optional, remove if you want multiple open
+            document.querySelectorAll('.faq-item').forEach(item => {
+                if (item !== element) {
+                    item.classList.remove('open');
+                }
+            });
+
+            // Toggle current
+            element.classList.toggle('open');
+        }
+    </script>
+
+</body>
+</html>

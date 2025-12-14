@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Personal Info</title>
+
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="app-body">
+
+    <header class="app-header">
+        <div class="header-actions">
+            <a href="profile.html" class="icon-btn">
+                <i data-lucide="arrow-left"></i>
+            </a>
+        </div>
+        <div class="header-title">Personal Info</div>
+        <div class="header-actions">
+            <div style="width: 32px;"></div>
+        </div>
+    </header>
+
+    <div class="app-content">
+
+        <div class="card">
+            <form id="info-form" onsubmit="updateInfo(event)">
+                
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="user" class="input-icon"></i>
+                        <input type="text" id="full-name" class="form-input" placeholder="Loading...">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="mail" class="input-icon"></i>
+                        <input type="email" id="email" class="form-input" disabled style="background: #f9f9f9; color: #777;">
+                    </div>
+                    <small style="font-size: 10px; color: #999; margin-top: 5px; display: block;">Email cannot be changed.</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Member Since</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="calendar" class="input-icon"></i>
+                        <input type="text" id="join-date" class="form-input" disabled style="background: #f9f9f9; color: #777;">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary w-full" id="btn-save" style="margin-top: 10px;">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config/supabase.js"></script>
+    
+    <script src="js/services/auth.js"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/ui.js"></script>
+
+    <script>
+        let currentUser = null;
+
+        // 1. Load Data on Init
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check Session
+            const session = await AuthService.checkSession();
+            if (!session) return;
+
+            // Fetch Profile
+            currentUser = await AuthService.getProfile();
+            
+            if (currentUser) {
+                document.getElementById('full-name').value = currentUser.full_name;
+                document.getElementById('email').value = currentUser.email;
+                document.getElementById('join-date').value = Formatters.date(currentUser.created_at);
+            }
+        });
+
+        // 2. Update Logic
+        async function updateInfo(e) {
+            e.preventDefault();
+            
+            const newName = document.getElementById('full-name').value;
+            const btn = document.getElementById('btn-save');
+
+            if (!newName || newName.length < 2) {
+                UI.toast("Name is too short.", "error");
+                return;
+            }
+
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            try {
+                // Update 'users' table
+                const { error } = await window.sb
+                    .from('users')
+                    .update({ full_name: newName })
+                    .eq('id', currentUser.id);
+
+                if (error) throw error;
+
+                UI.toast("Profile Updated!", "success");
+                
+                // Optional: Return to profile after short delay
+                setTimeout(() => {
+                   window.location.href = "profile.html"; 
+                }, 1000);
+
+            } catch (err) {
+                console.error(err);
+                UI.toast("Update failed.", "error");
+                btn.innerText = "Save Changes";
+                btn.disabled = false;
+            }
+        }
+    </script>
+
+</body>
+</html>

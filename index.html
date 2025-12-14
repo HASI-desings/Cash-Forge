@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Loading...</title>
+    
+    <link rel="stylesheet" href="css/core.css">
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .splash-container {
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+        }
+
+        /* LOGO STYLING - Uses your .svg */
+        .splash-logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            /* Optional: Add a subtle drop shadow to pop against the gradient */
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-top: 3px solid var(--primary-dark);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .loading-text {
+            margin-top: 15px;
+            font-size: 12px;
+            color: var(--primary-dark);
+            letter-spacing: 1px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config/supabase.js"></script>
+    <script src="js/services/auth.js"></script>
+</head>
+<body>
+
+    <div class="splash-container">
+        <img src="assets/images/logo.svg" alt="CashForge Logo" class="splash-logo">
+        
+        <div class="spinner"></div>
+        <div class="loading-text">Initializing Secure App...</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Wait strictly 2 seconds for branding effect
+            const minWait = new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Check Session
+            // We use the AuthService directly to see if user is cached
+            const checkSession = async () => {
+                // Ensure Supabase is ready
+                if (!window.sb) return null;
+                const { data: { session } } = await window.sb.auth.getSession();
+                return session;
+            };
+
+            // Run both in parallel
+            const [_, session] = await Promise.all([minWait, checkSession()]);
+
+            // Route user
+            if (session) {
+                window.location.href = 'home.html';
+            } else {
+                window.location.href = 'intro.html';
+            }
+        });
+    </script>
+</body>
+</html>

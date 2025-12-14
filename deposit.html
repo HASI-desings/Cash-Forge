@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <title>Deposit - CashForge</title>
+
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Page Specific Styles */
+        .deposit-container {
+            padding: 20px;
+        }
+
+        /* NETWORK SELECTOR */
+        .network-tabs {
+            display: flex;
+            background: #fff;
+            padding: 5px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .net-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .net-tab.active {
+            background: #00FFFF;
+            color: #008b8b;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* QR CODE AREA */
+        .qr-section {
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .qr-placeholder {
+            width: 150px;
+            height: 150px;
+            background: #f0f0f0;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+        }
+
+        /* ADDRESS BOX */
+        .address-box {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            color: #555;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .copy-btn {
+            background: #008b8b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* CALCULATOR SECTION */
+        .calc-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+
+        .input-row {
+            margin-bottom: 15px;
+        }
+        .input-row label {
+            display: block;
+            font-size: 11px;
+            font-weight: bold;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        
+        .calc-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .conversion-rate {
+            text-align: right;
+            font-size: 11px;
+            color: #008b8b;
+            margin-top: -10px;
+            margin-bottom: 15px;
+        }
+
+        /* FILE UPLOAD */
+        .upload-area {
+            border: 2px dashed #00FFFF;
+            background: #f0ffff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: #008b8b;
+            font-size: 13px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+    </style>
+</head>
+<body class="app-body">
+
+    <header class="app-header">
+        <button class="icon-btn" onclick="window.history.back()">
+            <i data-lucide="arrow-left"></i>
+        </button>
+        <div class="header-title">Deposit USDT</div>
+        <div style="width: 32px;"></div> </header>
+
+    <main class="app-content" style="padding-top: 0;">
+        <div class="deposit-container">
+
+            <label style="font-size: 12px; font-weight: bold; color: #444; margin-bottom: 10px; display: block;">SELECT NETWORK</label>
+            <div class="network-tabs">
+                <div class="net-tab active" onclick="switchNetwork('TRC20')">TRC-20</div>
+                <div class="net-tab" onclick="switchNetwork('BSC')">BEP-20 (BSC)</div>
+            </div>
+
+            <div class="qr-section">
+                <div class="qr-placeholder">
+                    <i data-lucide="qr-code" style="width: 50px; height: 50px; color: #ccc;"></i>
+                </div>
+                
+                <div style="font-size: 12px; margin-bottom: 5px;">Wallet Address:</div>
+                <div id="wallet-address" class="address-box">TAjyw8fVP8dkXJjqFE3vNMBWGaNz5sRbeG</div>
+                
+                <button class="copy-btn" onclick="copyAddress()">
+                    <i data-lucide="copy" style="width: 12px;"></i> Copy Address
+                </button>
+            </div>
+
+            <div class="calc-card">
+                <div class="input-row">
+                    <label>AMOUNT (USDT)</label>
+                    <input type="number" id="usdt-amount" class="calc-input" placeholder="Enter amount" oninput="calculateRate()">
+                </div>
+                
+                <div class="conversion-rate">Rate: 1 USDT = 290 PKR</div>
+
+                <div class="input-row">
+                    <label>PAYABLE AMOUNT (PKR)</label>
+                    <input type="text" id="pkr-amount" class="calc-input" placeholder="0" readonly style="background: #f9f9f9;">
+                </div>
+
+                <label style="font-size: 11px; font-weight: bold; color: #888; margin-bottom: 5px; display: block;">PAYMENT PROOF</label>
+                <div class="upload-area" onclick="document.getElementById('file-upload').click()">
+                    <i data-lucide="upload-cloud" style="margin-bottom: 5px;"></i><br>
+                    Tap to upload screenshot
+                </div>
+                <input type="file" id="file-upload" style="display: none;" accept="image/*" onchange="handleFileSelect(this)">
+                <div id="file-name" style="font-size: 11px; color: green; text-align: center; margin-bottom: 15px;"></div>
+
+                <button class="btn-primary" style="width: 100%;" onclick="submitDeposit()">
+                    Confirm Payment
+                </button>
+            </div>
+
+            <div style="text-align: center; font-size: 11px; color: #999; margin-bottom: 20px;">
+                Note: Deposits usually arrive within 5-30 minutes after network confirmation.
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // --- CONFIGURATION ---
+        const WALLETS = {
+            'TRC20': 'TAjyw8fVP8dkXJjqFE3vNMBWGaNz5sRbeG',
+            'BSC': '0x216c7d58c3F07428D3c1Be3762F402f71b43Eb56'
+        };
+        const RATE = 290;
+        let currentNetwork = 'TRC20';
+
+        // 1. Switch Network Logic
+        function switchNetwork(network) {
+            currentNetwork = network;
+            
+            // UI Toggle
+            const tabs = document.querySelectorAll('.net-tab');
+            tabs.forEach(tab => {
+                if(tab.innerText.includes(network === 'BSC' ? 'BSC' : 'TRC')) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            // Update Address
+            document.getElementById('wallet-address').innerText = WALLETS[network];
+            
+            // Visual feedback (Flash)
+            const box = document.querySelector('.address-box');
+            box.style.background = '#e0ffff';
+            setTimeout(() => { box.style.background = '#f9f9f9'; }, 300);
+        }
+
+        // 2. Copy Logic
+        function copyAddress() {
+            const addr = document.getElementById('wallet-address').innerText;
+            navigator.clipboard.writeText(addr).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const original = btn.innerHTML;
+                btn.innerHTML = `<i data-lucide="check" style="width:12px;"></i> Copied!`;
+                lucide.createIcons();
+                
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    lucide.createIcons();
+                }, 2000);
+            });
+        }
+
+        // 3. Calculator Logic
+        function calculateRate() {
+            const usdt = document.getElementById('usdt-amount').value;
+            const pkrDisplay = document.getElementById('pkr-amount');
+            
+            if(usdt && usdt > 0) {
+                pkrDisplay.value = (usdt * RATE).toLocaleString() + " PKR";
+            } else {
+                pkrDisplay.value = "";
+            }
+        }
+
+        // 4. File Upload UI
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                document.getElementById('file-name').innerText = "Selected: " + input.files[0].name;
+            }
+        }
+
+        // 5. Submit Logic
+        function submitDeposit() {
+            const amount = document.getElementById('usdt-amount').value;
+            const file = document.getElementById('file-upload').files[0];
+
+            if(!amount) {
+                alert("Please enter a valid amount.");
+                return;
+            }
+            if(!file) {
+                alert("Please upload a payment screenshot.");
+                return;
+            }
+
+            // MOCK SUBMISSION
+            const btn = document.querySelector('.btn-primary');
+            btn.innerText = "Submitting...";
+            btn.disabled = true;
+
+            setTimeout(() => {
+                alert("Deposit request submitted! Please wait for admin approval.");
+                window.location.href = 'history.html'; // Redirect to history
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

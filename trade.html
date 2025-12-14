@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Trade</title>
+
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* --- TRADE SPECIFIC STYLES --- */
+
+        /* Chart Container */
+        .chart-container {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            height: 220px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+
+        /* Plan Selection Chips */
+        .plan-scroller {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            scrollbar-width: none;
+        }
+        .plan-scroller::-webkit-scrollbar { display: none; }
+
+        .plan-chip {
+            min-width: 100px;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.7;
+        }
+
+        .plan-chip h5 {
+            margin: 0;
+            font-size: 11px;
+            color: #555;
+        }
+        .plan-chip span {
+            font-size: 10px;
+            color: #999;
+        }
+
+        .plan-chip.active {
+            background: rgba(0, 139, 139, 0.1);
+            border-color: var(--primary);
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        .plan-chip.active h5 { color: var(--primary-dark); font-weight: 700; }
+
+        /* Calculation Feedback Box */
+        .calc-box {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px dashed #ddd;
+            opacity: 0; /* Hidden until typing */
+            transition: opacity 0.3s;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        .calc-row strong { color: #333; }
+
+        /* Active Trade Card */
+        .active-trade-card {
+            background: linear-gradient(135deg, #2c3e50, #000000);
+            color: #fff;
+            padding: 25px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .pulse-dot {
+            width: 8px; 
+            height: 8px; 
+            background: #2ecc71; 
+            border-radius: 50%; 
+            display: inline-block; 
+            margin-right: 5px;
+            box-shadow: 0 0 5px #2ecc71;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="app-body">
+
+    <header class="app-header">
+        <div class="header-actions">
+            <a href="home.html" class="icon-btn">
+                <i data-lucide="arrow-left"></i>
+            </a>
+        </div>
+        <div class="header-title">Market Trade</div>
+        <div class="header-actions">
+            <div style="background:rgba(0,139,139,0.1); padding:4px 10px; border-radius:12px; color:var(--primary-dark); font-weight:700; font-size:12px;">
+                <span id="trade-balance">0.00</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-content">
+
+        <div class="chart-container">
+            <canvas id="tradeChart"></canvas>
+        </div>
+
+        <div id="new-trade-ui">
+            <div class="card">
+                <h4 style="margin-bottom:15px; font-size:14px; color:#555;">Select Strategy</h4>
+                
+                <div class="plan-scroller">
+                    <div class="plan-chip active" onclick="selectPlan(this, 1.5, 7, 'Weekly Booster')">
+                        <h5>Weekly</h5>
+                        <span>1.5% / Day</span>
+                    </div>
+                    <div class="plan-chip" onclick="selectPlan(this, 2.2, 30, 'Monthly Yield')">
+                        <h5>Monthly</h5>
+                        <span>2.2% / Day</span>
+                    </div>
+                    <div class="plan-chip" onclick="selectPlan(this, 3.0, 15, 'Pro Trader')">
+                        <h5>Pro</h5>
+                        <span>3.0% / Day</span>
+                    </div>
+                    <div class="plan-chip" onclick="selectPlan(this, 4.0, 45, 'VIP Elite')">
+                        <h5>VIP Elite</h5>
+                        <span>4.0% / Day</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Investment Amount (USDT)</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="dollar-sign" class="input-icon"></i>
+                        <input type="number" id="invest-amount" class="form-input" placeholder="Min. 10 USDT">
+                    </div>
+                </div>
+
+                <div id="calc-feedback" class="calc-box">
+                    <div class="calc-row">
+                        <span>Daily Profit:</span>
+                        <strong id="preview-daily">0.00</strong>
+                    </div>
+                    <div class="calc-row">
+                        <span>Total Return:</span>
+                        <strong id="preview-total" style="color:var(--primary-dark);">0.00</strong>
+                    </div>
+                </div>
+
+                <button id="btn-invest" class="btn-primary w-full" style="margin-top:15px; display:none;" onclick="executeTrade()">
+                    START TRADE
+                </button>
+            </div>
+        </div>
+
+        <div id="active-trade-ui" style="display:none;">
+            <div class="active-trade-card">
+                <div style="font-size:12px; opacity:0.8; margin-bottom:5px;">
+                    <span class="pulse-dot"></span> RUNNING NOW
+                </div>
+                
+                <h2 id="at-amount" style="margin:10px 0; font-size:32px;">0.00</h2>
+                <h4 id="at-plan-name" style="color:#2ecc71; margin:0 0 20px 0;">...</h4>
+
+                <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.2); padding-top:15px;">
+                    <div style="text-align:left;">
+                        <span style="font-size:10px; opacity:0.7; display:block;">Daily Profit</span>
+                        <strong id="at-profit" style="font-size:14px;">0.00</strong>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:10px; opacity:0.7; display:block;">Time Left</span>
+                        <strong id="at-days" style="font-size:14px;">0 Days</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <p style="text-align:center; font-size:11px; color:#888; margin-top:15px; line-height:1.5;">
+                Your capital is locked until the cycle ends.<br>Profits are credited to your balance daily.
+            </p>
+        </div>
+
+        <div style="height: 30px;"></div>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item">
+            <i data-lucide="home"></i>
+            <span>Home</span>
+        </a>
+        <a href="tasks.html" class="nav-item">
+            <i data-lucide="zap"></i>
+            <span>Tasks</span>
+        </a>
+        <a href="trade.html" class="nav-item active">
+            <i data-lucide="bar-chart-2"></i>
+            <span>Trade</span>
+        </a>
+        <a href="team.html" class="nav-item">
+            <i data-lucide="users"></i>
+            <span>Team</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i data-lucide="user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+        
+        // Check URL for plan pre-fill (from Home page "Invest Now" buttons)
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const planName = params.get('plan');
+            if(planName) {
+                // Logic to auto-select the chip could go here
+                // For now, we rely on the user tapping the chip or the default
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config/supabase.js"></script>
+    <script src="js/services/auth.js"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/ui.js"></script>
+
+    <script src="js/controllers/trade.js"></script>
+
+</body>
+</html>

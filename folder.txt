@@ -1,0 +1,51 @@
+CashForge/
+│
+├── assets/                     <-- THE MISSING ASSETS FOLDER
+│   └── images/
+│       ├── logo.svg            (Used in Login/Intro/Header)
+│       ├── banner-1.png        (Home Page Slider Image 1)
+│       ├── banner-2.png        (Home Page Slider Image 2)
+│       ├── banner-3.png        (Home Page Slider Image 3)
+│       └── invite-chart.png    (Used in Team Page modal)
+│
+├── css/
+│   ├── core.css                (Theme, Variables, Reset)
+│   ├── components.css          (Buttons, Cards, Inputs)
+│   ├── layout.css              (Header, Footer, Main Container)
+│   └── pages.css               (Specific page animations)
+│
+├── js/
+│   ├── config/
+│   │   └── supabase.js         (API Keys & Initialization)
+│   │
+│   ├── services/
+│   │   └── auth.js             (Login, Register, Session)
+│   │
+│   ├── utils/
+│   │   ├── router.js           (Security: Redirects if not logged in)
+│   │   ├── ui.js               (Toast Notifications)
+│   │   └── formatters.js       (Currency & Date formatting)
+│   │
+│   └── controllers/
+│       ├── home.js             (Slider & Packages logic)
+│       ├── tasks.js            (Timer & Daily Limit logic)
+│       ├── trade.js            (Chart & Investment logic)
+│       ├── team.js             (MLM Tree & Referral Copy)
+│       ├── wallet.js           (Deposit & Withdraw logic)
+│       ├── history.js          (Transaction List logic)
+│       ├── profile.js          (User Info Display & Logout)
+│       └── settings.js         (MISSING - Needed for PIN/Password/Wallet changes)
+│
+├── index.html                  (Redirects to Intro)
+├── intro.html                  (Landing Page)
+├── login.html                  (Login Form)
+├── register.html               (Signup Form)
+├── home.html                   (Dashboard)
+├── tasks.html                  (Earning Page)
+├── trade.html                  (Investment Page)
+├── team.html                   (Referral Page)
+├── profile.html                (User Hub)
+├── deposit.html                (Add Funds)
+├── withdraw.html               (Cash Out)
+├── history.html                (Transaction Log)
+└── settings.html               (Change Password/PIN/Wallet)

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Daily Tasks</title>
+
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages.css">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* --- TASK SPECIFIC STYLES --- */
+        
+        .task-header-card {
+            background: linear-gradient(135deg, #2c3e50, #000000);
+            color: #fff;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .task-status-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 2px dashed rgba(255,255,255,0.1);
+        }
+
+        /* Processor Animation (Pulse) */
+        .pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            opacity: 0;
+            animation: pulseEffect 2s infinite;
+        }
+
+        @keyframes pulseEffect {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        /* Loader Animation (Hidden by default) */
+        .loader-active {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* LOCKED STATE UI */
+        #view-locked {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        /* ACTIVE STATE UI */
+        #view-active {
+            display: none; /* Hidden until JS unlocks it */
+            flex-direction: column;
+        }
+
+        .log-list {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            min-height: 100px;
+        }
+
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 12px;
+            color: #555;
+            animation: slideIn 0.3s ease-out;
+        }
+        .log-item:last-child { border-bottom: none; }
+        
+        .log-amount {
+            color: #2ecc71;
+            font-weight: 700;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="app-body">
+
+    <header class="app-header">
+        <div class="header-actions">
+            <a href="home.html" class="icon-btn">
+                <i data-lucide="arrow-left"></i>
+            </a>
+        </div>
+        <div class="header-title">Quantum Earnings</div>
+        <div class="header-actions">
+            <div style="background:rgba(0,139,139,0.1); padding:4px 10px; border-radius:12px; color:var(--primary-dark); font-weight:700; font-size:12px;">
+                <span id="task-balance">0.00</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-content">
+
+        <div id="view-locked">
+            <i data-lucide="lock" style="width:48px; height:48px; color:#ccc; margin-bottom:15px;"></i>
+            <h3 style="color:#555; margin:0 0 10px 0;">System Locked</h3>
+            <p style="font-size:13px; color:#888; margin-bottom:20px; line-height:1.5;">
+                You must have an active investment package to access the Quantum AI Processor.
+            </p>
+            <a href="home.html" class="btn-primary" style="text-decoration:none; padding: 10px 30px;">
+                Invest Now
+            </a>
+        </div>
+
+        <div id="view-active">
+            
+            <div class="task-header-card">
+                <div class="task-status-circle">
+                    <i id="task-illustration" data-lucide="cpu" style="width:50px; height:50px; color:var(--primary);"></i>
+                    
+                    <div id="task-loader" style="display:none;"></div>
+                    
+                    <div class="pulse-ring"></div>
+                </div>
+
+                <h3 id="task-status-text">Ready to Process</h3>
+                <p style="font-size:12px; opacity:0.7; margin-top:5px;">
+                    Tasks Remaining Today: <strong id="tasks-left" style="color:#fff;">...</strong>
+                </p>
+            </div>
+
+            <button id="btn-start-task" class="btn-primary w-full" style="margin-bottom: 25px;" onclick="startTask()">
+                START QUANTIZATION
+            </button>
+
+            <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <h4 style="margin:0; font-size:14px; color:#555;">Today's Output</h4>
+            </div>
+            
+            <div id="log-container" class="log-list">
+                <div style="text-align:center; color:#999; font-size:11px; padding:20px;">
+                    No tasks completed yet today.
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item">
+            <i data-lucide="home"></i>
+            <span>Home</span>
+        </a>
+        <a href="tasks.html" class="nav-item active">
+            <i data-lucide="zap"></i>
+            <span>Tasks</span>
+        </a>
+        <a href="trade.html" class="nav-item">
+            <i data-lucide="bar-chart-2"></i>
+            <span>Trade</span>
+        </a>
+        <a href="team.html" class="nav-item">
+            <i data-lucide="users"></i>
+            <span>Team</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i data-lucide="user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config/supabase.js"></script>
+    <script src="js/services/auth.js"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/ui.js"></script>
+
+    <script src="js/controllers/tasks.js"></script>
+
+</body>
+</html>

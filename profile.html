@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Profile</title>
+
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Specific Styles for Profile Header */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 10px;
+        }
+
+        .profile-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .profile-info h3 {
+            margin: 0;
+            font-size: 18px;
+            color: var(--text-main);
+        }
+
+        .profile-info p {
+            margin: 2px 0 5px 0;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .vip-badge {
+            display: inline-block;
+            background: #eee;
+            color: #555;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Balance Card in Profile */
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: #fff;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 139, 139, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Decorative circle */
+        .balance-card::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .balance-label {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .balance-amount {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        /* Menu List */
+        .menu-list {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f5f5f5;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: background 0.2s;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item:active {
+            background: #f9f9f9;
+        }
+
+        .menu-icon {
+            margin-right: 15px;
+            color: var(--primary-dark);
+        }
+
+        .menu-text {
+            flex-grow: 1;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .menu-arrow {
+            color: #ccc;
+            width: 16px;
+        }
+
+        /* Logout Button Area */
+        .logout-area {
+            margin-top: 25px;
+            padding: 0 20px;
+        }
+    </style>
+</head>
+<body class="app-body">
+
+    <div class="app-content" style="padding-top: 20px;">
+        
+        <div class="profile-header">
+            <img src="assets/images/avatar.png" alt="Profile" class="profile-avatar">
+            
+            <div class="profile-info">
+                <h3 id="profile-name">Loading...</h3>
+                <p id="profile-email">...</p>
+                <span id="profile-vip" class="vip-badge">VIP 0</span>
+            </div>
+        </div>
+
+        <div class="balance-card">
+            <span class="balance-label">Total Asset Valuation</span>
+            <h1 class="balance-amount" id="profile-balance">0.00</h1>
+            
+            <div style="margin-top: 15px; display:flex; justify-content:space-between; font-size:11px; opacity:0.9;">
+                <span id="profile-id">ID: ...</span>
+                <span>Invite Code: <strong id="profile-invite">...</strong></span>
+            </div>
+        </div>
+
+        <div class="menu-list">
+            
+            <a href="personal-info.html" class="menu-item">
+                <i data-lucide="user" class="menu-icon"></i>
+                <span class="menu-text">Personal Info</span>
+                <i data-lucide="chevron-right" class="menu-arrow"></i>
+            </a>
+
+            <a href="settings.html" class="menu-item">
+                <i data-lucide="settings" class="menu-icon"></i>
+                <span class="menu-text">Security & Wallet</span>
+                <i data-lucide="chevron-right" class="menu-arrow"></i>
+            </a>
+
+            <a href="history.html" class="menu-item">
+                <i data-lucide="clock" class="menu-icon"></i>
+                <span class="menu-text">Transaction History</span>
+                <i data-lucide="chevron-right" class="menu-arrow"></i>
+            </a>
+
+            <a href="support.html" class="menu-item">
+                <i data-lucide="headphones" class="menu-icon"></i>
+                <span class="menu-text">Help & Support</span>
+                <i data-lucide="chevron-right" class="menu-arrow"></i>
+            </a>
+
+        </div>
+
+        <div class="logout-area">
+            <button id="btn-logout" class="btn-primary w-full" style="background: #fff; color: #e74c3c; border: 1px solid #e74c3c;">
+                Log Out
+            </button>
+        </div>
+
+        <div style="height: 30px;"></div>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item">
+            <i data-lucide="home"></i>
+            <span>Home</span>
+        </a>
+        <a href="tasks.html" class="nav-item">
+            <i data-lucide="zap"></i>
+            <span>Tasks</span>
+        </a>
+        <a href="trade.html" class="nav-item">
+            <i data-lucide="bar-chart-2"></i>
+            <span>Trade</span>
+        </a>
+        <a href="team.html" class="nav-item">
+            <i data-lucide="users"></i>
+            <span>Team</span>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <i data-lucide="user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config/supabase.js"></script>
+    <script src="js/services/auth.js"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/ui.js"></script>
+
+    <script src="js/controllers/profile.js"></script>
+
+</body>
+</html>

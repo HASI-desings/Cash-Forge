@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Settings</title>
+
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Specific Settings Styles */
+        .settings-section {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+            padding-left: 5px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .alert-box {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffeeba;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body class="app-body">
+
+    <header class="app-header">
+        <div class="header-actions">
+            <a href="profile.html" class="icon-btn">
+                <i data-lucide="arrow-left"></i>
+            </a>
+        </div>
+        <div class="header-title">Settings</div>
+        <div class="header-actions">
+            <div style="width: 32px;"></div>
+        </div>
+    </header>
+
+    <div class="app-content">
+
+        <div class="settings-section">
+            <h5 class="section-title">Withdrawal Method</h5>
+            
+            <div class="card">
+                <div class="alert-box">
+                    <i data-lucide="alert-triangle" style="width:12px; height:12px; vertical-align:middle; margin-right:5px;"></i>
+                    <strong>Important:</strong> Ensure this address is correct. Withdrawals sent to the wrong address cannot be recovered.
+                </div>
+
+                <form id="form-wallet">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Wallet Label</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="tag" class="input-icon"></i>
+                            <input type="text" id="wallet-label" class="form-input" placeholder="e.g. My Binance USDT">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">USDT (TRC20) Address</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="wallet" class="input-icon"></i>
+                            <input type="text" id="wallet-address" class="form-input" placeholder="Txxxxxxxxxxxxxxxxxxxxxx" required minlength="10">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary w-full">
+                        Save Wallet
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h5 class="section-title">Security</h5>
+
+            <div class="card">
+                <form id="form-password">
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="lock" class="input-icon"></i>
+                            <input type="password" id="new-password" class="form-input" placeholder="Min. 6 characters" required minlength="6">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary w-full" style="background: #fff; color: var(--primary-dark); border: 1px solid var(--primary-dark);">
+                        Update Password
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config/supabase.js"></script>
+    <script src="js/services/auth.js"></script>
+    <script src="js/utils/ui.js"></script>
+
+    <script src="js/controllers/settings.js"></script>
+
+</body>
+</html>

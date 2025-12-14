@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Withdraw</title>
+
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* --- WITHDRAW SPECIFIC STYLES --- */
+
+        /* Balance Display */
+        .withdraw-header-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            border: 1px solid #f0f0f0;
+        }
+
+        .balance-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .balance-val {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin: 0;
+        }
+
+        /* Rules Box */
+        .rules-box {
+            background: #fdf2f2; /* Light red/pink tint for caution */
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .rules-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #c0392b;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .rules-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .rules-list li {
+            font-size: 11px;
+            color: #555;
+            margin-bottom: 4px;
+            position: relative;
+            padding-left: 10px;
+        }
+
+        .rules-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #e74c3c;
+        }
+
+        /* Form Styling additions */
+        select.form-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23008b8b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 10px auto;
+        }
+    </style>
+</head>
+<body class="app-body">
+
+    <header class="app-header">
+        <div class="header-actions">
+            <a href="home.html" class="icon-btn">
+                <i data-lucide="arrow-left"></i>
+            </a>
+        </div>
+        <div class="header-title">Cash Out</div>
+        <div class="header-actions">
+            <a href="history.html" class="icon-btn">
+                <i data-lucide="clock"></i>
+            </a>
+        </div>
+    </header>
+
+    <div class="app-content">
+
+        <div class="withdraw-header-card">
+            <span class="balance-label">Available to Withdraw</span>
+            <h1 class="balance-val" id="avail-balance">Loading...</h1>
+        </div>
+
+        <div class="rules-box">
+            <div class="rules-title">
+                <i data-lucide="alert-circle" style="width:14px; height:14px;"></i>
+                Withdrawal Policy
+            </div>
+            <ul class="rules-list">
+                <li>Minimum withdrawal is <strong>10 USDT</strong>.</li>
+                <li>Standard Fee: <strong>5%</strong> per transaction.</li>
+                <li>Processing Time: 24 - 48 Hours.</li>
+                <li><strong>7-Day Cycle:</strong> You can only withdraw once every 7 days.</li>
+                <li>Ensure your wallet address (TRC20) is correct.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <form id="withdraw-form" onsubmit="handleWithdraw(event)">
+                
+                <div class="form-group">
+                    <label class="form-label">Select Wallet</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="credit-card" class="input-icon"></i>
+                        <select id="wallet-select" class="form-input" required>
+                            <option value="" disabled selected>Loading wallets...</option>
+                            </select>
+                    </div>
+                    <small style="display:block; text-align:right; margin-top:5px;">
+                        <a href="settings.html" style="color:var(--primary); font-size:11px; text-decoration:none;">Add New Wallet &rarr;</a>
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Amount (USDT)</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="dollar-sign" class="input-icon"></i>
+                        <input type="number" id="amount" class="form-input" placeholder="Min 10" required min="10">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Transaction PIN</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="lock" class="input-icon"></i>
+                        <input type="password" id="pin" class="form-input" placeholder="Enter 6-digit PIN" required maxlength="6">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary w-full" style="background: #e74c3c; border:none; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);">
+                    Confirm Withdraw
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config/supabase.js"></script>
+    <script src="js/services/auth.js"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/ui.js"></script>
+
+    <script src="js/controllers/wallet.js"></script>
+
+</body>
+</html>

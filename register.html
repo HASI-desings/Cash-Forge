@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Register</title>
+
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/components.css">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Reusing Login Layout */
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 30px 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .auth-logo {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 10px;
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        
+        .auth-links a {
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="app-body">
+
+    <div class="glass-panel auth-container">
+        
+        <div class="auth-header">
+            <img src="assets/images/logo.svg" alt="Logo" class="auth-logo">
+            <h2 style="color: var(--primary-dark);">Create Account</h2>
+            <p style="font-size: 12px; color: #666;">Start your investment journey</p>
+        </div>
+
+        <form id="register-form" onsubmit="handleRegister(event)">
+            
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <div class="input-wrapper">
+                    <i data-lucide="user" class="input-icon"></i>
+                    <input type="text" id="full-name" class="form-input" placeholder="John Doe" required minlength="2">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <div class="input-wrapper">
+                    <i data-lucide="mail" class="input-icon"></i>
+                    <input type="email" id="email" class="form-input" placeholder="name@example.com" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-wrapper">
+                    <i data-lucide="lock" class="input-icon"></i>
+                    <input type="password" id="password" class="form-input" placeholder="Min. 6 characters" required minlength="6">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Referral Code (Optional)</label>
+                <div class="input-wrapper">
+                    <i data-lucide="users" class="input-icon"></i>
+                    <input type="text" id="referral-code" class="form-input" placeholder="e.g. RUDY88">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary w-full" id="btn-submit">
+                CREATE ACCOUNT
+            </button>
+
+        </form>
+
+        <div class="auth-links">
+            <span>Already have an account?</span>
+            <a href="login.html">Login Here</a>
+        </div>
+        
+    </div>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config/supabase.js"></script>
+    <script src="js/services/auth.js"></script>
+    <script src="js/utils/ui.js"></script>
+
+    <script>
+        // 1. Auto-fill Referral Code from URL (e.g., ?ref=CODE)
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const refCode = urlParams.get('ref');
+            if (refCode) {
+                const input = document.getElementById('referral-code');
+                input.value = refCode;
+                input.readOnly = true; // Lock it if it came from a link
+                input.style.background = "#f0fdf4"; // Light green hint
+            }
+        });
+
+        // 2. Handle Form Submit
+        async function handleRegister(e) {
+            e.preventDefault();
+
+            const fullName = document.getElementById('full-name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const referralCode = document.getElementById('referral-code').value;
+            const btn = document.getElementById('btn-submit');
+
+            // UI Loading
+            btn.innerHTML = 'Creating Account...';
+            btn.disabled = true;
+
+            // Call Auth Service
+            // Note: register(email, password, fullName, referralCode)
+            const response = await AuthService.register(email, password, fullName, referralCode);
+
+            if (response.success) {
+                UI.toast("Registration Successful!", "success");
+                
+                // If Supabase requires email confirmation, show message.
+                // Otherwise, redirect to Login.
+                setTimeout(() => {
+                    // Check if session exists (auto-login) or redirect to login
+                    if (response.session) {
+                         window.location.href = 'home.html';
+                    } else {
+                         // Usually means email confirmation is ON
+                         alert("Please check your email to confirm your account.");
+                         window.location.href = 'login.html';
+                    }
+                }, 1500);
+
+            } else {
+                UI.toast(response.message, "error");
+                btn.innerHTML = 'CREATE ACCOUNT';
+                btn.disabled = false;
+            }
+        }
+    </script>
+
+</body>
+</html>

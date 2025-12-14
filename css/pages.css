@@ -1,0 +1,254 @@
+/* =========================================
+   1. HOME PAGE (Slider & Packages)
+   ========================================= */
+
+/* Banner Slider */
+.banner-slider {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.slider-track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.5s ease-in-out;
+}
+
+.slide {
+    min-width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Package List - The "Envelope" Logic */
+.packages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding-bottom: 20px;
+}
+
+.package-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.package-item.open {
+    box-shadow: 0 10px 25px rgba(0, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* The Visible Face */
+.pkg-banner-face {
+    padding: 20px;
+    background: linear-gradient(90deg, #f0ffff 0%, #ffffff 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    border-left: 5px solid var(--primary);
+}
+
+.pkg-info h3 { margin: 0; font-size: 16px; color: #222; }
+.pkg-info span { font-size: 11px; color: #666; font-weight: 500; }
+.pkg-price { font-weight: 800; font-size: 18px; color: var(--primary-dark); }
+
+/* The Hidden Details (Slide Down Animation) */
+.pkg-details {
+    max-height: 0;
+    overflow: hidden;
+    background: #fafafa;
+    transition: max-height 0.4s cubic-bezier(0, 1, 0, 1); /* Smooth ease-out */
+    border-top: 1px solid #eee;
+}
+
+.package-item.open .pkg-details {
+    max-height: 500px; /* Arbitrary large height to allow expansion */
+    transition: max-height 0.4s ease-in-out;
+}
+
+.details-grid {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.stat-box {
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #eee;
+}
+
+/* =========================================
+   2. TASKS PAGE (Timer & Lock)
+   ========================================= */
+
+/* Locked State */
+.locked-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.lock-icon-wrapper {
+    width: 100px;
+    height: 100px;
+    background: #f0f0f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+}
+
+/* Active State & Loader */
+.active-state {
+    display: none; /* Toggled by JS */
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loader-ring {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid var(--primary);
+    margin-bottom: 30px;
+}
+
+.loader-active {
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* =========================================
+   3. TRADE PAGE (Charts & Chips)
+   ========================================= */
+
+/* Horizontal Plan Scroller */
+.plan-scroller {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 5px;
+    padding-bottom: 15px; /* Space for scrollbar if visible */
+    margin-bottom: 10px;
+    scrollbar-width: none;
+}
+.plan-scroller::-webkit-scrollbar { display: none; }
+
+.plan-chip {
+    flex: 0 0 auto; /* Don't shrink */
+    min-width: 120px;
+    background: #f8f9fa;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 15px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.plan-chip.active {
+    background: #e0ffff;
+    border-color: var(--primary);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 255, 255, 0.3);
+}
+
+.plan-name { display: block; font-size: 11px; font-weight: 700; color: #555; margin-bottom: 4px; }
+.plan-rate { display: block; font-size: 16px; font-weight: 800; color: var(--primary-dark); }
+
+/* Hidden Invest Button Animation */
+#btn-invest {
+    display: none;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* =========================================
+   4. TEAM PAGE (Modal & Tree)
+   ========================================= */
+
+/* Chart Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 20px;
+    padding: 25px;
+    text-align: center;
+    animation: slideUpFade 0.4s ease-out;
+}
+
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(50px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   5. PROFILE & SETTINGS
+   ========================================= */
+
+/* Asset Card */
+.asset-card {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 20px;
+    padding: 25px;
+    color: #fff;
+    margin-bottom: 25px;
+    box-shadow: 0 10px 25px rgba(0, 139, 139, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+/* QR Code Placeholder */
+.qr-placeholder {
+    width: 160px;
+    height: 160px;
+    background: #fff;
+    border: 2px dashed #ccc;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px auto;
+}

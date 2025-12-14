@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Dashboard</title>
+
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages.css">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        /* Quick Action Grid specific to Home */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            color: #555;
+            text-align: center;
+        }
+
+        .action-icon-box {
+            width: 45px;
+            height: 45px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            color: var(--primary-dark);
+            transition: transform 0.2s;
+        }
+
+        .action-item:active .action-icon-box {
+            transform: scale(0.9);
+        }
+
+        /* Section Title */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 0 5px;
+        }
+        .section-header h3 {
+            font-size: 16px;
+            color: var(--text-main);
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="app-body">
+
+    <header class="app-header">
+        <div class="user-welcome">
+            <small>Welcome back,</small>
+            <h4 id="user-name">Loading...</h4>
+        </div>
+        
+        <div class="header-actions">
+            <div class="balance-badge">
+                <span style="font-size: 9px; color: #888;">Balance</span>
+                <span id="user-balance" style="font-weight: 800; color: var(--primary-dark);">0.00</span>
+            </div>
+            <span id="vip-badge" class="badge badge-primary">VIP 0</span>
+        </div>
+    </header>
+
+    <div class="app-content">
+
+        <div class="banner-slider">
+            <div class="slider-track">
+                <div class="slide" style="background-image: url('assets/images/banner-1.png');"></div>
+                <div class="slide" style="background-image: url('assets/images/banner-2.png');"></div>
+                <div class="slide" style="background-image: url('assets/images/banner-3.png');"></div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <a href="deposit.html" class="action-item">
+                <div class="action-icon-box"><i data-lucide="wallet"></i></div>
+                <span>Deposit</span>
+            </a>
+            <a href="withdraw.html" class="action-item">
+                <div class="action-icon-box"><i data-lucide="arrow-up-circle"></i></div>
+                <span>Withdraw</span>
+            </a>
+            <a href="https://t.me/YOUR_TELEGRAM_LINK" target="_blank" class="action-item">
+                <div class="action-icon-box"><i data-lucide="send"></i></div>
+                <span>Channel</span>
+            </a>
+            <a href="#" class="action-item" onclick="alert('App coming soon!')">
+                <div class="action-icon-box"><i data-lucide="smartphone"></i></div>
+                <span>App</span>
+            </a>
+        </div>
+
+        <div class="section-header">
+            <h3>Investment Plans</h3>
+            <span style="font-size:11px; color:var(--primary-dark);">High Return</span>
+        </div>
+
+        <div class="packages-container">
+
+            <div class="package-item" onclick="togglePackage(this)">
+                <div class="pkg-banner-face">
+                    <div class="pkg-info">
+                        <h3>Weekly Booster</h3>
+                        <span>7 Days Cycle</span>
+                    </div>
+                    <div class="pkg-price">1.5% <small style="font-size:10px; font-weight:400;">/day</small></div>
+                </div>
+                <div class="pkg-details">
+                    <div class="details-grid">
+                        <div class="stat-box">
+                            <span style="font-size:10px; color:#888;">Min Invest</span>
+                            <strong style="display:block;">10 USDT</strong>
+                        </div>
+                        <div class="stat-box">
+                            <span style="font-size:10px; color:#888;">Total ROI</span>
+                            <strong style="display:block;">10.5%</strong>
+                        </div>
+                    </div>
+                    <div style="padding: 0 20px 20px 20px;">
+                        <button class="btn-primary w-full" onclick="goToTrade('Weekly Booster', 1.5, 7); event.stopPropagation();">
+                            Invest Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="package-item" onclick="togglePackage(this)">
+                <div class="pkg-banner-face" style="border-left-color: #f1c40f;">
+                    <div class="pkg-info">
+                        <h3>Monthly Yield</h3>
+                        <span>30 Days Cycle</span>
+                    </div>
+                    <div class="pkg-price">2.2% <small style="font-size:10px; font-weight:400;">/day</small></div>
+                </div>
+                <div class="pkg-details">
+                    <div class="details-grid">
+                        <div class="stat-box">
+                            <span style="font-size:10px; color:#888;">Min Invest</span>
+                            <strong style="display:block;">50 USDT</strong>
+                        </div>
+                        <div class="stat-box">
+                            <span style="font-size:10px; color:#888;">Total ROI</span>
+                            <strong style="display:block;">66%</strong>
+                        </div>
+                    </div>
+                    <div style="padding: 0 20px 20px 20px;">
+                        <button class="btn-primary w-full" onclick="goToTrade('Monthly Yield', 2.2, 30); event.stopPropagation();">
+                            Invest Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="package-item" onclick="togglePackage(this)">
+                <div class="pkg-banner-face" style="border-left-color: #9b59b6;">
+                    <div class="pkg-info">
+                        <h3>Pro Trader</h3>
+                        <span>15 Days Cycle</span>
+                    </div>
+                    <div class="pkg-price">3.0% <small style="font-size:10px; font-weight:400;">/day</small></div>
+                </div>
+                <div class="pkg-details">
+                    <div class="details-grid">
+                        <div class="stat-box">
+                            <span style="font-size:10px; color:#888;">Min Invest</span>
+                            <strong style="display:block;">200 USDT</strong>
+                        </div>
+                        <div class="stat-box">
+                            <span style="font-size:10px; color:#888;">Total ROI</span>
+                            <strong style="display:block;">45%</strong>
+                        </div>
+                    </div>
+                    <div style="padding: 0 20px 20px 20px;">
+                        <button class="btn-primary w-full" onclick="goToTrade('Pro Trader', 3.0, 15); event.stopPropagation();">
+                            Invest Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div> <div style="height: 20px;"></div>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item active">
+            <i data-lucide="home"></i>
+            <span>Home</span>
+        </a>
+        <a href="tasks.html" class="nav-item">
+            <i data-lucide="zap"></i>
+            <span>Tasks</span>
+        </a>
+        <a href="trade.html" class="nav-item">
+            <i data-lucide="bar-chart-2"></i>
+            <span>Trade</span>
+        </a>
+        <a href="team.html" class="nav-item">
+            <i data-lucide="users"></i>
+            <span>Team</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i data-lucide="user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config/supabase.js"></script>
+    <script src="js/services/auth.js"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/ui.js"></script>
+    <script src="js/utils/router.js"></script>
+
+    <script src="js/controllers/home.js"></script>
+
+</body>
+</html>

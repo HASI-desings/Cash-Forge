@@ -1,0 +1,187 @@
+/* =========================================
+   1. BUTTONS (Strict Implementation)
+   ========================================= */
+
+/* The Primary Button defined in Master Prompt */
+.btn-primary {
+    padding: 1.3em 3em;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    font-weight: 500;
+    color: #000;
+    background-color: #fff;
+    border: none;
+    border-radius: 45px;
+    box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease 0s;
+    cursor: pointer;
+    outline: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary:hover {
+    background-color: #23c483;
+    box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
+    color: #fff;
+    transform: translateY(-7px);
+}
+
+.btn-primary:active {
+    transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+    background-color: #ccc;
+    color: #666;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Icon Buttons (Header/Nav) */
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--primary-dark);
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+.icon-btn:hover {
+    background: rgba(0, 139, 139, 0.1);
+}
+
+/* =========================================
+   2. LOGO & BRANDING
+   ========================================= */
+
+/* The Glowing Circular Container */
+.logo-glow-wrapper {
+    width: 100px; /* Default size, override in specific pages */
+    height: 100px;
+    border-radius: 50%;
+    padding: 10px;
+    background: #ffffff;
+    /* The Cyan Glow */
+    box-shadow: 0 0 15px var(--primary), 0 0 30px rgba(0, 255, 255, 0.6);
+    border: 2px solid var(--primary-light);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo-glow-wrapper img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+/* =========================================
+   3. CARDS & CONTAINERS
+   ========================================= */
+.card {
+    background: #fff;
+    border-radius: var(--border-radius-md);
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+}
+
+/* Glassmorphism Effect (used in Login/Auth) */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* =========================================
+   4. FORMS & INPUTS
+   ========================================= */
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.form-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+    background: #fff;
+    font-family: inherit;
+}
+
+.form-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.2);
+}
+
+/* Input Wrapper for Icons */
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    color: #888;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}
+
+/* Add padding to input when icon exists */
+.input-wrapper .form-input {
+    padding-left: 45px;
+}
+
+/* =========================================
+   5. BADGES & TAGS
+   ========================================= */
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.badge-primary {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.balance-badge {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--primary-light);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1;
+    min-width: 80px;
+}

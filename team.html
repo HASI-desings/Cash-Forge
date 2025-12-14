@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Team</title>
+
+    <link rel="stylesheet" href="css/core.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* --- TEAM PAGE STYLES --- */
+
+        /* 1. Referral Card (Top) */
+        .referral-card {
+            background: linear-gradient(135deg, #2c3e50, #000000);
+            color: #fff;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .referral-title {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-row {
+            background: rgba(255,255,255,0.1);
+            border: 1px dashed rgba(255,255,255,0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .action-row strong {
+            font-family: monospace;
+            font-size: 18px;
+            letter-spacing: 2px;
+            color: #2ecc71;
+        }
+
+        /* 2. Mini Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mini-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        
+        .mini-card span {
+            font-size: 10px;
+            color: #888;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .mini-card div {
+            font-weight: 800;
+            color: var(--primary-dark);
+        }
+
+        /* 3. Level Tabs */
+        .level-tabs {
+            display: flex;
+            background: #fff;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        /* 4. Member List */
+        .member-list {
+            padding-bottom: 20px;
+        }
+
+        .member-item {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #eee; /* Default inactive color */
+        }
+
+        .member-item.active-investor {
+            border-left-color: #2ecc71; /* Green for active investors */
+        }
+
+        .mem-info h4 {
+            margin: 0;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .mem-info span {
+            font-size: 10px;
+            color: #999;
+        }
+
+        .mem-profit {
+            font-size: 11px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="app-body">
+
+    <header class="app-header">
+        <div class="header-actions">
+            <a href="home.html" class="icon-btn">
+                <i data-lucide="arrow-left"></i>
+            </a>
+        </div>
+        <div class="header-title">My Team</div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="openChartModal()">
+                <i data-lucide="info"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="app-content">
+
+        <div class="referral-card">
+            <div class="referral-title">Your Invite Code</div>
+            
+            <div class="action-row">
+                <strong>LOADING...</strong>
+                <button class="btn-primary" style="padding: 5px 15px; font-size: 10px; height: auto;" onclick="copyReferral()">
+                    COPY LINK
+                </button>
+            </div>
+            
+            <p style="font-size:10px; color:#aaa; margin:0;">
+                Share this code to earn commissions from 3 levels.
+            </p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="mini-card">
+                <span>Total Team Size</span>
+                <div style="font-size: 18px;">0</div>
+            </div>
+            <div class="mini-card">
+                <span>Active Investors</span>
+                <div style="font-size: 18px;">0</div>
+            </div>
+        </div>
+
+        <div class="level-tabs">
+            <div class="tab-btn active" onclick="switchTab(1)">Level 1</div>
+            <div class="tab-btn" onclick="switchTab(2)">Level 2</div>
+            <div class="tab-btn" onclick="switchTab(3)">Level 3</div>
+        </div>
+
+        <div id="team-list" class="member-list">
+            <div style="text-align:center; padding:30px; color:#ccc;">
+                Loading data...
+            </div>
+        </div>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item">
+            <i data-lucide="home"></i>
+            <span>Home</span>
+        </a>
+        <a href="tasks.html" class="nav-item">
+            <i data-lucide="zap"></i>
+            <span>Tasks</span>
+        </a>
+        <a href="trade.html" class="nav-item">
+            <i data-lucide="bar-chart-2"></i>
+            <span>Trade</span>
+        </a>
+        <a href="team.html" class="nav-item active">
+            <i data-lucide="users"></i>
+            <span>Team</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i data-lucide="user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <div id="chart-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#fff; width:90%; max-width:320px; padding:20px; border-radius:12px; text-align:center;">
+            <h4 style="margin-top:0;">Commission Structure</h4>
+            <img src="assets/images/invite-chart.png" alt="Chart" style="width:100%; margin:10px 0; border-radius:8px;">
+            <ul style="text-align:left; font-size:12px; color:#555; padding-left:20px;">
+                <li><strong>Level 1:</strong> 10% of deposit</li>
+                <li><strong>Level 2:</strong> 5% of deposit</li>
+                <li><strong>Level 3:</strong> 2% of deposit</li>
+            </ul>
+            <button class="btn-primary w-full" onclick="document.getElementById('chart-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config/supabase.js"></script>
+    <script src="js/services/auth.js"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/ui.js"></script>
+
+    <script src="js/controllers/team.js"></script>
+
+</body>
+</html>
