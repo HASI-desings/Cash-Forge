@@ -11,6 +11,12 @@
     <link rel="stylesheet" href="css/pages.css">
     
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Router for protection (Executes immediately) -->
+    <script type="module" src="js/utils/router.js"></script>
+
+    <!-- Controller Script - Loaded early to define startTask() -->
+    <script type="module" src="js/controllers/tasks.js"></script>
 
     <style>
         /* --- TASK SPECIFIC STYLES --- */
@@ -44,7 +50,7 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            border: 2px solid var(--primary);
+            border: 2px solid var(--primary-cyan);
             opacity: 0;
             animation: pulseEffect 2s infinite;
         }
@@ -55,18 +61,25 @@
         }
 
         /* Loader Animation (Hidden by default) */
-        .loader-active {
+        #task-loader {
+            display: none;
             width: 60px;
             height: 60px;
             border: 4px solid rgba(255,255,255,0.1);
-            border-top: 4px solid var(--primary);
+            border-top: 4px solid var(--primary-cyan); /* Use Cyan theme color */
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
 
         /* LOCKED STATE UI */
         #view-locked {
-            display: flex;
+            display: none; /* Controlled by JS init */
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -75,6 +88,7 @@
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            min-height: 300px;
         }
 
         /* ACTIVE STATE UI */
@@ -123,7 +137,7 @@
         <div class="header-title">Quantum Earnings</div>
         <div class="header-actions">
             <div style="background:rgba(0,139,139,0.1); padding:4px 10px; border-radius:12px; color:var(--primary-dark); font-weight:700; font-size:12px;">
-                <span id="task-balance">0.00</span>
+                <span id="task-balance">PKR 0.00</span>
             </div>
         </div>
     </header>
@@ -145,9 +159,12 @@
             
             <div class="task-header-card">
                 <div class="task-status-circle">
-                    <i id="task-illustration" data-lucide="cpu" style="width:50px; height:50px; color:var(--primary);"></i>
+                    <!-- Timer Display Area -->
+                    <h1 class="timer-display" style="font-size: 32px; font-weight: 800; z-index: 10;">00:75</h1>
                     
-                    <div id="task-loader" style="display:none;"></div>
+                    <i id="task-illustration" data-lucide="cpu" style="width:50px; height:50px; color:var(--primary-cyan); position: absolute; z-index: 5;"></i>
+                    
+                    <div id="task-loader"></div>
                     
                     <div class="pulse-ring"></div>
                 </div>
@@ -201,16 +218,7 @@
 
     <script>
         // Init Icons
-        lucide.createIcons();
+        window.onload = lucide.createIcons;
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    <script src="js/services/auth.js"></script>
-    <script src="js/utils/formatters.js"></script>
-    <script src="js/utils/ui.js"></script>
-
-    <script src="js/controllers/tasks.js"></script>
-
 </body>
 </html>
