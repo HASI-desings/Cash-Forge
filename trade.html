@@ -6,34 +6,40 @@
     <title>CashForge - Strategy Trade</title>
     
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/core.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/layout.css">
 
+    <!-- Router for protection (Executes immediately) -->
+    <script type="module" src="js/utils/router.js"></script>
+
+    <!-- Controller Script - Loaded early to ensure functions are available -->
+    <script type="module" src="js/controllers/trade.js"></script>
+
     <style>
         body { background: linear-gradient(180deg, #FFFFFF 0%, #E0FFFF 50%, #00FFFF 100%); min-height: 100vh; padding-bottom: 100px; }
         header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(255,255,255,0.9); position: sticky; top: 0; z-index: 50; }
-        .logo-small { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #00FFFF; box-shadow: 0 0 10px #00FFFF; overflow: hidden; display: flex; justify-content: center; align-items: center; background: white; }
-        .logo-small img { width: 80%; }
+        .logo-small-wrapper { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary-cyan); box-shadow: 0 0 10px var(--primary-cyan); overflow: hidden; display: flex; justify-content: center; align-items: center; background: white; }
+        .logo-small-wrapper i { width: 60%; height: 60%; color: var(--text-dark); }
         .page-title { font-weight: 700; text-transform: uppercase; font-size: 1.1rem; }
 
         .container { max-width: 800px; margin: 20px auto; padding: 0 20px; }
         .section-label { font-size: 0.85rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 15px; }
 
         .strategy-banner { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        .strategy-banner.selected { border: 2px solid #00FFFF; background: #f0fdff; box-shadow: 0 0 15px rgba(0,255,255,0.4); }
+        .strategy-banner.selected { border: 2px solid var(--primary-cyan); background: #f0fdff; box-shadow: 0 0 15px rgba(0,255,255,0.4); }
         .strat-info h4 { margin: 0; font-size: 1.1rem; } .strat-info span { font-size: 0.85rem; color: #64748b; }
-        .rate-val { font-weight: 800; font-size: 1.2rem; color: #008b8b; }
+        .rate-val { font-weight: 800; font-size: 1.2rem; color: var(--success-green); }
 
-        .calc-box { background: rgba(255,255,255,0.85); padding: 25px; border-radius: 20px; border: 1px solid white; }
+        .calc-box { background: rgba(255,255,255,0.85); padding: 25px; border-radius: 20px; border: 1px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         input { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; outline: none; margin-bottom: 25px; font-size: 1.1rem; }
-        input:focus { border-color: #00FFFF; }
+        input:focus { border-color: var(--primary-cyan); }
 
         .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; opacity: 0.5; pointer-events: none; transition: 0.3s; }
         .results-grid.active { opacity: 1; pointer-events: auto; }
-        .res-card { background: white; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #f1f5f9; }
-        .res-val { font-weight: 700; color: #059669; font-size: 1.1rem; }
+        .res-card { background: #f9f9f9; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #f1f5f9; }
+        .res-val { font-weight: 700; color: var(--success-green); font-size: 1.1rem; }
 
         button.trade-btn { padding: 1.3em 3em; font-size: 12px; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 500; color: #000; background-color: #fff; border: none; border-radius: 45px; box-shadow: 0px 8px 15px rgba(0,0,0,0.1); transition: 0.3s; cursor: pointer; width: 100%; margin-top: 30px; display: none; }
         button.trade-btn:hover { background-color: #23c483; color: #fff; transform: translateY(-7px); }
@@ -42,116 +48,32 @@
 <body>
 
     <header>
-        <div class="logo-small"><img src="assets/images/logo.svg"></div>
+        <div class="logo-small-wrapper"><i data-lucide="zap"></i></div>
         <div class="page-title">Strategy Trade</div>
         <i data-lucide="bar-chart-2"></i>
     </header>
 
     <div class="container">
         <div class="section-label">Select Strategy</div>
-        <div id="strategy-list"></div>
+        <div id="strategy-list">
+            <!-- Strategies injected here by trade.js -->
+        </div>
 
         <div class="section-label" style="margin-top: 30px;">Investment Calculator</div>
         <div class="calc-box">
             <input type="number" id="invest-amount" placeholder="Min. 1000 PKR">
             
             <div class="results-grid" id="results-area">
-                <div class="res-card"><div style="font-size:0.75rem; color:#94a3b8;">Daily</div><div class="res-val" id="daily-profit">0.00</div></div>
-                <div class="res-card"><div style="font-size:0.75rem; color:#94a3b8;">Total</div><div class="res-val" id="total-return">0.00</div></div>
+                <div class="res-card"><div style="font-size:0.75rem; color:#94a3b8;">Daily Profit</div><div class="res-val" id="daily-profit">PKR 0.00</div></div>
+                <div class="res-card"><div style="font-size:0.75rem; color:#94a3b8;">Total Return</div><div class="res-val" id="total-return">PKR 0.00</div></div>
             </div>
 
-            <button class="trade-btn" id="btn-invest" onclick="submitTrade()">Start Investment</button>
+            <button class="trade-btn" id="btn-invest">Start Investment</button>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    <script src="js/utils/ui.js"></script>
-
     <script>
-        lucide.createIcons();
-        let userBalance = 0; // Local Balance State
-
-        // 1. Fetch Balance
-        async function loadBalance() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if(user) {
-                const { data } = await supabase.from('users').select('balance').eq('id', user.id).single();
-                if(data) userBalance = data.balance;
-            }
-        }
-        loadBalance();
-
-        // 2. Config
-        const strategies = [
-            { name: 'Weekly Booster', rate: 1.5, days: 7 },
-            { name: 'Fortnight Blast', rate: 1.7, days: 15 },
-            { name: 'Monthly Mega', rate: 2.0, days: 30 },
-            { name: 'Quarter Plus', rate: 2.5, days: 120 }
-        ];
-        let selected = strategies[0];
-
-        // 3. Render
-        const container = document.getElementById('strategy-list');
-        strategies.forEach((s, i) => {
-            const div = document.createElement('div');
-            div.className = `strategy-banner ${i===0?'selected':''}`;
-            div.onclick = () => selectStrategy(i, div);
-            div.innerHTML = `
-                <div><h4>${s.name}</h4><span style="font-size:0.8rem; color:#64748b;">${s.days} Days</span></div>
-                <div style="text-align:right;"><span style="color:#008b8b; font-weight:800;">${s.rate}%</span></div>
-            `;
-            container.appendChild(div);
-        });
-
-        function selectStrategy(i, el) {
-            document.querySelectorAll('.strategy-banner').forEach(d => d.classList.remove('selected'));
-            el.classList.add('selected');
-            selected = strategies[i];
-            calculate();
-        }
-
-        // 4. Calculator
-        const input = document.getElementById('invest-amount');
-        const resArea = document.getElementById('results-area');
-        const btn = document.getElementById('btn-invest');
-
-        input.addEventListener('keyup', calculate);
-
-        function calculate() {
-            const val = parseFloat(input.value);
-            if(!val || val < 1000) {
-                resArea.classList.remove('active');
-                btn.style.display = 'none';
-                return;
-            }
-            resArea.classList.add('active');
-            btn.style.display = 'block';
-
-            const daily = val * (selected.rate / 100);
-            const total = val + (daily * selected.days);
-            document.getElementById('daily-profit').innerText = `PKR ${daily.toFixed(2)}`;
-            document.getElementById('total-return').innerText = `PKR ${total.toFixed(2)}`;
-        }
-
-        // 5. Submit with Validation
-        function submitTrade() {
-            const amount = parseFloat(input.value);
-
-            // CHECK 1: Min Amount
-            if(amount < 1000) {
-                showNotification('Minimum investment is PKR 1000', 'error');
-                return;
-            }
-
-            // CHECK 2: Balance Check
-            if(amount > userBalance) {
-                showNotification(`Insufficient Balance. You have PKR ${userBalance}`, 'error');
-                return;
-            }
-
-            showNotification(`Invested PKR ${amount} in ${selected.name}`, 'success');
-        }
+        window.onload = lucide.createIcons;
     </script>
 </body>
 </html>
