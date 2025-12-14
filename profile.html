@@ -11,6 +11,12 @@
     
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Router for protection (Executes immediately) -->
+    <script type="module" src="js/utils/router.js"></script>
+
+    <!-- Controller Script -->
+    <script type="module" src="js/controllers/profile.js"></script>
+
     <style>
         /* Specific Styles for Profile Header */
         .profile-header {
@@ -25,15 +31,22 @@
             width: 70px;
             height: 70px;
             border-radius: 50%;
-            border: 2px solid var(--primary);
+            border: 2px solid var(--primary-cyan); /* Use defined variable */
             object-fit: cover;
             background: #eee;
+        }
+
+        .profile-avatar i {
+            width: 50%;
+            height: 50%;
+            color: #999;
         }
 
         .profile-info h3 {
             margin: 0;
             font-size: 18px;
-            color: var(--text-main);
+            color: var(--text-dark); /* Use defined variable */
+            font-weight: 700;
         }
 
         .profile-info p {
@@ -55,7 +68,8 @@
 
         /* Balance Card in Profile */
         .balance-card {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            /* Note: primary and primary-dark are assumed to be shades of cyan/success based on core.css */
+            background: linear-gradient(135deg, var(--primary-cyan), #008b8b); 
             color: #fff;
             padding: 20px;
             border-radius: 16px;
@@ -104,7 +118,7 @@
             padding: 15px 20px;
             border-bottom: 1px solid #f5f5f5;
             text-decoration: none;
-            color: var(--text-main);
+            color: var(--text-dark);
             transition: background 0.2s;
         }
 
@@ -118,7 +132,7 @@
 
         .menu-icon {
             margin-right: 15px;
-            color: var(--primary-dark);
+            color: #008b8b; /* Darker Cyan for icon contrast */
         }
 
         .menu-text {
@@ -137,6 +151,20 @@
             margin-top: 25px;
             padding: 0 20px;
         }
+
+        /* Override for Logout Button styling */
+        .btn-logout-custom {
+            /* Inherits primary button dimensions but overrides colors */
+            background: #fff;
+            color: #e74c3c !important; 
+            border: 1px solid #e74c3c;
+            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+        }
+        .btn-logout-custom:hover {
+            background: #fdedec !important; 
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3) !important;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body class="app-body">
@@ -144,7 +172,10 @@
     <div class="app-content" style="padding-top: 20px;">
         
         <div class="profile-header">
-            <img src="assets/images/avatar.png" alt="Profile" class="profile-avatar">
+            <!-- Placeholder Avatar (using Lucide icon inside wrapper for consistency) -->
+            <div class="profile-avatar flex-center">
+                <i data-lucide="user-circle"></i>
+            </div>
             
             <div class="profile-info">
                 <h3 id="profile-name">Loading...</h3>
@@ -155,7 +186,7 @@
 
         <div class="balance-card">
             <span class="balance-label">Total Asset Valuation</span>
-            <h1 class="balance-amount" id="profile-balance">0.00</h1>
+            <h1 class="balance-amount" id="profile-balance">PKR 0.00</h1>
             
             <div style="margin-top: 15px; display:flex; justify-content:space-between; font-size:11px; opacity:0.9;">
                 <span id="profile-id">ID: ...</span>
@@ -165,7 +196,7 @@
 
         <div class="menu-list">
             
-            <a href="personal-info.html" class="menu-item">
+            <a href="profile_info.html" class="menu-item">
                 <i data-lucide="user" class="menu-icon"></i>
                 <span class="menu-text">Personal Info</span>
                 <i data-lucide="chevron-right" class="menu-arrow"></i>
@@ -177,6 +208,18 @@
                 <i data-lucide="chevron-right" class="menu-arrow"></i>
             </a>
 
+            <a href="deposit.html" class="menu-item">
+                <i data-lucide="arrow-down-circle" class="menu-icon"></i>
+                <span class="menu-text">Deposit Funds</span>
+                <i data-lucide="chevron-right" class="menu-arrow"></i>
+            </a>
+            
+            <a href="withdraw.html" class="menu-item">
+                <i data-lucide="arrow-up-circle" class="menu-icon"></i>
+                <span class="menu-text">Withdraw Funds</span>
+                <i data-lucide="chevron-right" class="menu-arrow"></i>
+            </a>
+            
             <a href="history.html" class="menu-item">
                 <i data-lucide="clock" class="menu-icon"></i>
                 <span class="menu-text">Transaction History</span>
@@ -192,7 +235,7 @@
         </div>
 
         <div class="logout-area">
-            <button id="btn-logout" class="btn-primary w-full" style="background: #fff; color: #e74c3c; border: 1px solid #e74c3c;">
+            <button id="btn-logout" class="btn-primary w-full btn-logout-custom">
                 Log Out
             </button>
         </div>
@@ -201,6 +244,7 @@
 
     </div>
 
+    <!-- Bottom Navigation -->
     <nav class="bottom-nav">
         <a href="home.html" class="nav-item">
             <i data-lucide="home"></i>
@@ -226,16 +270,7 @@
 
     <script>
         // Init Icons
-        lucide.createIcons();
+        window.onload = lucide.createIcons;
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    <script src="js/services/auth.js"></script>
-    <script src="js/utils/formatters.js"></script>
-    <script src="js/utils/ui.js"></script>
-
-    <script src="js/controllers/profile.js"></script>
-
 </body>
 </html>
