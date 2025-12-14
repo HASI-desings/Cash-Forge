@@ -2,322 +2,304 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CashForge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CashForge - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
-        /* --- 1. STRICT COLOR PALETTE & THEME --- */
+        /* --- 1. WHITE & CYAN THEME VARIABLES --- */
         :root {
-            --brand-cyan: #00FFFF;  /* The specific Cyan you requested */
-            --brand-white: #FFFFFF;
-            --text-main: #000000;
-            --text-muted: #555555;
+            /* Backgrounds */
+            --bg-body: #F4F7FA;       /* Very light grey-blue tint */
+            --bg-card: #FFFFFF;       /* Pure White */
+            --bg-nav:  #FFFFFF;
+            
+            /* Brand Colors */
+            --primary: #00bcd4;       /* VIBRANT CYAN */
+            --primary-dark: #0097a7;  /* Darker Cyan for hover */
+            --accent: #26c6da;        /* Light Cyan */
+            
+            /* Text */
+            --text-main: #2c3e50;     /* Dark Slate (Not pure black) */
+            --text-muted: #7f8c8d;    /* Grey */
+            
+            /* Borders & Shadows */
+            --border: #e1e4e8;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Soft shadow */
+            --radius: 12px;
         }
 
+        /* --- 2. RESET --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-body);
             color: var(--text-main);
-            padding-bottom: 90px;
-            
-            /* MASTER PROMPT BACKGROUND: 
-               White flows downward, mixing with Cyan at center, 
-               Cyan gets brighter at bottom (#00FFFF) */
-            background: linear-gradient(180deg, #FFFFFF 0%, #E0FFFF 50%, #00FFFF 100%);
-            background-attachment: fixed;
+            overflow-x: hidden;
         }
 
-        /* --- 2. HEADER & FOOTER (Horizontal Blend) --- */
-        header, footer {
-            /* MASTER PROMPT: Same blending effect, but horizontal */
-            background: linear-gradient(90deg, #FFFFFF 0%, #ccffff 50%, #FFFFFF 100%);
-            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-        }
+        a { text-decoration: none; color: inherit; transition: 0.3s; }
+        ul { list-style: none; }
 
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            backdrop-filter: blur(5px); /* subtle glass effect over the gradient */
-        }
-
-        /* --- 3. LOGO STYLING (Glowing Border) --- */
-        .logo-circle {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-            
-            /* MASTER PROMPT: Circumference glowing cyan lining/border */
-            border: 2px solid var(--brand-cyan);
-            box-shadow: 0 0 15px var(--brand-cyan), inset 0 0 5px var(--brand-cyan);
-            overflow: hidden;
-        }
-        
-        .logo-circle img {
-            width: 80%;
-            height: 80%;
-            object-fit: contain;
-        }
-
-        /* --- 4. BUTTON STYLING (EXACT COPY FROM PROMPT) --- */
-        button.action-btn {
-            padding: 1.3em 3em;
-            font-size: 11px; /* Scaled slightly for mobile */
-            text-transform: uppercase;
-            letter-spacing: 2.5px;
-            font-weight: 600;
-            color: #000;
-            background-color: #fff;
-            border: none;
-            border-radius: 45px;
-            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease 0s;
-            cursor: pointer;
-            outline: none;
-            width: 100%; /* Full width in mobile view */
-        }
-        
-        button.action-btn:hover {
-            background-color: #23c483;
-            box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
-            color: #fff;
-            transform: translateY(-7px);
-        }
-        
-        button.action-btn:active {
-            transform: translateY(-1px);
-        }
-
-        /* --- 5. PACKAGE BANNERS (Clean, Wide Horizontal) --- */
-        .banner-container {
+        /* --- 3. CLEAN NOTIFICATIONS (White/Cyan Style) --- */
+        #notification-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
-        .package-banner {
-            background: rgba(255, 255, 255, 0.95); /* High opacity white for contrast against Cyan bg */
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease;
-            position: relative;
-        }
-
-        .package-banner:hover {
-            transform: scale(1.01);
-        }
-
-        /* Colored Strip on Left */
-        .package-banner::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 5px;
-            background: var(--brand-cyan);
-            box-shadow: 0 0 8px var(--brand-cyan);
-        }
-
-        .banner-head {
-            padding: 20px 25px;
+        .toast {
+            background: var(--bg-card);
+            min-width: 320px;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            border-left: 5px solid var(--primary); /* Cyan Accent */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: pointer;
+            transform: translateX(150%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 0.95rem;
         }
 
-        .banner-details {
-            max-height: 0;
-            overflow: hidden;
-            background: #fcfcfc;
-            transition: max-height 0.4s ease-out;
-            border-top: 1px solid #eee;
-        }
+        .toast.show { transform: translateX(0); }
+        .toast-success { border-left-color: #00C851; }
+        .toast-error { border-left-color: #ff4444; }
 
-        .banner-details.open {
-            max-height: 500px; /* Arbitrary large height for animation */
-        }
+        .toast-content { display: flex; align-items: center; gap: 12px; }
+        .toast-icon { font-size: 1.1rem; }
+        .toast-close { background: none; border: none; font-size: 1.4rem; color: #ccc; cursor: pointer; line-height: 1; }
+        .toast-close:hover { color: var(--text-main); }
 
-        /* Grid for stats */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            padding: 20px;
-        }
-
-        .stat-box {
+        /* --- 4. HEADER --- */
+        header {
+            background-color: var(--bg-nav);
+            height: 70px;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo { font-size: 1.6rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; }
+        .logo span { color: var(--primary); } /* Cyan "Forge" */
+
+        nav ul { display: flex; gap: 30px; }
+        nav a { font-weight: 500; color: var(--text-muted); font-size: 0.9rem; }
+        nav a:hover, nav a.active { color: var(--primary); }
+        
+        .header-btn {
+            background: var(--primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .header-btn:hover { background: var(--primary-dark); color: white; }
+
+        /* --- 5. BANNER SLIDER (Horizontal Large) --- */
+        .slider-wrapper {
+            width: 100%;
+            height: 400px; /* Large height */
+            position: relative;
+            background: #eee;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+        .slide.active { opacity: 1; }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        /* --- 6. MAIN CONTENT --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            padding-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title::before {
+            content: '';
+            display: block;
+            width: 5px;
+            height: 25px;
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        /* --- CARDS --- */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 188, 212, 0.15); /* Cyan glow shadow */
+            border-color: var(--accent);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
         
-        .stat-label { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-val { font-size: 1rem; font-weight: 700; color: #000; }
-        .stat-val.profit { color: #008f8f; } /* Darker Cyan for readable text */
+        .coin-name { font-size: 1.2rem; font-weight: 600; color: var(--text-main); }
+        .coin-badge { background: #e0f7fa; color: var(--primary-dark); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+
+        .price { font-size: 2.2rem; font-weight: 700; color: var(--text-main); margin-bottom: 5px; }
+        .change { font-size: 0.95rem; font-weight: 500; }
+        .change.up { color: #00C851; }
+        .change.down { color: #ff4444; }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin-top: 25px;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover { background: var(--primary-dark); }
+        .action-btn.secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+        .action-btn.secondary:hover { border-color: var(--text-main); color: var(--text-main); }
 
     </style>
 </head>
 <body>
 
-    <header class="flex justify-between items-center px-5 py-4 shadow-sm">
-        <div class="flex items-center gap-3">
-            <div class="logo-circle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" class="w-6 h-6"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            </div>
-            <span class="text-xl font-bold tracking-wide uppercase">CashForge</span>
-        </div>
-        
-        <button class="relative p-2 rounded-full bg-white/50 hover:bg-white transition-colors">
-            <i data-lucide="bell" class="w-6 h-6 text-black"></i>
-            <span class="absolute top-1 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+    <header>
+        <div class="logo">Cash<span>Forge</span></div>
+        <nav>
+            <ul>
+                <li><a href="#" class="active">Dashboard</a></li>
+                <li><a href="#">Exchange</a></li>
+                <li><a href="#">History</a></li>
+            </ul>
+        </nav>
+        <a href="#" class="header-btn">Connect Wallet</a>
     </header>
 
-    <div class="w-full overflow-hidden bg-white/30 backdrop-blur-sm border-b border-cyan-100 py-2 mb-6">
-        <div class="whitespace-nowrap animate-[marquee_20s_linear_infinite] flex items-center">
-            <span class="mx-4 text-sm font-medium">🚀 Instant Withdrawals Live</span>
-            <span class="mx-4 text-sm font-medium">💎 Elite Package Open for Investment</span>
-            <span class="mx-4 text-sm font-medium">⚡ Join the Official Telegram Group</span>
-            <span class="mx-4 text-sm font-medium">🚀 Instant Withdrawals Live</span>
-            <span class="mx-4 text-sm font-medium">💎 Elite Package Open for Investment</span>
+    <div class="slider-wrapper">
+        <div class="slide active">
+            <img src="banner1.png" alt="Promo 1">
+        </div>
+        <div class="slide">
+            <img src="banner2.png" alt="Promo 2">
+        </div>
+        <div class="slide">
+            <img src="banner3.png" alt="Promo 3">
         </div>
     </div>
 
-    <style>
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
-    </style>
-
-    <main class="container mx-auto px-4 max-w-lg">
-        <h1 class="text-2xl font-extrabold mb-6 text-center">Investment Plans</h1>
+    <div class="container">
         
-        <div id="banner-list" class="banner-container">
+        <h2 class="section-title">Market Overview</h2>
+        
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="coin-name">Bitcoin</span>
+                    <span class="coin-badge">BTC</span>
+                </div>
+                <div class="price">$96,400.00</div>
+                <div class="change up">▲ 2.5% (24h)</div>
+                <button class="action-btn" onclick="showNotification('Processing Bitcoin Trade...', 'info')">Trade BTC</button>
             </div>
-    </main>
 
-    <footer class="fixed bottom-0 w-full flex justify-around items-center py-3 z-50 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
-        <a href="#" class="flex flex-col items-center gap-1 text-black">
-            <i data-lucide="home" class="w-5 h-5 fill-cyan-100"></i>
-            <span class="text-[10px] font-bold">Home</span>
-        </a>
-        <a href="tasks.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-black transition">
-            <i data-lucide="check-square" class="w-5 h-5"></i>
-            <span class="text-[10px] font-medium">Tasks</span>
-        </a>
-        <div class="relative -top-6">
-            <a href="trade.html" class="flex items-center justify-center w-14 h-14 rounded-full bg-black text-[#00FFFF] shadow-lg shadow-black/30 border-2 border-[#00FFFF]">
-                <i data-lucide="trending-up" class="w-6 h-6"></i>
-            </a>
+            <div class="card">
+                <div class="card-header">
+                    <span class="coin-name">Ethereum</span>
+                    <span class="coin-badge">ETH</span>
+                </div>
+                <div class="price">$5,200.50</div>
+                <div class="change up">▲ 1.2% (24h)</div>
+                <button class="action-btn" onclick="showNotification('Processing Ethereum Trade...', 'info')">Trade ETH</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="coin-name">Total Balance</span>
+                    <span class="coin-badge">USD</span>
+                </div>
+                <div class="price">$0.00</div>
+                <div class="change" style="color: var(--text-muted)">Verify identity to deposit</div>
+                <button class="action-btn secondary" onclick="showNotification('Redirecting to Deposit...', 'warning')">Deposit Funds</button>
+            </div>
         </div>
-        <a href="team.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-black transition">
-            <i data-lucide="users" class="w-5 h-5"></i>
-            <span class="text-[10px] font-medium">Team</span>
-        </a>
-        <a href="profile.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-black transition">
-            <i data-lucide="user" class="w-5 h-5"></i>
-            <span class="text-[10px] font-medium">Profile</span>
-        </a>
-    </footer>
+    </div>
 
+    <script src="js/notifications.js"></script>
     <script>
-        lucide.createIcons();
+        // Slider Logic
+        const slides = document.querySelectorAll('.slide');
+        let current = 0;
 
-        // Data from Master Prompt
-        const packages = [
-            { name: "Basic", price: 900, daily: 35, tasks: 3, monthly: 1050 },
-            { name: "Standard", price: 3900, daily: 135, tasks: 3, monthly: 4050 },
-            { name: "Advanced", price: 8900, daily: 300, tasks: 3, monthly: 9000 },
-            { name: "Pro", price: 18500, daily: 620, tasks: 3, monthly: 18600 },
-            { name: "Premium", price: 32500, daily: 1100, tasks: 5, monthly: 33000 },
-            { name: "Supreme", price: 54900, daily: 2000, tasks: 5, monthly: 60000 },
-            { name: "Elite", price: 112000, daily: 3900, tasks: 5, monthly: 117000 },
-            { name: "Ultimate", price: 250000, daily: 8500, tasks: 8, monthly: 255000 }
-        ];
+        setInterval(() => {
+            slides[current].classList.remove('active');
+            current = (current + 1) % slides.length;
+            slides[current].classList.add('active');
+        }, 5000); // 5 Seconds
 
-        const container = document.getElementById('banner-list');
-
-        packages.forEach(pkg => {
-            const el = document.createElement('div');
-            el.className = 'package-banner';
-            el.innerHTML = `
-                <div class="banner-head" onclick="toggleDetails(this)">
-                    <div>
-                        <div class="text-sm font-extrabold uppercase tracking-widest text-gray-800">${pkg.name}</div>
-                        <div class="text-[10px] text-gray-500 font-medium mt-1">Daily ROI + Tasks</div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-lg font-bold text-[#008f8f]">PKR ${pkg.price.toLocaleString()}</div>
-                        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 ml-auto mt-1 transition-transform duration-300 icon-arrow"></i>
-                    </div>
-                </div>
-                <div class="banner-details">
-                    <div class="stats-grid">
-                        <div class="stat-box">
-                            <span class="stat-label">Daily Income</span>
-                            <span class="stat-val text-green-600">+PKR ${pkg.daily}</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Monthly</span>
-                            <span class="stat-val profit">PKR ${pkg.monthly.toLocaleString()}</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Tasks Limit</span>
-                            <span class="stat-val">${pkg.tasks} / Day</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Duration</span>
-                            <span class="stat-val">Lifetime</span>
-                        </div>
-                    </div>
-                    <div class="px-6 pb-6 pt-2">
-                        <button class="action-btn" onclick="purchase('${pkg.name}', ${pkg.price})">
-                            Invest Now
-                        </button>
-                    </div>
-                </div>
-            `;
-            container.appendChild(el);
+        // Welcome Toast
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                showNotification('Welcome to CashForge', 'success');
+            }, 500);
         });
-
-        lucide.createIcons();
-
-        function toggleDetails(header) {
-            const banner = header.parentElement;
-            const details = banner.querySelector('.banner-details');
-            const arrow = banner.querySelector('.icon-arrow');
-
-            // Close others
-            document.querySelectorAll('.package-banner').forEach(b => {
-                if(b !== banner) {
-                    b.querySelector('.banner-details').classList.remove('open');
-                    b.querySelector('.icon-arrow').style.transform = 'rotate(0deg)';
-                }
-            });
-
-            // Toggle current
-            if(details.classList.contains('open')) {
-                details.classList.remove('open');
-                arrow.style.transform = 'rotate(0deg)';
-            } else {
-                details.classList.add('open');
-                arrow.style.transform = 'rotate(180deg)';
-            }
-        }
-
-        function purchase(name, price) {
-            alert(`Initiating purchase for ${name} Package (PKR ${price})`);
-        }
     </script>
 </body>
 </html>
