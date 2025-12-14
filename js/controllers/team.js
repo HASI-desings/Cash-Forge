@@ -1,7 +1,8 @@
-/**
- * Team Controller - CashForge
- * Handles Referral Code Generation, 3-Level Hierarchy Fetching, and UI Updates.
- */
+/* js/controllers/team.js */
+import { supabase } from '../config/supabase.js';
+import { getCurrentUser } from '../services/auth.js';
+import { formatCurrency } from '../utils/formatters.js';
+import { showToast } from '../utils/ui.js';
 
 const TeamController = {
     // State to hold loaded members
@@ -16,9 +17,9 @@ const TeamController = {
     async init() {
         try {
             // A. Check Session
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                window.location.href = 'index.html';
+            const sessionUser = await getCurrentUser();
+            if (!sessionUser) {
+                window.location.href = 'login.html';
                 return;
             }
 
@@ -26,7 +27,7 @@ const TeamController = {
             let { data: profile, error } = await supabase
                 .from('users')
                 .select('id, full_name, referral_code, team_size, total_commission, vip_level')
-                .eq('id', user.id)
+                .eq('id', sessionUser.id)
                 .single();
 
             if (error) throw error;
@@ -35,12 +36,14 @@ const TeamController = {
             if (!profile.referral_code) {
                 const newCode = 'CF-' + Math.random().toString(36).substring(2, 8).toUpperCase();
                 
-                await supabase
+                const { error: updateError } = await supabase
                     .from('users')
                     .update({ referral_code: newCode })
-                    .eq('id', user.id);
+                    .eq('id', sessionUser.id);
                 
-                profile.referral_code = newCode; // Update local profile
+                if (!updateError) {
+                    profile.referral_code = newCode; // Update local profile
+                }
             }
 
             this.currentUser = profile;
@@ -53,7 +56,7 @@ const TeamController = {
 
         } catch (err) {
             console.error("Init Error:", err);
-            if(typeof showNotification === 'function') showNotification("Failed to load profile", "error");
+            showToast("Failed to load profile", "error");
         }
     },
 
@@ -63,7 +66,6 @@ const TeamController = {
 
         // 1. Construct Link
         const baseUrl = window.location.origin;
-        // Adjust path if your register file is inside a folder, otherwise assume root
         const refLink = `${baseUrl}/register.html?ref=${this.currentUser.referral_code}`;
 
         // 2. Update UI Elements (IDs from team.html)
@@ -78,7 +80,7 @@ const TeamController = {
         
         // 3. Render Commission (formatted)
         if(commDisplay) {
-            commDisplay.innerText = 'PKR ' + (this.currentUser.total_commission || 0).toLocaleString();
+            commDisplay.innerText = formatCurrency(this.currentUser.total_commission || 0);
         }
     },
 
@@ -129,7 +131,7 @@ const TeamController = {
 
         } catch (error) {
             console.error("Team Load Error:", error);
-            showNotification("Failed to refresh team data", "error");
+            showToast("Failed to refresh team data", "error");
         }
     },
 
@@ -158,10 +160,10 @@ const TeamController = {
         if (!link) return;
 
         navigator.clipboard.writeText(link).then(() => {
-            showNotification("Referral Link Copied!", "success");
+            showToast("Referral Link Copied!", "success");
         }).catch(err => {
             console.error(err);
-            showNotification("Failed to copy link", "error");
+            showToast("Failed to copy link", "error");
         });
     },
 
