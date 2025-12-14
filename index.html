@@ -87,7 +87,8 @@
     
     <!-- Routing Logic in HEAD -->
     <script type="module">
-        import { supabase } from 'js/config/supabase.js';
+        // FIX: Added ./ to the module path
+        import { supabase } from './js/config/supabase.js';
 
         // Check Session logic
         const checkSessionAndRoute = async () => {
