@@ -6,192 +6,73 @@
     <title>CashForge - Dashboard</title>
     
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;800&display=swap" rel="stylesheet">
 
+    <!-- Project Core Styles -->
     <link rel="stylesheet" href="css/core.css">
-    <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/home.css">
 
-    <style>
-        /* Theme: White -> Cyan Gradient */
-        body {
-            background: linear-gradient(180deg, #FFFFFF 0%, #E0FFFF 45%, #00FFFF 100%);
-            min-height: 100vh;
-            padding-bottom: 80px;
-        }
-
-        /* Header */
-        header {
-            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
-            background: rgba(255, 255, 255, 0.95); position: sticky; top: 0; z-index: 100;
-            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.15); backdrop-filter: blur(8px);
-        }
-
-        .logo-wrapper {
-            width: 50px; height: 50px; border-radius: 50%; background: white;
-            border: 2px solid #00FFFF; box-shadow: 0 0 15px #00FFFF;
-            display: flex; justify-content: center; align-items: center; overflow: hidden;
-        }
-        .logo-wrapper img { width: 80%; height: auto; }
-        .header-balance { text-align: right; }
-        .balance-label { font-size: 0.75rem; color: #64748b; font-weight: 500; text-transform: uppercase; }
-        .balance-value { font-size: 1.1rem; font-weight: 800; color: #008b8b; }
-
-        /* Slider */
-        .slider-container { width: 100%; height: 220px; position: relative; overflow: hidden; margin-bottom: 25px; background: #f1f5f9; }
-        .slide { position: absolute; width: 100%; height: 100%; opacity: 0; transition: opacity 0.6s ease; }
-        .slide.active { opacity: 1; }
-        .slide img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* Packages */
-        .content-container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
-        .section-header { font-size: 1.4rem; font-weight: 700; margin-bottom: 20px; color: #0f172a; border-left: 5px solid #00FFFF; padding-left: 15px; text-transform: uppercase; }
-
-        .pkg-banner { background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 255, 255, 0.3); margin-bottom: 15px; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); }
-        .pkg-header { padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #ffffff 0%, #f0fdff 100%); }
-        .pkg-name { font-size: 1.2rem; font-weight: 800; text-transform: uppercase; }
-        .pkg-price { font-size: 1.1rem; font-weight: 700; color: #008b8b; }
-
-        .pkg-details { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; background: #ffffff; }
-        .pkg-details.open { max-height: 400px; border-top: 1px solid #f1f5f9; }
-        .details-grid { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .d-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; }
-        .d-value { font-size: 1rem; font-weight: 600; color: #334155; }
-
-        /* Button */
-        button.action-btn { padding: 1.3em 3em; font-size: 12px; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 500; color: #000; background-color: #fff; border: none; border-radius: 45px; box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1); transition: all 0.3s ease 0s; cursor: pointer; outline: none; grid-column: span 2; margin: 15px auto 0 auto; display: block; }
-        button.action-btn:hover { background-color: #23c483; box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4); color: #fff; transform: translateY(-7px); }
-        button.action-btn:active { transform: translateY(-1px); }
-    </style>
+    <!-- Router for protection (Executes immediately) -->
+    <script type="module" src="js/utils/router.js"></script>
+    
+    <!-- CONTROLLER SCRIPT -->
+    <script type="module" src="js/controllers/home.js"></script>
 </head>
-<body>
+<body class="app-body">
 
     <header>
-        <div class="logo-wrapper"><img src="assets/images/logo.svg" alt="Logo"></div>
+        <div class="logo-wrapper"><i data-lucide="zap" style="width: 60%; height: 60%;"></i></div>
         <div class="header-balance">
             <div class="balance-label">Available Balance</div>
-            <div class="balance-value" id="display-balance">Loading...</div>
+            <div class="balance-value" id="display-balance">PKR 0.00</div>
         </div>
-        <i data-lucide="menu" style="cursor: pointer;"></i>
+        <a href="profile.html" class="icon-btn" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;"><i data-lucide="user" style="width: 20px;"></i></a>
     </header>
 
+    <!-- SLIDER CONTAINER -->
     <div class="slider-container" id="home-slider">
-        <div class="slide active"><img src="assets/images/banner-1.png"></div>
-        <div class="slide"><img src="assets/images/banner-2.png"></div>
-        <div class="slide"><img src="assets/images/banner-3.png"></div>
+        <!-- These are placeholders for your assets/images/banner-x.png -->
+        <div class="slide active"><div style="background:#00FFFF; opacity:0.8; height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">Banner 1: Start Earning!</div></div>
+        <div class="slide"><div style="background:#2ecc71; opacity:0.8; height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">Banner 2: Check Tasks</div></div>
+        <div class="slide"><div style="background:#f39c12; opacity:0.8; height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">Banner 3: New Plans</div></div>
     </div>
 
     <div class="content-container">
         <h2 class="section-header">Investment Plans</h2>
-        <div id="packages-wrapper"></div>
+        <div id="packages-wrapper">
+            <!-- Packages injected here by home.js -->
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    <script src="js/utils/ui.js"></script>
+    <!-- BOTTOM NAVIGATION (Note: Must be added to layout.css and injected or added here) -->
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item active">
+            <i data-lucide="home"></i>
+            <span>Home</span>
+        </a>
+        <a href="tasks.html" class="nav-item">
+            <i data-lucide="zap"></i>
+            <span>Tasks</span>
+        </a>
+        <a href="trade.html" class="nav-item">
+            <i data-lucide="bar-chart-2"></i>
+            <span>Trade</span>
+        </a>
+        <a href="team.html" class="nav-item">
+            <i data-lucide="users"></i>
+            <span>Team</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i data-lucide="user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
 
     <script>
-        lucide.createIcons();
-        let userBalance = 0; // GLOBAL VARIABLE TO STORE BALANCE
-
-        /* --- 1. FETCH USER DATA --- */
-        async function init() {
-            // Check User
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                // If not logged in, just show 0 for demo (or redirect)
-                document.getElementById('display-balance').innerText = "PKR 0.00";
-                return;
-            }
-
-            // Fetch Balance
-            const { data, error } = await supabase
-                .from('users')
-                .select('balance')
-                .eq('id', user.id)
-                .single();
-
-            if (data) {
-                userBalance = data.balance; // Update Global Variable
-                document.getElementById('display-balance').innerText = `PKR ${userBalance.toLocaleString()}`;
-            }
-        }
-        init(); // Run on load
-
-        /* --- 2. PACKAGES --- */
-        const packages = [
-            { name: 'Basic', price: 900, daily: 35, profit: 1050 },
-            { name: 'Standard', price: 3900, daily: 135, profit: 4050 },
-            { name: 'Advanced', price: 8900, daily: 300, profit: 9000 },
-            { name: 'Pro', price: 18500, daily: 620, profit: 18600 },
-            { name: 'Premium', price: 32500, daily: 1100, profit: 33000 },
-            { name: 'Supreme', price: 54900, daily: 2000, profit: 60000 },
-            { name: 'Elite', price: 112000, daily: 3900, profit: 117000 },
-            { name: 'Ultimate', price: 250000, daily: 8500, profit: 255000 }
-        ];
-
-        const wrapper = document.getElementById('packages-wrapper');
-        packages.forEach(pkg => {
-            const el = document.createElement('div');
-            el.className = 'pkg-banner';
-            el.onclick = function() { togglePackage(this); };
-            el.innerHTML = `
-                <div class="pkg-header">
-                    <span class="pkg-name">${pkg.name}</span>
-                    <span class="pkg-price">PKR ${pkg.price.toLocaleString()}</span>
-                </div>
-                <div class="pkg-details">
-                    <div class="details-grid">
-                        <div><span class="d-label">Daily Income</span><br><span class="d-value">PKR ${pkg.daily}</span></div>
-                        <div><span class="d-label">Total Profit</span><br><span class="d-value">PKR ${pkg.profit.toLocaleString()}</span></div>
-                        <div><span class="d-label">Contract</span><br><span class="d-value">30 Days</span></div>
-                        <div><span class="d-label">Tasks</span><br><span class="d-value">3 / Day</span></div>
-                        <button class="action-btn" onclick="handlePurchase('${pkg.name}', ${pkg.price}, event)">Purchase Plan</button>
-                    </div>
-                </div>
-            `;
-            wrapper.appendChild(el);
-        });
-
-        function togglePackage(el) {
-            const details = el.querySelector('.pkg-details');
-            const isOpen = details.classList.contains('open');
-            document.querySelectorAll('.pkg-details').forEach(d => d.classList.remove('open'));
-            if (!isOpen) details.classList.add('open');
-        }
-
-        /* --- 3. PURCHASE LOGIC (WITH VALIDATION) --- */
-        async function handlePurchase(name, price, event) {
-            event.stopPropagation();
-            
-            // STRICT LOGIC: Check if Balance is Sufficient
-            if (userBalance < price) {
-                showNotification(`Insufficient Balance! You need PKR ${price.toLocaleString()}`, 'error');
-                return; // STOP EXECUTION
-            }
-
-            // If Balance is Okay:
-            showNotification(`Purchasing ${name} Package...`, 'info');
-            
-            // Call Backend (Simulated here)
-            // const { error } = await supabase.rpc('purchase_package', { pkg_price: price, pkg_name: name });
-            
-            setTimeout(() => {
-                showNotification(`Success! ${name} Activated.`, 'success');
-                // Update local balance simulation
-                userBalance -= price;
-                document.getElementById('display-balance').innerText = `PKR ${userBalance.toLocaleString()}`;
-            }, 1500);
-        }
-
-        /* --- 4. SLIDER --- */
-        let idx = 0;
-        const slides = document.querySelectorAll('.slide');
-        setInterval(() => {
-            slides[idx].classList.remove('active');
-            idx = (idx + 1) % slides.length;
-            slides[idx].classList.add('active');
-        }, 3000);
+        window.onload = lucide.createIcons;
     </script>
 </body>
 </html>
