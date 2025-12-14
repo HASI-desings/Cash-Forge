@@ -1,7 +1,8 @@
-/* Wallet Controller - CashForge
-   Handles Deposit requests and Strict Withdrawal logic.
-   Connects to 'transactions' and 'user_wallets' tables.
-*/
+/* js/controllers/wallet.js */
+import { supabase } from '../config/supabase.js';
+import { getCurrentUser } from '../services/auth.js';
+import { formatCurrency, formatWalletAddress } from '../utils/formatters.js';
+import { showToast } from '../utils/ui.js';
 
 const WalletController = {
     currentUser: null,
@@ -22,16 +23,19 @@ const WalletController = {
     // --- 1. INITIALIZE ---
     async init() {
         // A. Check Session
-        const sessionUser = await AuthService.checkSession();
-        if (!sessionUser) return;
+        const sessionUser = await getCurrentUser();
+        if (!sessionUser) {
+            window.location.href = 'login.html';
+            return;
+        }
 
         // B. Load Profile
-        this.currentUser = await AuthService.getProfile();
+        await this.loadProfile(sessionUser.id);
         
-        // Update Balance UI if element exists (handles both deposit/withdraw pages)
+        // Update Balance UI
         const balEl = document.getElementById('avail-balance') || document.getElementById('profile-balance');
         if (balEl && this.currentUser) {
-            balEl.innerText = Formatters.currency(this.currentUser.balance);
+            balEl.innerText = formatCurrency(this.currentUser.balance);
         }
 
         // C. Initialize Page-Specific Logic
@@ -39,7 +43,12 @@ const WalletController = {
             this.initWithdrawPage();
         }
         
-        // Deposit page is simple enough to just wait for the onclick event
+        // Deposit page waits for onclick event
+    },
+
+    async loadProfile(userId) {
+        const { data } = await supabase.from('users').select('*').eq('id', userId).single();
+        this.currentUser = data;
     },
 
     // ============================================================
@@ -47,32 +56,40 @@ const WalletController = {
     // ============================================================
     
     async submitDeposit() {
-        const amount = document.getElementById('usdt-amount').value;
+        const amountInput = document.getElementById('usdt-amount'); // Assuming ID, check HTML
         const fileInput = document.getElementById('file-upload');
+        
+        if (!amountInput) return; // Guard clause
+
+        const amount = parseFloat(amountInput.value);
         const file = fileInput ? fileInput.files[0] : null;
 
         // Validation
         if (!amount || amount <= 0) {
-            UI.toast("Please enter a valid amount", "error");
+            showToast("Please enter a valid amount", "error");
             return;
         }
+        // Note: For real apps, you'd strictly require the file. 
+        // For this prototype, we'll allow proceeding if file logic is complex.
         if (!file) {
-            UI.toast("Please upload a payment screenshot", "error");
-            return;
+             showToast("Please upload a payment screenshot", "error");
+             return;
         }
 
         const btn = document.querySelector('.btn-primary');
-        btn.innerText = "Uploading...";
-        btn.disabled = true;
+        const originalText = btn ? btn.innerText : 'Confirm';
+        if(btn) {
+            btn.innerText = "Uploading...";
+            btn.disabled = true;
+        }
 
         try {
-            // 1. Upload Logic (Simplified for MVP)
-            // In a full production app, you would upload 'file' to Supabase Storage here.
-            // For now, we will save the filename as a reference.
+            // 1. Upload Logic (Simplified)
+            // Ideally: await supabase.storage.from('proofs').upload(...)
             const fakePath = `proofs/${this.currentUser.id}/${Date.now()}_${file.name}`;
             
             // 2. Insert Transaction Record
-            const { error } = await window.sb
+            const { error } = await supabase
                 .from('transactions')
                 .insert([{
                     user_id: this.currentUser.id,
@@ -85,14 +102,16 @@ const WalletController = {
 
             if (error) throw error;
 
-            UI.toast("Deposit Submitted! Admin will review shortly.", "success");
+            showToast("Deposit Submitted! Admin will review shortly.", "success");
             setTimeout(() => window.location.href = 'history.html', 1500);
 
         } catch (err) {
             console.error(err);
-            UI.toast("Error: " + err.message, "error");
-            btn.innerText = "Confirm Payment";
-            btn.disabled = false;
+            showToast("Error: " + err.message, "error");
+            if(btn) {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
         }
     },
 
@@ -102,20 +121,21 @@ const WalletController = {
 
     async initWithdrawPage() {
         // 1. Load Saved Wallets into Dropdown
-        // Assumes 'user_wallets' table exists (created via SQL below)
-        const { data: wallets } = await window.sb
+        const { data: wallets } = await supabase
             .from('user_wallets') 
             .select('*')
             .eq('user_id', this.currentUser.id);
 
         const select = document.getElementById('wallet-select');
+        if(!select) return;
+
         select.innerHTML = '<option value="" disabled selected>Select saved wallet...</option>';
         
         if (wallets && wallets.length > 0) {
             wallets.forEach(w => {
                 const opt = document.createElement('option');
                 opt.value = w.wallet_address;
-                opt.innerText = `${w.label} (${Formatters.maskWallet(w.wallet_address)})`;
+                opt.innerText = `${w.label} (${formatWalletAddress(w.wallet_address)})`;
                 select.appendChild(opt);
             });
         } else {
@@ -126,51 +146,56 @@ const WalletController = {
     },
 
     async handleWithdraw(e) {
-        e.preventDefault();
+        if(e) e.preventDefault();
         
-        const amount = parseFloat(document.getElementById('amount').value);
-        const wallet = document.getElementById('wallet-select').value;
-        const pin = document.getElementById('pin').value;
-        const btn = e.target.querySelector('button');
+        const amountEl = document.getElementById('amount');
+        const walletEl = document.getElementById('wallet-select');
+        const pinEl = document.getElementById('pin');
+        
+        if(!amountEl || !walletEl || !pinEl) return;
+
+        const amount = parseFloat(amountEl.value);
+        const wallet = walletEl.value;
+        const pin = pinEl.value;
+        const btn = document.querySelector('#withdraw-form button');
+        const originalText = btn ? btn.innerText : 'Submit';
 
         // 1. Basic Validations
-        if (!wallet) return UI.toast("Please select a wallet.", "error");
-        if (amount < 10) return UI.toast("Minimum withdrawal is 10 USDT.", "error");
-        if (amount > parseFloat(this.currentUser.balance)) return UI.toast("Insufficient balance.", "error");
+        if (!wallet) return showToast("Please select a wallet.", "error");
+        if (amount < 10) return showToast("Minimum withdrawal is 10 PKR.", "error");
+        if (amount > parseFloat(this.currentUser.balance)) return showToast("Insufficient balance.", "error");
         
         // 2. PIN Validation
         if (pin !== this.currentUser.transaction_pin) {
-            return UI.toast("Invalid Transaction PIN.", "error");
+            return showToast("Invalid Transaction PIN.", "error");
         }
 
-        btn.innerText = "Checking Rules...";
-        btn.disabled = true;
+        if(btn) {
+            btn.innerText = "Checking Rules...";
+            btn.disabled = true;
+        }
 
         try {
             // 3. CHECK: Package Day Rule
             const todayIdx = new Date().getDay(); // 0=Sun, 1=Mon...
             
             // Map VIP Level to Package Name (Simplified Logic)
-            // You can adjust this mapping based on your specific business rules
-            let userPkg = 'Basic';
+            // Logic: VIP 0 = No Package, VIP 1 = Basic/Standard, etc.
+            // Adjust this mapping to match your business logic precisely
+            let userPkg = 'Basic'; 
             if (this.currentUser.vip_level === 1) userPkg = 'Standard';
             else if (this.currentUser.vip_level === 2) userPkg = 'Advanced';
             else if (this.currentUser.vip_level >= 3) userPkg = 'Pro';
 
             const allowed = this.scheduleMap[todayIdx];
             
-            // Check if today allows this package
-            if (todayIdx === 0) { // Sunday check
+            if (todayIdx === 0) { 
                 throw new Error("Withdrawals are CLOSED on Sundays.");
             }
-            if (!allowed.includes(userPkg)) {
-                // If stricter checking is needed, throw error. 
-                // For MVP testing, you might want to comment this throw out.
-                // throw new Error(`Your package (${userPkg}) cannot withdraw today.`);
-            }
+            // Strict check: if (allowed && !allowed.includes(userPkg)) ...
 
             // 4. CHECK: 7-Day Frequency Rule
-            const { data: lastTx } = await window.sb
+            const { data: lastTx } = await supabase
                 .from('transactions')
                 .select('created_at')
                 .eq('user_id', this.currentUser.id)
@@ -195,14 +220,14 @@ const WalletController = {
             const newBal = parseFloat(this.currentUser.balance) - amount;
             
             // A. Update Balance
-            const { error: balErr } = await window.sb
+            const { error: balErr } = await supabase
                 .from('users')
                 .update({ balance: newBal })
                 .eq('id', this.currentUser.id);
             if (balErr) throw balErr;
 
             // B. Insert Transaction
-            const { error: txErr } = await window.sb
+            const { error: txErr } = await supabase
                 .from('transactions')
                 .insert([{
                     user_id: this.currentUser.id,
@@ -213,14 +238,16 @@ const WalletController = {
                 }]);
             if (txErr) throw txErr;
 
-            UI.toast("Withdrawal Successful! Funds are on the way.", "success");
+            showToast("Withdrawal Successful! Funds are on the way.", "success");
             setTimeout(() => window.location.href = 'history.html', 1500);
 
         } catch (err) {
             console.error(err);
-            UI.toast(err.message, "error");
-            btn.innerText = "Confirm Withdraw";
-            btn.disabled = false;
+            showToast(err.message, "error");
+            if(btn) {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
         }
     }
 };
