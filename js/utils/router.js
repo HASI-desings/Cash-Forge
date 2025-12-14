@@ -1,4 +1,5 @@
 /* js/utils/router.js */
+// FIX: Ensure path is relative from js/utils to js/config
 import { supabase } from '../config/supabase.js';
 
 // Automatically execute when imported
