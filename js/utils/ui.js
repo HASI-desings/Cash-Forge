@@ -1,100 +1,70 @@
-/* UI Utility - CashForge
-   Handles global UI elements like Toast Notifications and formatting.
-   
-   Usage: 
-   UI.toast('Login Successful', 'success');
-   UI.toast('Insufficient Funds', 'error');
-*/
+/**
+ * CashForge Notification System
+ * Handles the display of clean, "built-in" toast notifications.
+ * Dependency: Ensure 'toast' classes are defined in your css/core.css
+ */
 
-const UI = {
+/**
+ * Displays a toast notification on the screen.
+ * @param {string} message - The text to display.
+ * @param {string} type - 'success', 'error', 'info', or 'warning'.
+ */
+function showNotification(message, type = 'info') {
+    // 1. Get the notification container
+    let container = document.getElementById('toast-container');
     
-    // --- 1. TOAST NOTIFICATIONS ---
-    // Types: 'success', 'error', 'info'
-    toast(message, type = 'info') {
-        // Create container if it doesn't exist
-        let container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            container.style.cssText = `
-                position: fixed;
-                top: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 9999;
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-                width: 90%;
-                max-width: 350px;
-            `;
-            document.body.appendChild(container);
-        }
-
-        // Define Colors based on type
-        const colors = {
-            success: { bg: '#eafaf1', border: '#2ecc71', text: '#27ae60', icon: 'check-circle' },
-            error:   { bg: '#fdedec', border: '#e74c3c', text: '#c0392b', icon: 'alert-circle' },
-            info:    { bg: '#e0ffff', border: '#00FFFF', text: '#008b8b', icon: 'info' }
-        };
-        const style = colors[type] || colors.info;
-
-        // Create Toast Element
-        const toastEl = document.createElement('div');
-        toastEl.style.cssText = `
-            background: ${style.bg};
-            border-left: 5px solid ${style.border};
-            color: ${style.text};
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            font-size: 13px;
-            font-weight: 600;
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: all 0.3s ease;
-        `;
-
-        // Icon Logic (using Lucide data-name if available, or simple SVG)
-        // Since we can't easily inject lucide <i data-lucide> dynamically without re-running createIcons(),
-        // we will use simple text/emoji or innerHTML for speed.
-        let iconHtml = '';
-        if(type === 'success') iconHtml = '<span style="margin-right:10px; font-size:16px;">✓</span>';
-        if(type === 'error') iconHtml = '<span style="margin-right:10px; font-size:16px;">✕</span>';
-        if(type === 'info') iconHtml = '<span style="margin-right:10px; font-size:16px;">ℹ</span>';
-
-        toastEl.innerHTML = `${iconHtml}<span>${message}</span>`;
-        container.appendChild(toastEl);
-
-        // Animate In
-        requestAnimationFrame(() => {
-            toastEl.style.opacity = '1';
-            toastEl.style.transform = 'translateY(0)';
-        });
-
-        // Auto Dismiss
-        setTimeout(() => {
-            toastEl.style.opacity = '0';
-            toastEl.style.transform = 'translateY(-20px)';
-            setTimeout(() => toastEl.remove(), 300);
-        }, 3000); // 3 Seconds display time
-    },
-
-    // --- 2. FORMATTERS ---
-    formatCurrency(amount) {
-        return parseFloat(amount).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    },
-
-    formatDate(dateString) {
-        const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString('en-US', options);
+    // 2. If container doesn't exist, create it dynamically
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        // Append to body
+        document.body.appendChild(container);
     }
-};
 
-// Expose globally
-window.UI = UI;
+    // 3. Create the toast element
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`; // e.g., "toast success"
+    
+    // 4. Determine the icon based on type
+    let icon = 'ℹ️'; // Default Info
+    if (type === 'success') icon = '✅';
+    if (type === 'error') icon = '⛔';
+    if (type === 'warning') icon = '⚠️';
+
+    // 5. Construct the HTML structure
+    toast.innerHTML = `
+        <div class="toast-content">
+            <span class="toast-icon">${icon}</span>
+            <span class="toast-message">${message}</span>
+        </div>
+        <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
+    `;
+
+    // 6. Add to the container (Visible on screen)
+    container.appendChild(toast);
+
+    // 7. Auto-remove logic (4 Seconds)
+    // We set a timer to trigger the fade-out animation
+    setTimeout(() => {
+        removeToast(toast);
+    }, 4000);
+}
+
+/**
+ * Helper function to remove a toast with animation.
+ * @param {HTMLElement} toastElement 
+ */
+function removeToast(toastElement) {
+    // Check if already removed to prevent errors
+    if (!toastElement || !toastElement.parentElement) return;
+
+    // Add fade-out animation class (must be defined in CSS)
+    toastElement.style.animation = 'fadeOutRight 0.5s ease forwards';
+    
+    // Wait for animation to finish, then remove from DOM
+    setTimeout(() => {
+        if (toastElement.parentElement) {
+            toastElement.remove();
+        }
+    }, 500); // Matches animation duration
+}
