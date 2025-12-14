@@ -1,51 +1,50 @@
 CashForge/
 │
-├── assets/                     <-- THE MISSING ASSETS FOLDER
+├── assets/
 │   └── images/
-│       ├── logo.svg            (Used in Login/Intro/Header)
-│       ├── banner-1.png        (Home Page Slider Image 1)
-│       ├── banner-2.png        (Home Page Slider Image 2)
-│       ├── banner-3.png        (Home Page Slider Image 3)
-│       └── invite-chart.png    (Used in Team Page modal)
+│       ├── logo.svg           (Logo)
+│       ├── banner-1.png       (Home Slider)
+│       ├── banner-2.png
+│       ├── banner-3.png
+│       └── invite-chart.png   (Team Modal)
 │
 ├── css/
-│   ├── core.css                (Theme, Variables, Reset)
-│   ├── components.css          (Buttons, Cards, Inputs)
-│   ├── layout.css              (Header, Footer, Main Container)
-│   └── pages.css               (Specific page animations)
+│   ├── core.css               (THEME: Colors, Gradients, Fonts, Reset)
+│   ├── components.css         (THE BUTTONS, Cards, Inputs, Modals)
+│   ├── layout.css             (Navbar, Sidebar, Footer)
+│   └── toast.css              (Notification styles)
 │
 ├── js/
 │   ├── config/
-│   │   └── supabase.js         (API Keys & Initialization)
+│   │   └── supabase.js        (Connection to Database)
 │   │
 │   ├── services/
-│   │   └── auth.js             (Login, Register, Session)
+│   │   └── auth.js            (Login/Register/Logout logic)
 │   │
 │   ├── utils/
-│   │   ├── router.js           (Security: Redirects if not logged in)
-│   │   ├── ui.js               (Toast Notifications)
-│   │   └── formatters.js       (Currency & Date formatting)
+│   │   ├── ui.js              (Toasts, Loaders, Header Injection)
+│   │   └── formatters.js      (Currency formatting)
 │   │
 │   └── controllers/
-│       ├── home.js             (Slider & Packages logic)
-│       ├── tasks.js            (Timer & Daily Limit logic)
-│       ├── trade.js            (Chart & Investment logic)
-│       ├── team.js             (MLM Tree & Referral Copy)
-│       ├── wallet.js           (Deposit & Withdraw logic)
-│       ├── history.js          (Transaction List logic)
-│       ├── profile.js          (User Info Display & Logout)
-│       └── settings.js         (MISSING - Needed for PIN/Password/Wallet changes)
+│       ├── home.js            (Slider & Packages)
+│       ├── tasks.js           (Timer logic)
+│       ├── trade.js           (Investment logic)
+│       ├── team.js            (Referral Tree)
+│       ├── wallet.js          (Deposit/Withdraw)
+│       ├── history.js         (Transaction logs)
+│       ├── profile.js         (User info)
+│       └── settings.js        (Password & Wallet Config)
 │
-├── index.html                  (Redirects to Intro)
-├── intro.html                  (Landing Page)
-├── login.html                  (Login Form)
-├── register.html               (Signup Form)
-├── home.html                   (Dashboard)
-├── tasks.html                  (Earning Page)
-├── trade.html                  (Investment Page)
-├── team.html                   (Referral Page)
-├── profile.html                (User Hub)
-├── deposit.html                (Add Funds)
-├── withdraw.html               (Cash Out)
-├── history.html                (Transaction Log)
-└── settings.html               (Change Password/PIN/Wallet)
+├── index.html                 (Redirects to Intro)
+├── intro.html                 (Landing)
+├── login.html
+├── register.html
+├── home.html                  (Dashboard Main)
+├── tasks.html
+├── trade.html
+├── team.html
+├── profile.html
+├── deposit.html
+├── withdraw.html
+├── history.html
+└── settings.html
