@@ -1,7 +1,8 @@
 /* js/controllers/profile.js */
-import { supabase } from '../config/supabase.js';
 import { getCurrentUser, logout } from '../services/auth.js';
-import { formatCurrency } from '../utils/formatters.js';
+import { supabase } from '../config/supabase.js';
+import { formatCurrency, maskEmail } from '../utils/formatters.js';
+import { showToast } from '../utils/ui.js';
 
 const ProfileController = {
     currentUser: null,
@@ -10,10 +11,7 @@ const ProfileController = {
     async init() {
         // A. Check Session
         const sessionUser = await getCurrentUser();
-        if (!sessionUser) {
-            window.location.href = 'login.html';
-            return;
-        }
+        if (!sessionUser) return; // Router handles redirect
 
         // B. Get Full Profile
         await this.loadProfile(sessionUser.id);
@@ -26,8 +24,15 @@ const ProfileController = {
         const logoutBtn = document.getElementById('btn-logout');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
+                // Use browser confirm as a final user check before executing logout
+                const confirmed = confirm("Are you sure you want to log out?");
+                if (!confirmed) return;
+                
+                // Show immediate feedback
+                showToast("Logging out...", "info");
+                
                 await logout();
-                window.location.href = 'intro.html';
+                // The logout function in auth.js handles the redirect to intro.html
             });
         }
     },
@@ -45,6 +50,7 @@ const ProfileController = {
             this.currentUser = data;
         } catch (err) {
             console.error("Error loading profile:", err);
+            showToast("Failed to load profile details.", "error");
         }
     },
 
@@ -53,7 +59,7 @@ const ProfileController = {
         const u = this.currentUser;
         if (!u) return;
 
-        // IDs must match your profile.html structure
+        // IDs from profile.html
         const elements = {
             name: document.getElementById('profile-name'),
             email: document.getElementById('profile-email'),
@@ -63,38 +69,30 @@ const ProfileController = {
             invite: document.getElementById('profile-invite')
         };
 
-        // Helper to mask email (e.g., jo***@gmail.com)
-        const maskEmail = (email) => {
-            if (!email) return '';
-            const [name, domain] = email.split('@');
-            if (name.length <= 2) return email;
-            return `${name.substring(0, 2)}***@${domain}`;
-        };
-
         // Update Text Content
         if (elements.name) elements.name.innerText = u.full_name || 'CashForge User';
-        if (elements.email) elements.email.innerText = maskEmail(u.email);
+        if (elements.email) elements.email.innerText = maskEmail(u.email); // Use formatter to mask email
         
         // Balance
-        if (elements.balance) elements.balance.innerText = formatCurrency(u.balance);
+        if (elements.balance) elements.balance.innerText = formatCurrency(u.balance || 0);
         
         // VIP Level
         if (elements.vip) {
-            elements.vip.innerText = `VIP ${u.vip_level}`;
-            // Optional: Change color based on level
-            if (u.vip_level > 0) {
-                elements.vip.style.background = "linear-gradient(135deg, #ffd700, #f39c12)";
+            const level = u.vip_level || 0;
+            elements.vip.innerText = `VIP ${level}`;
+            // Simple color logic for VIP status
+            if (level > 0) {
+                elements.vip.style.background = "linear-gradient(90deg, #ffc107, #f39c12)";
                 elements.vip.style.color = "#fff";
-                elements.vip.style.padding = "2px 8px";
-                elements.vip.style.borderRadius = "10px";
+                elements.vip.style.boxShadow = "0 2px 5px rgba(243, 156, 18, 0.5)";
             }
         }
 
-        // User ID (UUID) - Show only first chunk for brevity
+        // User ID (UUID) - Show only first chunk
         if (elements.id) elements.id.innerText = `ID: ${u.id.split('-')[0]}`;
 
         // Referral Code
-        if (elements.invite) elements.invite.innerText = u.referral_code || '---';
+        if (elements.invite) elements.invite.innerText = u.referral_code || 'N/A';
     }
 };
 
