@@ -6,17 +6,36 @@
     <title>CashForge - My Team</title>
     
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/core.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/layout.css">
 
+    <!-- Router for protection (Executes immediately) -->
+    <script type="module" src="js/utils/router.js"></script>
+
+    <!-- Controller Script - Loaded early to define global functions -->
+    <script type="module" src="js/controllers/team.js"></script>
+
     <style>
         body {
-            background: linear-gradient(180deg, #FFFFFF 0%, #E0FFFF 50%, #00FFFF 100%);
+            /* Using background gradient variable from core.css */
             min-height: 100vh;
             padding-bottom: 100px;
+        }
+        
+        /* Header Fix: Ensure background and alignment */
+        header { 
+            padding: 15px 20px; 
+            background: rgba(255,255,255,0.95); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky; 
+            top: 0; 
+            z-index: 50;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         /* Invite Card (Hero Section) */
@@ -30,7 +49,7 @@
             text-align: center;
         }
 
-        .invite-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 5px; color: #0f172a; }
+        .invite-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 5px; color: var(--text-dark); }
         .invite-sub { font-size: 0.85rem; color: #64748b; margin-bottom: 20px; }
 
         /* Referral Link Box */
@@ -44,6 +63,7 @@
             justify-content: space-between;
             margin-bottom: 15px;
             position: relative;
+            cursor: pointer; /* Clickable area for copy action */
         }
 
         .link-text {
@@ -77,8 +97,10 @@
             padding: 15px;
             border-radius: 15px;
             text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        .stat-val { font-size: 1.5rem; font-weight: 800; color: #008b8b; }
+        /* Note: Using --success-green for consistency */
+        .stat-val { font-size: 1.5rem; font-weight: 800; color: var(--success-green); } 
         .stat-lbl { font-size: 0.75rem; color: #64748b; text-transform: uppercase; }
 
         /* Team List Container */
@@ -94,6 +116,13 @@
             font-weight: 600; color: #334155;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.1s;
+        }
+        .team-level-btn:hover {
+            background: #f9f9f9;
+        }
+        .team-level-btn:active {
+            transform: scale(0.99);
         }
 
         /* Action Button */
@@ -104,7 +133,7 @@
             letter-spacing: 2px;
             font-weight: 600;
             color: #fff;
-            background-color: #00bcd4; /* Cyan */
+            background-color: var(--primary-cyan); /* Cyan */
             border: none;
             border-radius: 45px;
             box-shadow: 0px 8px 15px rgba(0, 188, 212, 0.3);
@@ -122,26 +151,33 @@
 </head>
 <body>
 
-    <header style="padding: 15px 20px; background: rgba(255,255,255,0.9); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50;">
-        <img src="assets/images/logo.svg" style="width: 40px;">
+    <header>
+        <div class="logo-wrapper" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"><i data-lucide="zap" style="width: 60%;"></i></div>
         <span style="font-weight: 700; font-size: 1.2rem;">My Team</span>
-        <i data-lucide="users" style="color: #0f172a;"></i>
+        <a href="profile.html"><i data-lucide="user" style="color: #0f172a;"></i></a>
     </header>
 
     <div class="invite-card">
         <div class="invite-title">Invite & Earn</div>
         <div class="invite-sub">Share your link to earn 3-Level commissions</div>
 
+        <!-- The entire box is clickable and calls copyReferral() -->
         <div class="link-box" onclick="copyReferral()">
             <span id="ref-link-display" class="link-text">Loading Link...</span>
             <button class="copy-btn"><i data-lucide="copy"></i></button>
         </div>
 
+        <!-- Hidden input to hold the full URL for copying -->
         <input type="text" id="ref-input-hidden" style="display:none;">
 
         <div style="font-size: 0.9rem; font-weight: 600; margin-top: 10px;">
             Code: <span id="ref-code-display" style="color: #00bcd4;">...</span>
         </div>
+        
+        <!-- Button to open the bonus chart modal -->
+        <button class="btn-primary" onclick="toggleModal('chart-modal')" style="padding: 0.8em 2em; margin-top: 20px; width: auto; background: #e0ffff; color: var(--text-dark); box-shadow: none;">
+             View Bonus Chart
+        </button>
 
         <button class="share-btn" onclick="shareNative()">Share Now</button>
     </div>
@@ -152,35 +188,55 @@
             <div class="stat-lbl">Team Size</div>
         </div>
         <div class="stat-card">
-            <div class="stat-val" id="total-comm">0</div>
+            <!-- Total Commission -->
+            <div class="stat-val" id="total-comm">PKR 0.00</div> 
             <div class="stat-lbl">Commission</div>
         </div>
     </div>
 
     <div class="team-section">
-        <h3 style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">TEAM DETAILS</h3>
+        <h3 style="margin-bottom: 15px; color: #64748b; font-size: 0.9rem;">TEAM LEVELS</h3>
         
-        <button class="team-level-btn" onclick="showNotification('Level 1 Members loaded', 'info')">
+        <button class="team-level-btn" onclick="showToast('Level 1 data loaded', 'info')">
             <span>Level 1 (Direct)</span>
             <span style="background: #e0f7fa; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; color: #006064;" id="lvl-1-count">0</span>
         </button>
         
-        <button class="team-level-btn" onclick="showNotification('Level 2 Members loaded', 'info')">
+        <button class="team-level-btn" onclick="showToast('Level 2 data loaded', 'info')">
             <span>Level 2</span>
             <span style="background: #e0f7fa; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; color: #006064;" id="lvl-2-count">0</span>
         </button>
 
-        <button class="team-level-btn" onclick="showNotification('Level 3 Members loaded', 'info')">
+        <button class="team-level-btn" onclick="showToast('Level 3 data loaded', 'info')">
             <span>Level 3</span>
             <span style="background: #e0f7fa; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; color: #006064;" id="lvl-3-count">0</span>
         </button>
     </div>
+    
+    <!-- Modal for Bonus Chart (Hidden by default) -->
+    <div id="chart-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: white; padding: 20px; border-radius: 15px; max-width: 90%; text-align: center;">
+            <h3 style="margin-top: 0; color: var(--text-dark);">Invitation Bonus Details</h3>
+            <!-- Placeholder for invite-chart.png -->
+            <img src="assets/images/invite-chart.png" alt="Bonus Chart" style="max-width: 100%; height: auto; border-radius: 10px; margin: 15px 0;" onerror="this.outerHTML='<div style=\'height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; border-radius: 10px;\'>Chart Placeholder</div>'">
+            <button class="btn-primary" style="width: auto; padding: 10px 20px; margin-top: 15px;" onclick="toggleModal('chart-modal')">Close</button>
+        </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config/supabase.js"></script>
-    <script src="js/utils/ui.js"></script>
-    <script src="js/controllers/team.js"></script> <script>
-        lucide.createIcons();
+
+    <script>
+        // Init Icons
+        window.onload = lucide.createIcons;
+        
+        // Modal Helper
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            if (modal.style.display === 'none') {
+                modal.style.display = 'flex';
+            } else {
+                modal.style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html>
