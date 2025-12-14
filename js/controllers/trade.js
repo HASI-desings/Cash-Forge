@@ -1,11 +1,11 @@
-/* Trade Controller - CashForge
-   Handles chart rendering, investment calculations, and trade execution.
-   Enforces "One Active Trade" rule via Supabase check.
-*/
+/* js/controllers/trade.js */
+import { supabase } from '../config/supabase.js';
+import { getCurrentUser } from '../services/auth.js';
+import { formatCurrency } from '../utils/formatters.js';
+import { showToast } from '../utils/ui.js';
 
 const TradeController = {
     currentUser: null,
-    chartInstance: null,
     
     // State for the form
     state: {
@@ -17,37 +17,48 @@ const TradeController = {
     // --- 1. INITIALIZE ---
     async init() {
         // A. Check Session
-        const sessionUser = await AuthService.checkSession();
-        if (!sessionUser) return;
+        const sessionUser = await getCurrentUser();
+        if (!sessionUser) {
+            window.location.href = 'login.html';
+            return;
+        }
 
         // B. Get Profile (for Balance)
-        this.currentUser = await AuthService.getProfile();
+        await this.loadProfile(sessionUser.id);
+        
         if (this.currentUser) {
-            document.getElementById('trade-balance').innerText = Formatters.currency(this.currentUser.balance);
+            const balEl = document.getElementById('trade-balance');
+            // Assuming header might handle this, but if page has specific balance display:
+            if(balEl) balEl.innerText = formatCurrency(this.currentUser.balance);
         }
 
         // C. Check for Existing Active Trade
         await this.checkActiveTrade();
 
-        // D. Initialize Chart
-        this.initChart();
-        
-        // E. Attach Input Listeners
+        // D. Attach Input Listeners
         this.attachListeners();
+    },
+
+    async loadProfile(userId) {
+        const { data } = await supabase.from('users').select('*').eq('id', userId).single();
+        this.currentUser = data;
     },
 
     // --- 2. CHECK ACTIVE TRADE ---
     async checkActiveTrade() {
         // Query investments where status is 'active'
-        const { data, error } = await window.sb
+        const { data, error } = await supabase
             .from('investments')
             .select('*')
             .eq('user_id', this.currentUser.id)
             .eq('status', 'active')
-            .single(); // We expect max 1 due to logic
+            .single();
 
+        // Note: Ensure your HTML has these IDs for the toggle logic to work
         const newTradeUI = document.getElementById('new-trade-ui');
         const activeTradeUI = document.getElementById('active-trade-ui');
+
+        if (!newTradeUI || !activeTradeUI) return; // Guard if HTML is missing structure
 
         if (data) {
             // SHOW ACTIVE TRADE CARD
@@ -55,17 +66,22 @@ const TradeController = {
             activeTradeUI.style.display = 'block';
 
             // Populate Data
-            document.getElementById('at-plan-name').innerText = data.plan_name;
-            document.getElementById('at-amount').innerText = Formatters.currency(data.amount);
-            document.getElementById('at-profit').innerText = Formatters.currency(data.daily_profit);
+            const nameEl = document.getElementById('at-plan-name');
+            const amtEl = document.getElementById('at-amount');
+            const profitEl = document.getElementById('at-profit');
+            const daysEl = document.getElementById('at-days');
+
+            if(nameEl) nameEl.innerText = data.plan_name;
+            if(amtEl) amtEl.innerText = formatCurrency(data.amount);
+            if(profitEl) profitEl.innerText = formatCurrency(data.daily_profit) + " / day";
             
             // Calculate Days Remaining
             const end = new Date(data.end_date);
             const now = new Date();
-            const diffTime = Math.abs(end - now);
+            const diffTime = end - now;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
             
-            document.getElementById('at-days').innerText = (diffDays > 0 ? diffDays : 0) + " Days";
+            if(daysEl) daysEl.innerText = (diffDays > 0 ? diffDays : 0) + " Days Left";
 
         } else {
             // SHOW NEW TRADE FORM
@@ -76,31 +92,36 @@ const TradeController = {
 
     // --- 3. EXECUTE TRADE ---
     async executeTrade() {
-        const amountInput = document.getElementById('invest-amount');
+        const amountInput = document.getElementById('trade-amount'); // ID matches Mega HTML
+        if (!amountInput) return;
+
         const amount = parseFloat(amountInput.value);
         const userBalance = parseFloat(this.currentUser.balance);
 
         // Validation
         if (!amount || amount <= 0) {
-            UI.toast("Please enter a valid amount.", "error");
+            showToast("Please enter a valid amount.", "error");
             return;
         }
         if (amount > userBalance) {
-            UI.toast("Insufficient Balance! Deposit funds first.", "error");
+            showToast("Insufficient Balance! Deposit funds first.", "error");
             return;
         }
 
-        if (!confirm(`Confirm investment of ${amount} USDT in ${this.state.selectedName}?`)) return;
+        if (!confirm(`Confirm investment of ${amount} PKR in ${this.state.selectedName}?`)) return;
 
         // UI Feedback
-        const btn = document.getElementById('btn-invest');
-        btn.innerText = "Processing...";
-        btn.disabled = true;
+        const btn = document.querySelector('#trade-btn-container button');
+        const originalText = btn ? btn.innerText : 'Confirm';
+        if(btn) {
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+        }
 
         try {
             // 1. Deduct Balance
             const newBalance = userBalance - amount;
-            const { error: balanceError } = await window.sb
+            const { error: balanceError } = await supabase
                 .from('users')
                 .update({ balance: newBalance })
                 .eq('id', this.currentUser.id);
@@ -114,7 +135,7 @@ const TradeController = {
             // 3. Insert Investment Record
             const dailyProfit = amount * (this.state.selectedRate / 100);
             
-            const { error: investError } = await window.sb
+            const { error: investError } = await supabase
                 .from('investments')
                 .insert([{
                     user_id: this.currentUser.id,
@@ -130,101 +151,82 @@ const TradeController = {
             if (investError) throw new Error("Investment record failed");
 
             // Success
-            UI.toast("Trade Started Successfully!", "success");
+            showToast("Trade Started Successfully!", "success");
             setTimeout(() => window.location.reload(), 1500);
 
         } catch (err) {
             console.error(err);
-            UI.toast("Transaction Failed: " + err.message, "error");
-            btn.innerText = "START TRADE";
-            btn.disabled = false;
+            showToast("Transaction Failed: " + err.message, "error");
+            if(btn) {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
         }
     },
 
     // --- 4. FORM LOGIC (Plan Selection & Math) ---
-    selectPlan(element, rate, days, name) {
+    // Matches logic from Mega HTML: selectStrategy(this, 1.5)
+    // Extended to accept days/name for DB
+    selectStrategy(element, rate, days = 7, name = 'Weekly Booster') {
         // UI Tabs
-        document.querySelectorAll('.plan-chip').forEach(c => c.classList.remove('active'));
-        element.classList.add('active');
+        document.querySelectorAll('.trade-banner').forEach(c => c.classList.remove('selected'));
+        element.classList.add('selected');
 
         // Update State
         this.state.selectedRate = rate;
-        this.state.selectedDays = days;
-        this.state.selectedName = name;
+        if(days) this.state.selectedDays = days;
+        if(name) this.state.selectedName = name;
 
         // Re-calculate
         this.updateCalculation();
     },
 
     updateCalculation() {
-        const amountInput = document.getElementById('invest-amount');
+        const amountInput = document.getElementById('trade-amount');
         const val = parseFloat(amountInput.value);
         
-        const btn = document.getElementById('btn-invest');
-        const feedback = document.getElementById('calc-feedback');
+        const btnContainer = document.getElementById('trade-btn-container');
+        const calcBox = document.getElementById('profit-calculator');
+        const profitVal = document.getElementById('calc-profit-val');
+        const totalVal = document.getElementById('calc-total-val');
 
-        if (val > 0) {
-            btn.style.display = 'block'; // Reveal Button
-            feedback.style.opacity = '1';
+        const hasStrategy = document.querySelector('.trade-banner.selected');
+
+        if (val > 0 && hasStrategy) {
+            if(btnContainer) btnContainer.classList.remove('hidden');
+            if(calcBox) calcBox.classList.remove('hidden');
 
             const daily = val * (this.state.selectedRate / 100);
-            const total = val + (daily * this.state.selectedDays);
+            const totalProfit = daily * this.state.selectedDays;
+            const totalReturn = val + totalProfit;
 
-            document.getElementById('preview-daily').innerText = daily.toFixed(2);
-            document.getElementById('preview-total').innerText = total.toFixed(2);
+            if(profitVal) profitVal.innerText = totalProfit.toFixed(2);
+            if(totalVal) totalVal.innerText = totalReturn.toFixed(2);
         } else {
-            btn.style.display = 'none';
-            feedback.style.opacity = '0';
+            if(btnContainer) btnContainer.classList.add('hidden');
+            if(calcBox) calcBox.classList.add('hidden');
         }
     },
 
     attachListeners() {
-        const input = document.getElementById('invest-amount');
+        const input = document.getElementById('trade-amount');
         if(input) {
             input.addEventListener('input', () => this.updateCalculation());
         }
-        
-        // Expose functions to window for HTML onclick events
-        window.selectPlan = (el, r, d, n) => this.selectPlan(el, r, d, n);
-        window.executeTrade = () => this.executeTrade();
-    },
-
-    // --- 5. CHART RENDERER ---
-    initChart() {
-        const ctx = document.getElementById('tradeChart');
-        if (!ctx) return;
-
-        // Gradient
-        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 200);
-        gradient.addColorStop(0, 'rgba(0, 255, 255, 0.5)');
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-        this.chartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25'],
-                datasets: [{
-                    label: 'Market Trend',
-                    data: [12, 19, 15, 25, 22, 30],
-                    borderColor: '#008b8b',
-                    backgroundColor: gradient,
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { x: { display: false }, y: { display: false } }
-            }
-        });
     }
 };
 
 // Start
 document.addEventListener('DOMContentLoaded', () => {
     TradeController.init();
+    
+    // Expose functions to window for HTML onclick events
+    // Note: HTML must now pass (this, 1.5, 7, 'Weekly Booster') or we default inside function
+    window.selectStrategy = (el, r, d, n) => TradeController.selectStrategy(el, r, d, n);
+    
+    // The Mega HTML uses a generic checkTradeInput, we override it or attach to button
+    const confirmBtn = document.querySelector('#trade-btn-container button');
+    if(confirmBtn) {
+        confirmBtn.onclick = () => TradeController.executeTrade();
+    }
 });
