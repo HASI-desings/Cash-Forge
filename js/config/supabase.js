@@ -1,23 +1,13 @@
-/* CashForge - Supabase Configuration
-   
-   CRITICAL STEP: 
-   You MUST include the Supabase SDK in every HTML file's <head> section 
-   for this to work. Paste this line into your HTML files:
-   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-*/
+/* js/config/supabase.js */
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-const SUPABASE_URL = 'https://rredrilsugmxxkjiwndd.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZWRyaWxzdWdteHhraml3bmRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3MDE0MzksImV4cCI6MjA4MTI3NzQzOX0.0yT_a8L9Unjvy4PEFCdZX9U3pgGJokXBTZakBdWqw8k';
+// --- PRODUCTION KEYS ---
+// These are the actual keys from your context, used for initialization.
+const supabaseUrl = 'https://rredrilsugmxxkjiwndd.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyZWRyaWxzdWdteHhraml3bmRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3MDE0MzksImV4cCI6MjA4MTI3NzQzOX0.0yT_a8L9Unjvy4PEFCdZX9U3pgGJokXBTZakBd1qw8k';
 
-// Check if the library is loaded
-if (typeof supabase === 'undefined') {
-    console.error('CRITICAL ERROR: Supabase SDK is not loaded. Please add the CDN script tag to your HTML head.');
-} else {
-    // Initialize the Supabase Client
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Initialize the Supabase client and EXPORT it as 'supabase'
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    // Make it available globally as 'sb' (shorthand)
-    window.sb = supabaseClient;
-    
-    console.log("Supabase initialized successfully.");
-}
+// Log initialization status for debugging
+console.log("Supabase client initialized successfully with production keys.");
