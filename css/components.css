@@ -22,7 +22,7 @@
 }
 
 .btn-primary:hover {
-    background-color: #23c483;
+    background-color: #23c483; /* Success Green */
     box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
     color: #fff;
     transform: translateY(-7px);
@@ -44,7 +44,7 @@
 .icon-btn {
     background: transparent;
     border: none;
-    color: var(--primary-dark);
+    color: var(--primary-dark); /* Use primary-dark (dark cyan) for icons */
     padding: 8px;
     cursor: pointer;
     display: flex;
@@ -54,7 +54,7 @@
     transition: background 0.2s;
 }
 .icon-btn:hover {
-    background: rgba(0, 139, 139, 0.1);
+    background: rgba(0, 139, 139, 0.1); /* Light cyan hover effect */
 }
 
 /* =========================================
@@ -68,12 +68,13 @@
     border-radius: 50%;
     padding: 10px;
     background: #ffffff;
-    /* The Cyan Glow */
-    box-shadow: 0 0 15px var(--primary), 0 0 30px rgba(0, 255, 255, 0.6);
-    border: 2px solid var(--primary-light);
+    /* The Cyan Glow: Assuming --primary is defined as the main cyan color */
+    box-shadow: 0 0 15px var(--primary-cyan), 0 0 30px rgba(0, 255, 255, 0.6);
+    border: 2px solid var(--primary-cyan);
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden; /* Important for containing the logo.svg or icon */
 }
 
 .logo-glow-wrapper img {
@@ -87,7 +88,7 @@
    ========================================= */
 .card {
     background: #fff;
-    border-radius: var(--border-radius-md);
+    border-radius: 12px; /* Using explicit pixel value as variable --border-radius-md is undefined */
     padding: 20px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     margin-bottom: 15px;
@@ -98,7 +99,7 @@
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-radius: var(--border-radius-lg);
+    border-radius: 20px; /* Using explicit pixel value as variable --border-radius-lg is undefined */
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -133,7 +134,7 @@
 }
 
 .form-input:focus {
-    border-color: var(--primary);
+    border-color: var(--primary-cyan);
     box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.2);
 }
 
